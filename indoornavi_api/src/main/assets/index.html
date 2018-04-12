@@ -4,77 +4,12 @@
      </head>
 
      <body>
-          <button disabled id="toggle10999" onclick="toggle10999()">Toggle 10999</button>
-          <button disabled id="drawINPolyline" onclick="drawINPolyline()">Draw Polyline</button>
-          <button disabled id="removeINPolyline" onclick="removeINPolyline()">Remove Polyline</button>
-          <button disabled id="drawINArea" onclick="drawINArea()"> Draw Area</button>
-          <button disabled id="removeINArea" onclick="removeINArea()">Remove Area</button>
-          <button disabled id="addListener" onclick="addListener()">Add Area listener</button>
-          <button disabled id="addINMarker_1" onclick="addINMarker_1()">Add Marker 1</button>
-          <button disabled id="removeINMarker_1" onclick="removeINMarker_1()">Remove Marker 1</button>
-          <button disabled id="addINMarker_2" onclick="addINMarker_2()">Add Marker 2</button>
-          <button disabled id="removeINMarker_2" onclick="removeINMarker_2()">Remove Marker 2</button>
-
-          <div id="map">
-
-          </div>
-
+          <div id="map"></div>
      </body>
 
      <script src='indoorNavi.js' type='text/javascript'></script>
 
      <script>
-          function enableButtons() {
-             document.getElementById('toggle10999').removeAttribute('disabled');
-             document.getElementById('drawINPolyline').removeAttribute('disabled');
-             document.getElementById('removeINPolyline').removeAttribute('disabled');
-             document.getElementById('drawINArea').removeAttribute('disabled');
-             document.getElementById('removeINArea').removeAttribute('disabled');
-             document.getElementById('addINMarker_1').removeAttribute('disabled');
-             document.getElementById('removeINMarker_1').removeAttribute('disabled');
-             document.getElementById('addINMarker_2').removeAttribute('disabled');
-             document.getElementById('removeINMarker_2').removeAttribute('disabled');
-          }
-
-         function toggle10999() {
-             JSInterface.toggle10999();
-         }
-
-         function addListener() {
-             JSInterface.addListener()
-         }
-
-         function drawINPolyline() {
-             JSInterface.drawINPolyline();
-         }
-
-         function removeINPolyline() {
-             JSInterface.removeINPolyline();
-         }
-
-         function drawINArea() {
-             JSInterface.drawINArea();
-         }
-
-         function removeINArea() {
-             JSInterface.removeINArea();
-         }
-
-         function addINMarker_1() {
-             JSInterface.addINMarker_1();
-         }
-
-         function addINMarker_2() {
-             JSInterface.addINMarker_2();
-         }
-
-         function removeINMarker_1() {
-             JSInterface.removeINMarker_1();
-         }
-
-         function removeINMarker_2() {
-             JSInterface.removeINMarker_2();
-         }
-          </script>
+     </script>
 
 </html>

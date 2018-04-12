@@ -3,18 +3,14 @@ package co.blastlab.indoornavi_api;
 import android.content.Context;;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.webkit.ValueCallback;;
 import android.webkit.WebView;
 
 import java.io.InputStream;
 
 import co.blastlab.indoornavi_api.web_view.IndoorWebChromeClient;
 import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
-import co.blastlab.indoornavi_api.web_view.JavaScriptInterface;
 
 public class INMap extends WebView {
-
-	private JavaScriptInterface JSInterface;
 
 	private Context context;
 
@@ -28,12 +24,11 @@ public class INMap extends WebView {
 
 		loadWebViewFromAssets();
 		init();
-		setJSInterface();
 	}
 
 	public void load(int mapId)
 	{
-		String javaScriptString = String.format("navi.load(%d).then(enableButtons());", mapId);
+		String javaScriptString = String.format("navi.load(%d);", mapId);
 		this.evaluateJavascript(javaScriptString, null);
 	}
 
@@ -44,12 +39,12 @@ public class INMap extends WebView {
 
 		this.getSettings().setJavaScriptEnabled(true);
 		this.getSettings().setDomStorageEnabled(true);
-		//this.getSettings().setUseWideViewPort(true);
+		this.getSettings().setUseWideViewPort(true);
 		this.getSettings().setLoadWithOverviewMode(true);
 
 		this.getSettings().setAllowFileAccess(false);
 		this.getSettings().setAllowFileAccessFromFileURLs(false);
-		this.getSettings().setAllowUniversalAccessFromFileURLs(false);
+		this.getSettings().setAllowUniversalAccessFromFileURLs(true);
 		this.getSettings().setAllowContentAccess(false);
 	}
 
@@ -61,25 +56,10 @@ public class INMap extends WebView {
 		JS_InMapCreate();
 	}
 
-	public void JS_InMapCreate() {
-		float scaleX = getScaleX();
-		float scaleY = getScaleY();
-		Log.i(Constants.LOG, String.format("onReceiveValue: x = %f, y = %f", scaleX, scaleY));
-
+	private void JS_InMapCreate() {
 		String javaScriptString = String.format(Constants.indoorNaviInitialization, targetHost, apiKey, 1200, 850);
 		Log.i(Constants.LOG, "javaScriptString: " + javaScriptString);
-		this.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
-			@Override
-			public void onReceiveValue(String s) {
-				Log.i(Constants.LOG, "onReceiveValue: " + s);
-			}
-		});
-	}
-
-	private void setJSInterface() {
-
-		JSInterface = new JavaScriptInterface(context);
-		this.addJavascriptInterface(JSInterface, "JSInterface");
+		this.evaluateJavascript(javaScriptString, null);
 	}
 
 	private void loadWebViewFromAssets() {

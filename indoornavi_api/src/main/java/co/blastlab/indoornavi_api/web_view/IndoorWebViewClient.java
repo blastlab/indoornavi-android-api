@@ -4,13 +4,16 @@ import android.annotation.TargetApi;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.io.IOException;
 import java.io.InputStream;
 
+import co.blastlab.indoornavi_api.Constants;
 import co.blastlab.indoornavi_api.INMap;
 import co.blastlab.indoornavi_api.callback.OnViewReadyCallback;
 
@@ -40,14 +43,16 @@ public class IndoorWebViewClient extends WebViewClient {
 	@SuppressWarnings("deprecated")
 	@Override
 	public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-		try {
-			AssetManager assets = view.getContext().getAssets();
-			Uri uri = Uri.parse(url);
-			InputStream stream = assets.open(uri.getPath(), AssetManager.ACCESS_STREAMING);
-			WebResourceResponse response = new WebResourceResponse("text/html", "UTF-8", stream);
-			return response;
-		}
-		catch(Exception e) {
+		if (url.contains("Navi.js")) {
+			try {
+				AssetManager assets = view.getContext().getAssets();
+				Uri uri = Uri.parse(url);
+				InputStream stream = assets.open(uri.getPath(), AssetManager.ACCESS_STREAMING);
+				WebResourceResponse response = new WebResourceResponse("text/html", "UTF-8", stream);
+				return response;
+			} catch (IOException e) {
+				Log.e(Constants.LOG, "InputStream error " + e);
+			}
 		}
 		return super.shouldInterceptRequest(view, url);
 	}
@@ -55,14 +60,18 @@ public class IndoorWebViewClient extends WebViewClient {
 	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-		try {
-			AssetManager assets = view.getContext().getAssets();
-			Uri uri = Uri.parse(request.getUrl().getEncodedPath());
-			InputStream stream = assets.open(uri.getPath(), AssetManager.ACCESS_STREAMING);
-			WebResourceResponse response = new WebResourceResponse("text/html", "UTF-8", stream);
-			return response;
-		}
-		catch(Exception e) {
+
+		if (request.getUrl().getEncodedPath().contains("Navi.js")) {
+			try {
+				AssetManager assets = view.getContext().getAssets();
+				Uri uri = Uri.parse(request.getUrl().getEncodedPath());
+				InputStream stream = assets.open(uri.getPath(), AssetManager.ACCESS_STREAMING);
+				WebResourceResponse response = new WebResourceResponse("text/html", "UTF-8", stream);
+				return response;
+			} catch (IOException e) {
+				Log.e(Constants.LOG, "InputStream error " + e);
+			}
+
 		}
 		return super.shouldInterceptRequest(view, request);
 	}
