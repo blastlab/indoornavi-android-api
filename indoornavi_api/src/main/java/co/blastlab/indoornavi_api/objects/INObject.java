@@ -1,5 +1,6 @@
 package co.blastlab.indoornavi_api.objects;
 
+import android.util.Log;
 import android.webkit.ValueCallback;
 
 import org.jdeferred.Deferred;
@@ -35,7 +36,7 @@ public class INObject {
 		Deferred deferred = new DeferredObject();
 		Promise promise = deferred.promise();
 
-		int promiseId = Constants.promiseMap.size();
+		int promiseId = promise.hashCode();
 		Constants.promiseMap.put(promiseId, deferred);
 
 		String javaScriptString = String.format("%s.ready().then(() => inObjectInterface.ready(%d));", object, promiseId);
