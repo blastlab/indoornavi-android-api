@@ -1,22 +1,25 @@
-package co.blastlab.indoornavi_api;
+package co.blastlab.indoornavi_api.objects;
 
-import android.content.Context;;
+import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
+
 import android.webkit.WebView;
 
 import java.io.InputStream;
 
+import co.blastlab.indoornavi_api.Constants;
+import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
 import co.blastlab.indoornavi_api.web_view.IndoorWebChromeClient;
 import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 
 public class INMap extends WebView {
 
+	public INObjectInterface inObjectInterface;
 	private Context context;
 
 	private String targetHost;
 	private String apiKey;
-
 
 	public INMap(Context context, AttributeSet attributeSet){
 		super(context, attributeSet);
@@ -24,6 +27,7 @@ public class INMap extends WebView {
 
 		loadWebViewFromAssets();
 		init();
+		interfaceInit();
 	}
 
 	public void load(int mapId)
@@ -58,7 +62,6 @@ public class INMap extends WebView {
 
 	private void JS_InMapCreate() {
 		String javaScriptString = String.format(Constants.indoorNaviInitialization, targetHost, apiKey, 1200, 850);
-		Log.i(Constants.LOG, "javaScriptString: " + javaScriptString);
 		this.evaluateJavascript(javaScriptString, null);
 	}
 
@@ -77,8 +80,14 @@ public class INMap extends WebView {
 		}
 		catch (Exception e)
 		{
-			Log.e(Constants.LOG, "Loading assets exception" + e);
+			Log.e("Load assets exception :", e.toString());
 		}
 		this.loadDataWithBaseURL("file:///android_asset/", str, "text/html", "UTF-8",null);
+	}
+
+	private void interfaceInit()
+	{
+		inObjectInterface  = new INObjectInterface();
+		this.addJavascriptInterface(inObjectInterface, "inObjectInterface");
 	}
 }

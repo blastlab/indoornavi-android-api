@@ -13,8 +13,7 @@ import android.webkit.WebViewClient;
 import java.io.IOException;
 import java.io.InputStream;
 
-import co.blastlab.indoornavi_api.Constants;
-import co.blastlab.indoornavi_api.INMap;
+import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.callback.OnViewReadyCallback;
 
 public class IndoorWebViewClient extends WebViewClient {
@@ -51,7 +50,7 @@ public class IndoorWebViewClient extends WebViewClient {
 				WebResourceResponse response = new WebResourceResponse("text/html", "UTF-8", stream);
 				return response;
 			} catch (IOException e) {
-				Log.e(Constants.LOG, "InputStream error " + e);
+				Log.e("InputStream exception :", e.toString());
 			}
 		}
 		return super.shouldInterceptRequest(view, url);
@@ -69,7 +68,7 @@ public class IndoorWebViewClient extends WebViewClient {
 				WebResourceResponse response = new WebResourceResponse("text/html", "UTF-8", stream);
 				return response;
 			} catch (IOException e) {
-				Log.e(Constants.LOG, "InputStream error " + e);
+				Log.e("InputStream exception :", e.toString());
 			}
 
 		}
