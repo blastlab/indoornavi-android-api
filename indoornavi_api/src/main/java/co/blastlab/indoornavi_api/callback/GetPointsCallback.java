@@ -3,13 +3,13 @@ package co.blastlab.indoornavi_api.callback;
 import android.graphics.Point;
 
 import java.util.List;
-
-import co.blastlab.indoornavi_api.objects.INPolyline;
-
 /**
- * GetPointsCallback -  interface to handle Coordinates as getPoints response {@link INPolyline} .
+ * A callback interface used to provide List of points asynchronously.
  */
 public interface GetPointsCallback {
-
+	/**
+	 * Invoked when coordinates are available.
+	 * @param points List of coordinates.
+	 */
 	void onReceivePoints(List<Point> points);
 }

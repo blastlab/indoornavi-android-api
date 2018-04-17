@@ -13,6 +13,11 @@ import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
 import co.blastlab.indoornavi_api.web_view.IndoorWebChromeClient;
 import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 
+/**
+ * Class representing a INMap, creates the INMap object to communicate with IndoorNavi frontend server.
+ *
+ * @author Agata Ziółkowska <achmielewska@blastlab.co>
+ */
 public class INMap extends WebView {
 
 	public INObjectInterface inObjectInterface;
@@ -21,6 +26,12 @@ public class INMap extends WebView {
 	private String targetHost;
 	private String apiKey;
 
+	/**
+	 * Constructs a new WebView with layout parameters.
+	 *
+	 * @param context a Context object used to access application assets
+	 * @param attributeSet an AttributeSet passed to our parent
+	 */
 	public INMap(Context context, AttributeSet attributeSet){
 		super(context, attributeSet);
 		this.context = context;
@@ -30,6 +41,11 @@ public class INMap extends WebView {
 		interfaceInit();
 	}
 
+	/**
+	 *Load map with specific id.
+	 *
+	 * @param mapId
+	 */
 	public void load(int mapId)
 	{
 		String javaScriptString = String.format("navi.load(%d);", mapId);
@@ -52,6 +68,12 @@ public class INMap extends WebView {
 		this.getSettings().setAllowContentAccess(false);
 	}
 
+	/**
+	 * Create INMap object.
+	 *
+	 * @param targetHost address to the frontend server
+	 * @param apiKey the API key created on server
+	 */
 	public void createMap(String targetHost, String apiKey)
 	{
 		this.targetHost = targetHost;

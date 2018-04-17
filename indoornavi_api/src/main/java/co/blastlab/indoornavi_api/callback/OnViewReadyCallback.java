@@ -1,12 +1,13 @@
 package co.blastlab.indoornavi_api.callback;
 
 import co.blastlab.indoornavi_api.objects.INMap;
-import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
-
 /**
- * OnViewReadyCallback -  interface to observe when page has finished loading {@link IndoorWebViewClient} .
-*/
-
+ * A callback interface used to to observe when page has finished loading.
+ */
 public interface OnViewReadyCallback {
+	/**
+	 * Invoked when page has finished loading.
+	 * @param inMap instance of INMap object
+	 */
 	void onWebViewReady(INMap inMap);
 }

@@ -1,5 +1,5 @@
 package co.blastlab.indoornavi_android;
-;
+
 import android.graphics.Point;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;

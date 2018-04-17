@@ -7,7 +7,6 @@ import org.jdeferred.DoneCallback;
 import org.jdeferred.android.AndroidDeferredManager;
 import org.jdeferred.android.AndroidExecutionScope;
 
-
 import java.util.List;
 
 import co.blastlab.indoornavi_api.callback.GetIdCallback;
@@ -15,7 +14,7 @@ import co.blastlab.indoornavi_api.callback.GetPointsCallback;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
- * Class representing a INPolyline, creates the INPolyline in webView communicates with indoornavi frontend server and draws INPolyline.
+ * Class representing a INPolyline, creates the INPolyline in webView, communicates with indoornavi frontend server and draws INPolyline.
  *
  * @author Agata Ziółkowska <achmielewska@blastlab.co>
  */
@@ -25,7 +24,7 @@ public class INPolyline extends INObject {
 	private INMap inMap;
 
 	/**
-	 * INPolyline constructor
+	 * INPolyline constructor.
 	 *
 	 * @param inMap INMap object instance
 	 */
@@ -41,7 +40,7 @@ public class INPolyline extends INObject {
 	 * Method wait till INPolyline object is create.
 	 * Use of this method is indispensable to operate on INPolyline object.
 	 *
-	 * @param doneCallback DoneCallback to trigger when poly is create (Promise is resolved).
+	 * @param doneCallback DoneCallback interface - trigger when poly is create (Promise is resolved).
 	 */
 	public void ready(DoneCallback<String> doneCallback)
 	{
@@ -52,7 +51,7 @@ public class INPolyline extends INObject {
 	/**
 	 * Call inherit method from {@link INObject}.
 	 *
-	 * @param getIdCallback Callback to get response with ID
+	 * @param getIdCallback Callback interface {@link GetIdCallback}
 	 */
 	public void getID(GetIdCallback getIdCallback)
 	{
@@ -62,7 +61,7 @@ public class INPolyline extends INObject {
 	/**
 	 * Receives coordinates of the given INPolyline object.
 	 *
-	 * @param getPointsCallback Callback to get response with Coordinates
+	 * @param getPointsCallback Callback interface {@link GetPointsCallback}
 	 */
 	public void getPoints(final GetPointsCallback getPointsCallback)
 	{
@@ -115,9 +114,9 @@ public class INPolyline extends INObject {
 	}
 
 	/**
-	 * Set color of point and lines in INPolyline object
+	 * Set color of points and lines in INPolyline object
 	 *
-	 * @param color String that specifies the color. Supports color in hex format #AABBCC and rgb format rgb(255,255,255);
+	 * @param color String that specifies the color. Supports color in hex format #AABBCC and rgb format rgb(255,255,255).
 	 */
 	public void setLineColor(String color)
 	{
