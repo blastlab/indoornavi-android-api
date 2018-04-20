@@ -24,7 +24,7 @@ class Communication {
     }
 
     static remove(handler) {
-        window.removeEventListener('message', event, false);
+        window.removeEventListener('message', handler, false);
     }
 
 }
@@ -77,7 +77,7 @@ class Http {
 }
 
 /**
- * Class representing an areaEvent,
+ * Class representing an AreaEvent,
  */
 
 class AreaEvent {
@@ -87,8 +87,8 @@ class AreaEvent {
             events.push(new AreaEvent(
                 _events['tagId'],
                 new Date(_events['date']),
-                _events['INAreaId'],
-                _events['INAreaName'],
+                _events['areaId'],
+                _events['areaName'],
                 _events['mode']
             ));
         });
@@ -99,28 +99,28 @@ class AreaEvent {
      * AreaEvent object
      * @param {number} tagId short id of the tag that entered/left this INArea
      * @param {Date} date when tag appeared in this INArea
-     * @param {number} INAreaId
-     * @param {string} INAreaName
+     * @param {number} areaId
+     * @param {string} areaName
      * @param {string} mode can be ON_LEAVE or ON_ENTER
      */
-    constructor(tagId, date, INAreaId, INAreaName, mode) {
+    constructor(tagId, date, areaId, areaName, mode) {
         this.tagId = tagId;
         this.date = date;
-        this.INAreaId = INAreaId;
-        this.INAreaName = INAreaName;
+        this.areaId = areaId;
+        this.areaName = areaName;
         this.mode = mode;
     }
 }
 
 /**
- * Class representing a INCoordinates,
+ * Class representing a Coordinates,
  */
 
-class INCoordinates {
+class Coordinates {
     static toJSON(coordinatesArrayString) {
         const coordinates = [];
         JSON.parse(coordinatesArrayString).forEach(function(_coordinates) {
-            coordinates.push(new INCoordinates(
+            coordinates.push(new Coordinates(
                _coordinates['point']['x'],
                _coordinates['point']['y'],
                _coordinates['tagShortId'],
@@ -131,7 +131,7 @@ class INCoordinates {
     };
 
     /**
-     * INCoordinates object
+     * Coordinates object
      * @param {number} x
      * @param {number} y
      * @param {number} tagId short id of the tag
@@ -144,6 +144,30 @@ class INCoordinates {
         this.date = date;
     }
 }
+
+/**
+ * Global object representing events,
+ * @namespace
+ * @property {object} MOUSE - mouse events, ENUM like, object
+ * @property {string} MOUSE.CLICK - click event
+ * @property {string} MOUSE.MOUSEOVER - mouseover event
+ * @property {object} LISTENER - listener events, ENUM like, object.
+ * Representation of listener type, added to {@link INMap} object
+ * @property {string} LISTENER.AREA - area event sets listener to listen to {@link INArea} object events
+ * @property {string} LISTENER.COORDINATES - coordinates event sets listener to listen to {@link INMap} object events
+ *
+ */
+
+const Event = {
+    MOUSE: {
+            CLICK: 'click',
+            MOUSEOVER: 'mouseover'
+            },
+    LISTENER: {
+            AREA: 'area',
+            COORDINATES: 'coordinates'
+            }
+};
 
 /**
  * Class representing a Point,
@@ -160,6 +184,31 @@ class Point {
         this.y = y;
     }
 }
+
+/**
+ * Global object representing position regarding to related {@link INMap} object,
+ * @namespace
+ * @property {object} PositionIt - position, ENUM like, object
+ * @property {string} PositionIt.TOP - top side position in regard to related object
+ * @property {string} PositionIt.RIGHT - right side position in regard to related object
+ * @property {string} PositionIt.BOTTOM - bottom side position in regard to related object
+ * @property {string} PositionIt.LEFT - left side position in regard to related object
+ * @property {string} PositionIt.TOP_RIGHT - top right side position in regard to related object
+ * @property {string} PositionIt.TOP_LEFT - top left side position in regard to related object
+ * @property {string} PositionIt.BOTTOM_RIGHT - bottom right side position in regard to related object
+ * @property {string} PositionIt.BOTTOM_LEFT - bottom left side position in regard to related object
+ *
+ */
+PositionIt = {
+    TOP: 0,
+    RIGHT: 1,
+    BOTTOM: 2,
+    LEFT: 3,
+    TOP_RIGHT: 4,
+    TOP_LEFT: 5,
+    BOTTOM_RIGHT: 6,
+    BOTTOM_LEFT: 7
+};
 
 /**
  * Abstract class that communicates with indoornavi frontend server.
@@ -340,7 +389,7 @@ class INPolyline extends INMapObject {
      * Coordinates are calculated to the map scale and then displayed.
      * @example
      * const poly = new INPolyline(navi);
-     * poly.ready().then(() => poly.points(points).place());
+     * poly.ready().then(() => poly.points(points).draw());
      */
     points(points) {
         if (!Array.isArray(points)) {
@@ -356,14 +405,14 @@ class INPolyline extends INMapObject {
     }
 
     /**
-     * Place polyline on the map with all given settings. There is necessary to use points() method before place() method to indicate where polyline should to be located.
+     * Place polyline on the map with all given settings. There is necessary to use points() method before draw() method to indicate where polyline should to be located.
      * Use of this method is indispensable to draw polyline with set configuration in the IndoorNavi Map.
      * @example
      * const poly = new INPolyline(navi);
-     * poly.ready().then(() => poly.points(points).place());
+     * poly.ready().then(() => poly.points(points).draw());
      */
 
-    place() {
+    draw() {
         if (!!this._id) {
             Communication.send(this._navi.iFrame, this._navi.targetHost, {
                 command: 'drawObject',
@@ -430,7 +479,7 @@ class INArea extends INMapObject {
      * For less than 3 points supplied to this method, Area isn't going to be drawn.
      * @example
      * const area = new INArea(navi);
-     * area.ready().then(() => area.points(points).place());
+     * area.ready().then(() => area.points(points).draw());
      */
     points(points) {
         if (arguments.length !== 1) {
@@ -452,14 +501,14 @@ class INArea extends INMapObject {
     }
 
     /**
-     * Place area on the map with all given settings. There is necessary to use points() method before place() method to indicate where area should to be located.
+     * Place area on the map with all given settings. There is necessary to use points() method before draw() method to indicate where area should to be located.
      * Use of this method is indispensable to draw area with set configuration in the IndoorNavi Map.
      * @example
      * const area = new INArea(navi);
-     * area.ready().then(() => area.points(points).place());
+     * area.ready().then(() => area.points(points).draw());
      */
 
-    place() {
+    draw() {
         if (!!this._id) {
             Communication.send(this._navi.iFrame, this._navi.targetHost, {
                 command: 'drawObject',
@@ -534,16 +583,12 @@ class INMarker extends INMapObject {
         };
         this._label = null;
         this._events = new Set();
-        this.eventsEnum = {
-            CLICK: 0,
-            MOUSEOVER: 1,
-        };
     }
 
     /**
      * Sets marker label. Use of this method is optional.
      * @param {string} label - string that will be used as a marker label. If label method isn't used than no label is going to be displayed.
-     * To reset label to a new string call this method again passing new label as a string and call place() method.
+     * To reset label to a new string call this method again passing new label as a string and call draw() method.
      * @return {INMarker} - returns INMarker instance class;
      * @example
      * const marker = new INMarker(navi);
@@ -561,7 +606,9 @@ class INMarker extends INMapObject {
      * Removes marker label.
      * @return {INMarker} - returns INMarker instance class;
      * @example
-     * marker.ready().then(() => marker.removeLabel());
+     * marker.ready().then(() => marker.removeLabel().draw());
+     * There is indispensable to use draw() method after removeLabel()
+     * to update changes in to frontend server
      */
 
     removeLabel() {
@@ -589,11 +636,11 @@ class INMarker extends INMapObject {
 
     /**
      * Add listener to listen when icon is clicked. Use of this method is optional.
-     * @param {number} event - as INMarker.eventsEnum.'EVENT' property representing event to listen to. Available 'EVENT's are: ONCLICK, ONMOUSEOVER ...
+     * @param {Event.MOUSE} event - {@link Event}
      * @param {function} callback - function that is going to be executed when event occurs.
      * @return {INMarker} - returns INMarker instance class;
      * example
-     * marker.ready(() => marker.addEventListener(marker.eventsEnum.CLICK, () => marker.displayInfoWindow()));
+     * marker.ready(() => marker.addEventListener(Event.MOUSE.CLICK, () => marker.displayInfoWindow()));
      */
 
     addEventListener(event, callback) {
@@ -604,11 +651,11 @@ class INMarker extends INMapObject {
 
     /**
      * Removes listener if listener exists. Use of this method is optional.
-     * @param {number} event - as INMarker.eventsEnum.'EVENT' property representing event to listen to. Available 'EVENT's are: CLICK, MOUSEOVER ...
+     * @param {Event.MOUSE} event - {@link Event}
      * @param {callback} callback - callback function that was added to event listener to be executed when event occurs.
      * @return {INMarker} - returns INMarker instance class;
      * example
-     * marker.ready(() => marker.removeEventListener(marker.eventsEnum.CLICK));
+     * marker.ready(() => marker.removeEventListener(Event.MOUSE.CLICK));
      */
 
     removeEventListener(event, callback) {
@@ -625,7 +672,7 @@ class INMarker extends INMapObject {
      * @return {INMarker} - returns INMarker instance class;
      * @example
      * const marker = new INMarker(navi);
-     * marker.ready().then(() => marker.point({x: 100, y: 100}).place());
+     * marker.ready().then(() => marker.point({x: 100, y: 100}).draw());
      */
 
     point(point) {
@@ -637,14 +684,14 @@ class INMarker extends INMapObject {
     }
 
     /**
-     * Place market on the map with all given settings. There is necessary to use point() method before place() method to indicate the point where market should to be located.
+     * Place market on the map with all given settings. There is necessary to use point() method before draw() method to indicate the point where market should to be located.
      * Use of this method is indispensable to display market with set configuration in the IndoorNavi Map.
      * @example
      * const marker = new INMarker(navi);
-     * marker.ready().then(() => marker.point({x: 100, y: 100}).place());
+     * marker.ready().then(() => marker.point({x: 100, y: 100}).draw());
      */
 
-    place() {
+    draw() {
         if (this._points.length < 1) {
             throw new Error('No point for marker placement has been specified');
         }
@@ -691,23 +738,12 @@ class INInfoWindow extends INMapObject {
         this._position = 0;
         this._width = null;
         this._height = null;
-        this.positions = {
-            TOP: 0,
-            RIGHT: 1,
-            BOTTOM: 2,
-            LEFT: 3,
-            TOP_RIGHT: 4,
-            TOP_LEFT: 5,
-            BOTTOM_RIGHT: 6,
-            BOTTOM_LEFT: 7
-        };
-
     }
 
     /**
      * Sets info window content.
      * @param {string} content - text or html template in string format that will be passed in to info window as text.
-     * To reset label to a new content call this method again passing new content as a string and call place() method.
+     * To reset label to a new content call this method again passing new content as a string and call draw() method.
      * @return {INInfoWindow} - returns INInfoWindow instance class;
      * @example
      * const infoWindow = new INInfoWindow(navi);
@@ -725,16 +761,16 @@ class INInfoWindow extends INMapObject {
     /**
      * Sets position of info window regarding to object that info window will be appended to. Use of this method is optional.
      * Default position for info window is TOP.
-     * @param {number} position - given as INInfoWindow.positions.'POSITION' property representing info window position.
-     * Available 'POSITION' settings: TOP, LEFT, RIGHT, BOTTOM, TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT.
+     * @param {PositionIt} position - {@link PositionIt}
+     * Available settings: TOP, LEFT, RIGHT, BOTTOM, TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT.
      * return {INInfoWindow} - returns INInfoWindow instance class;
      * @example
      * const infoWindow = INInfoWindow(navi);
-     * infoWindow.ready(() => infoWindow.setPosition(infoWindow.positions.TOP_RIGHT));
+     * infoWindow.ready(() => infoWindow.setPosition(PositionIt.TOP_RIGHT));
      */
 
     setPosition(position) {
-        if (!Number.isInteger(position) || position < 0 || position > 7) {
+        if (Object.values(PositionIt).indexOf(position) < 0) {
             throw new Error('Wrong argument passed for info window position');
         }
         this._position = position;
@@ -784,7 +820,7 @@ class INInfoWindow extends INMapObject {
      * const infoWindow = INInfoWindow(navi);
      * const marker = INMarker();
      * marker.ready().then(() => {
-     *  marker.point({x: 100, y: 100}).place();
+     *  marker.point({x: 100, y: 100}).draw();
      *  infoWindow.ready(() => infoWindow.setInnerHTML('text for info window').open(marker));
      * });
      */
@@ -815,6 +851,7 @@ class INInfoWindow extends INMapObject {
         }
     }
 }
+
 /**
 * Class representing a INMap,
 * creates the INMap object to communicate with INMap frontend server
@@ -878,19 +915,19 @@ class INMap {
 
     /**
      * Add listener to react when the specific event occurs
-     * @param {string} eventName - name of the specific event (i.e. 'INArea', 'coordinates')
+     * @param {Event.LISTENER} event - name of the specific event {@link Event}
      * @param {function} callback - this method will be called when the specific event occurs
      * example
-     * navi.addEventListener('coordinates', data => doSomthingWithINCoordinates(data.coordinates.point));
+     * navi.addEventListener('coordinates', data => doSomethingWithINCoordinates(data.coordinates.point));
      */
-    addEventListener(eventName, callback) {
+    addEventListener(event, callback) {
       this.checkIsReady();
       this.setIFrame();
         Communication.send(this.iFrame, this.targetHost, {
             command: 'addEventListener',
-            args: eventName
+            args: event
         });
-      Communication.listen(eventName, callback);
+      Communication.listen(event, callback);
       return this;
     }
 
@@ -931,12 +968,12 @@ class Report {
      * @param {number} floorId id of the floor you want to get coordinates from
      * @param {Date} from starting closed range
      * @param {Date} to ending closed range
-     * @return {Promise} promise that will be resolved when {@link INCoordinates} list is retrieved
+     * @return {Promise} promise that will be resolved when {@link Coordinates} list is retrieved
      */
     getCoordinates(floorId, from, to) {
         return new Promise((function(resolve) {
             this.http.doPost(`${this.targetHost}${this.baseUrl}/coordinates`, {floorId: floorId, from: Report.parseDate(from), to: Report.parseDate(to)}, function (data) {
-                resolve(INCoordinates.toJSON(data));
+                resolve(Coordinates.toJSON(data));
             });
         }).bind(this));
     }

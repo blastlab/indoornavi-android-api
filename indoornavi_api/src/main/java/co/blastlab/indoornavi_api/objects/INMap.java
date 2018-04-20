@@ -8,7 +8,6 @@ import android.webkit.WebView;
 
 import java.io.InputStream;
 
-import co.blastlab.indoornavi_api.Constants;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
 import co.blastlab.indoornavi_api.web_view.IndoorWebChromeClient;
 import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
@@ -83,7 +82,7 @@ public class INMap extends WebView {
 	}
 
 	private void JS_InMapCreate() {
-		String javaScriptString = String.format(Constants.indoorNaviInitialization, targetHost, apiKey, 1200, 850);
+		String javaScriptString = String.format("var navi = new INMap(\"%s\",\"%s\",\"map\",{width:%d,height:%d});", targetHost, apiKey, 1200, 850);
 		this.evaluateJavascript(javaScriptString, null);
 	}
 

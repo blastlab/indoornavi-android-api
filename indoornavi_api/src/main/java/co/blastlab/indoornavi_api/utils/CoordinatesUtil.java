@@ -7,7 +7,7 @@ import java.util.List;
 
 import co.blastlab.indoornavi_api.model.INCoordinates;
 
-public class INCoordinatesUtil {
+public class CoordinatesUtil {
 
 	/**
 	 * Converts object coordinates to String representation. String can be evaluate to JavaScript values.

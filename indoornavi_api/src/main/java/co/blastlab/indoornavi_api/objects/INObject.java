@@ -9,11 +9,10 @@ import org.jdeferred.impl.DeferredObject;
 
 import java.util.List;
 
-import co.blastlab.indoornavi_api.Constants;
-import co.blastlab.indoornavi_api.callback.GetIdCallback;
-import co.blastlab.indoornavi_api.callback.GetPointsCallback;
+import co.blastlab.indoornavi_api.Controller;
+import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.model.INCoordinates;
-import co.blastlab.indoornavi_api.utils.INCoordinatesUtil;
+import co.blastlab.indoornavi_api.utils.CoordinatesUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -24,12 +23,12 @@ import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 class INObject {
 
-	INMap inMap;
+	private INMap inMap;
 	String objectInstance;
 
 	/**
 	 *
-	 * @param inMap instance od INMap object.
+	 * @param inMap instance INMap object.
 
 	 */
 	INObject(INMap inMap){
@@ -47,7 +46,7 @@ class INObject {
 		Promise promise = deferred.promise();
 
 		int promiseId = promise.hashCode();
-		Constants.promiseMap.put(promiseId, deferred);
+		Controller.promiseMap.put(promiseId, deferred);
 
 		String javaScriptString = String.format("%s.ready().then(() => inObjectInterface.ready(%d));", objectInstance, promiseId);
 		inMap.evaluateJavascript(javaScriptString, null);
@@ -58,15 +57,15 @@ class INObject {
 	/**
 	 * Return the id of the object.
 	 *
-	 * @param getIdCallback {@link GetIdCallback}
+	 * @param onReceiveValueCallback {@link OnReceiveValueCallback}
 	 */
-	public void getID( final GetIdCallback getIdCallback)
+	public void getID( final OnReceiveValueCallback onReceiveValueCallback)
 	{
 		String javaScriptString = String.format("%s.getID();", objectInstance);
 		inMap.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
 			@Override
 			public void onReceiveValue(String s) {
-				getIdCallback.onReceiveId(Integer.parseInt(s));
+				onReceiveValueCallback.onReceiveValue(Integer.parseInt(s));
 			}
 		});
 	}
@@ -74,9 +73,9 @@ class INObject {
 	/**
 	 * Receives coordinates of the given object.
 	 *
-	 * @param getPointsCallback Callback interface {@link GetPointsCallback}
+	 * @param onReceiveValueCallback Callback interface {@link OnReceiveValueCallback}
 	 */
-	public void getPoints(final GetPointsCallback getPointsCallback)
+	public void getPoints(final OnReceiveValueCallback onReceiveValueCallback)
 	{
 		String javaScriptString = String.format("%s.getPoints();", objectInstance);
 		inMap.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
@@ -84,7 +83,7 @@ class INObject {
 			public void onReceiveValue(String s) {
 				List<Point> points;
 				points = PointsUtil.stringToPoints(s);
-				getPointsCallback.onReceivePoints(points);
+				onReceiveValueCallback.onReceiveValue(points);
 			}
 		});
 	}
@@ -107,7 +106,7 @@ class INObject {
 	 */
 	public void isWithin(INCoordinates inCoordinates, final ValueCallback<Boolean> valueCallback)
 	{
-		String javaScriptString = String.format("%s.isWithin(%s);", objectInstance, INCoordinatesUtil.coordsToString(inCoordinates));
+		String javaScriptString = String.format("%s.isWithin(%s);", objectInstance, CoordinatesUtil.coordsToString(inCoordinates));
 		inMap.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
 			@Override
 			public void onReceiveValue(String s) {

@@ -29,7 +29,7 @@ public class INPolyline extends INObject {
 	{
 		super(inMap);
 		this.inMap = inMap;
-		this.objectInstance = this.toString();
+		this.objectInstance = String.format("poly%d",this.hashCode());
 
 		String javaScriptString = String.format("var %s = new INPolyline(navi);", objectInstance);
 		inMap.evaluateJavascript(javaScriptString, null);
@@ -55,7 +55,7 @@ public class INPolyline extends INObject {
 	 */
 	public void draw()
 	{
-		String javaScriptString = String.format("%s.place();", objectInstance);
+		String javaScriptString = String.format("%s.draw();", objectInstance);
 		inMap.evaluateJavascript(javaScriptString, null);
 	}
 
