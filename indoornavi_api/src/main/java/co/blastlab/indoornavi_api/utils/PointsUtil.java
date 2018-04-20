@@ -47,4 +47,16 @@ public class PointsUtil {
 		}
 		return points;
 	}
+
+	public static Point stringToPoint(String stringPoint) {
+
+		String str = stringPoint.replaceAll("[^-?0-9]+", " ");
+		final String[] tokens = str.trim().split(" ");
+
+		return new Point(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]));
+	}
+
+	public static String pointToString(Point point) {
+		return String.format("{x: %d, y: %d}", point.x, point.y);
+	}
 }
