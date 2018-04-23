@@ -11,7 +11,7 @@ import org.jdeferred.DoneCallback;
 import java.util.ArrayList;
 import java.util.List;
 
-import co.blastlab.indoornavi_api.callback.GetPointsCallback;
+import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.objects.INPolyline;
 import co.blastlab.indoornavi_api.callback.OnViewReadyCallback;
@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 
 				inPolyline.points(list);
 				inPolyline.setLineColor("#12a3b5");
-				inPolyline.place();
+				inPolyline.draw();
 				/*inPolyline.getID(new GetIdCallback() {
 					@Override
 					public void onReceiveId(Integer id) {
@@ -67,9 +67,9 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 					}
 				});*/
 
-				inPolyline.getPoints(new GetPointsCallback() {
+				inPolyline.getPoints(new OnReceiveValueCallback<List<Point>>() {
 					@Override
-					public void onReceivePoints(List<Point> points) {
+					public void onReceiveValue(List<Point> points) {
 
 					}
 				});
