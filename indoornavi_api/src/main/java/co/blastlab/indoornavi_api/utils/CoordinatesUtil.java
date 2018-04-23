@@ -5,7 +5,7 @@ import android.graphics.Point;
 import java.util.ArrayList;
 import java.util.List;
 
-import co.blastlab.indoornavi_api.model.INCoordinates;
+import co.blastlab.indoornavi_api.model.Coordinates;
 
 public class CoordinatesUtil {
 
@@ -15,7 +15,7 @@ public class CoordinatesUtil {
 	 * @param coords  object coordinates
 	 * @return String of coordinates values, like {x: 480, y: 450} in JavaScript representation.
 	 */
-	public static String coordsToString(INCoordinates coords) {
+	public static String coordsToString(Coordinates coords) {
 
 		String stringCoords = String.format("{x: %d, y: %d}", coords.x, coords.y);
 

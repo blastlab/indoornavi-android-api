@@ -8,10 +8,11 @@ import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
 import java.util.List;
+import java.util.Locale;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
-import co.blastlab.indoornavi_api.model.INCoordinates;
+import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.utils.CoordinatesUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
@@ -48,7 +49,7 @@ class INObject {
 		int promiseId = promise.hashCode();
 		Controller.promiseMap.put(promiseId, deferred);
 
-		String javaScriptString = String.format("%s.ready().then(() => inObjectInterface.ready(%d));", objectInstance, promiseId);
+		String javaScriptString = String.format(Locale.US, "%s.ready().then(() => inObjectInterface.ready(%d));", objectInstance, promiseId);
 		inMap.evaluateJavascript(javaScriptString, null);
 
 		return promise;
@@ -59,7 +60,7 @@ class INObject {
 	 *
 	 * @param onReceiveValueCallback {@link OnReceiveValueCallback}
 	 */
-	public void getID( final OnReceiveValueCallback onReceiveValueCallback)
+	public void getID( final OnReceiveValueCallback<Integer> onReceiveValueCallback)
 	{
 		String javaScriptString = String.format("%s.getID();", objectInstance);
 		inMap.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
@@ -75,7 +76,7 @@ class INObject {
 	 *
 	 * @param onReceiveValueCallback Callback interface {@link OnReceiveValueCallback}
 	 */
-	public void getPoints(final OnReceiveValueCallback onReceiveValueCallback)
+	public void getPoints(final OnReceiveValueCallback<List<Point>> onReceiveValueCallback)
 	{
 		String javaScriptString = String.format("%s.getPoints();", objectInstance);
 		inMap.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
@@ -101,12 +102,12 @@ class INObject {
 	/**
 	 * Checks if point of given coordinates is inside of the object.
 	 *
-	 * @param inCoordinates checking coordinates
+	 * @param coordinates checking coordinates
 	 * @param valueCallback Callback interface
 	 */
-	public void isWithin(INCoordinates inCoordinates, final ValueCallback<Boolean> valueCallback)
+	public void isWithin(Coordinates coordinates, final ValueCallback<Boolean> valueCallback)
 	{
-		String javaScriptString = String.format("%s.isWithin(%s);", objectInstance, CoordinatesUtil.coordsToString(inCoordinates));
+		String javaScriptString = String.format("%s.isWithin(%s);", objectInstance, CoordinatesUtil.coordsToString(coordinates));
 		inMap.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
 			@Override
 			public void onReceiveValue(String s) {

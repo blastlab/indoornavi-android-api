@@ -7,8 +7,11 @@ import android.util.Log;
 import android.webkit.WebView;
 
 import java.io.InputStream;
+import java.util.Locale;
 
+import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
+import co.blastlab.indoornavi_api.interfaces.ReportInterface;
 import co.blastlab.indoornavi_api.web_view.IndoorWebChromeClient;
 import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 
@@ -20,6 +23,9 @@ import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 public class INMap extends WebView {
 
 	public INObjectInterface inObjectInterface;
+	public INMarkerInterface inMarkerInterface;
+	public ReportInterface reportInterface;
+
 	private Context context;
 
 	private String targetHost;
@@ -43,11 +49,11 @@ public class INMap extends WebView {
 	/**
 	 *Load map with specific id.
 	 *
-	 * @param mapId
+	 * @param mapId Id of specific map
 	 */
 	public void load(int mapId)
 	{
-		String javaScriptString = String.format("navi.load(%d);", mapId);
+		String javaScriptString = String.format(Locale.US, "navi.load(%d);", mapId);
 		this.evaluateJavascript(javaScriptString, null);
 	}
 
@@ -82,7 +88,7 @@ public class INMap extends WebView {
 	}
 
 	private void JS_InMapCreate() {
-		String javaScriptString = String.format("var navi = new INMap(\"%s\",\"%s\",\"map\",{width:%d,height:%d});", targetHost, apiKey, 1200, 850);
+		String javaScriptString = String.format(Locale.US, "var navi = new INMap(\"%s\",\"%s\",\"map\",{width:%d,height:%d});", targetHost, apiKey, 1200, 850);
 		this.evaluateJavascript(javaScriptString, null);
 	}
 
@@ -110,5 +116,11 @@ public class INMap extends WebView {
 	{
 		inObjectInterface  = new INObjectInterface();
 		this.addJavascriptInterface(inObjectInterface, "inObjectInterface");
+
+		inMarkerInterface = new INMarkerInterface();
+		this.addJavascriptInterface(inMarkerInterface, "inMarkerInterface");
+
+		reportInterface = new ReportInterface();
+		this.addJavascriptInterface(reportInterface, "reportInterface");
 	}
 }

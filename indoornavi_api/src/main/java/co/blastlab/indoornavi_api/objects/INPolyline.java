@@ -7,6 +7,7 @@ import org.jdeferred.android.AndroidDeferredManager;
 import org.jdeferred.android.AndroidExecutionScope;
 
 import java.util.List;
+import java.util.Locale;
 
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
@@ -29,7 +30,7 @@ public class INPolyline extends INObject {
 	{
 		super(inMap);
 		this.inMap = inMap;
-		this.objectInstance = String.format("poly%d",this.hashCode());
+		this.objectInstance = String.format(Locale.US, "poly%d", this.hashCode());
 
 		String javaScriptString = String.format("var %s = new INPolyline(navi);", objectInstance);
 		inMap.evaluateJavascript(javaScriptString, null);
@@ -42,7 +43,7 @@ public class INPolyline extends INObject {
 	 *
 	 * @param doneCallback DoneCallback interface - trigger when poly is create (Promise is resolved).
 	 */
-	public void ready(DoneCallback<String> doneCallback)
+	public void ready(DoneCallback doneCallback)
 	{
 		AndroidDeferredManager dm = new AndroidDeferredManager();
 		dm.when(checkReady(), AndroidExecutionScope.UI).done(doneCallback);
@@ -63,7 +64,7 @@ public class INPolyline extends INObject {
 	 * Locates polyline object at given coordinates. Coordinates needs to be given as List<Point> object.
 	 * Use of this method is indispensable to draw a polyline.
 	 *
-	 * @param points
+	 * @param points List of points
 	 */
 	public void points(List<Point> points)
 	{
