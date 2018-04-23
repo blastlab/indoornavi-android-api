@@ -1,8 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	android:layout_width="fill_parent"
+	android:layout_height="match_parent"
+	xmlns:android="http://schemas.android.com/apk/res/android">
 
-<co.blastlab.indoornavi_api.INMap
+<co.blastlab.indoornavi_api.objects.INMap
 	android:id="@+id/webview"
 	android:layout_width="fill_parent"
-	android:layout_height="fill_parent"
-	xmlns:android="http://schemas.android.com/apk/res/android"/>
+	android:layout_height="match_parent"
+	xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+</co.blastlab.indoornavi_api.objects.INMap>
+
+	<Button
+		android:id="@+id/button"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:text="Draw poly"/>
+
+
+</RelativeLayout>
 
