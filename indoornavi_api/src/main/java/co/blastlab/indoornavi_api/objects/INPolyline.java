@@ -2,19 +2,13 @@ package co.blastlab.indoornavi_api.objects;
 
 import android.graphics.Point;
 
-import org.jdeferred.DoneCallback;
-import org.jdeferred.android.AndroidDeferredManager;
-import org.jdeferred.android.AndroidExecutionScope;
-
 import java.util.List;
 import java.util.Locale;
 
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
- * Class representing a INPolyline, creates the INPolyline in webView, communicates with indoornavi frontend server and draws INPolyline.
- *
- * @author Agata Ziółkowska <achmielewska@blastlab.co>
+ * Class representing a INPolyline, creates the INPolyline in webView, communicates with frontend server and draws INPolyline.
  */
 
 public class INPolyline extends INObject {
@@ -26,8 +20,7 @@ public class INPolyline extends INObject {
 	 *
 	 * @param inMap INMap object instance
 	 */
-	public INPolyline(INMap inMap)
-	{
+	public INPolyline(INMap inMap) {
 		super(inMap);
 		this.inMap = inMap;
 		this.objectInstance = String.format(Locale.US, "poly%d", this.hashCode());
@@ -37,21 +30,8 @@ public class INPolyline extends INObject {
 	}
 
 	/**
-	 * Call inherit method from {@link INObject}.
-	 * Method wait till polyline object is create.
-	 * Use of this method is indispensable to operate on INPolyline object.
-	 *
-	 * @param doneCallback DoneCallback interface - trigger when poly is create (Promise is resolved).
-	 */
-	public void ready(DoneCallback doneCallback)
-	{
-		AndroidDeferredManager dm = new AndroidDeferredManager();
-		dm.when(checkReady(), AndroidExecutionScope.UI).done(doneCallback);
-	}
-
-	/**
 	 * Place polyline on the map with all given settings.
-	 * There is necessary to use points() method before place() method to indicate where polyline should to be located.
+	 * There is necessary to use points() method before draw() method to indicate where polyline should to be located.
 	 * Use of this method is indispensable to draw polyline with set configuration in the WebView.
 	 */
 	public void draw()
@@ -75,7 +55,7 @@ public class INPolyline extends INObject {
 	}
 
 	/**
-	 * Set color of points and lines in polyline object
+	 * Set color of points and lines in polyline object. To apply this method it's necessary to call draw() after.
 	 *
 	 * @param color String that specifies the color. Supports color in hex format #AABBCC and rgb format rgb(255,255,255).
 	 */

@@ -43,5 +43,13 @@
 		android:layout_above="@+id/b_poly"
 		android:text="Draw infoWindow"/>
 
+	<Button
+		android:id="@+id/b_report"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_toEndOf="@+id/b_info"
+		android:layout_above="@+id/b_marker"
+		android:text="Create Report"/>
+
 </RelativeLayout>
 

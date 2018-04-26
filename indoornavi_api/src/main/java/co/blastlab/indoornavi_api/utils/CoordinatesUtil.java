@@ -1,12 +1,17 @@
 package co.blastlab.indoornavi_api.utils;
 
-import android.graphics.Point;
+import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import co.blastlab.indoornavi_api.model.Coordinates;
 
+/**
+ * Utility class for parsing data from and to coordinates object represented as a String.
+ */
 public class CoordinatesUtil {
 
 	/**
@@ -17,27 +22,35 @@ public class CoordinatesUtil {
 	 */
 	public static String coordsToString(Coordinates coords) {
 
-		String stringCoords = String.format("{x: %d, y: %d}", coords.x, coords.y);
-
-		return stringCoords;
+		return String.format(Locale.US, "{x: %d, y: %d, tagId: %d, date: new Date(%d)}", coords.x, coords.y, coords.tagId, coords.date.getTime());
 	}
 
 	/**
 	 * Converts String to object coordinates.
 	 *
 	 * @param stringCoords String of coordinates in JavaScript representation e.g: {x: 480, y: 450}
-	 * @return object points coordinates
+	 * @return object points coordinates or null if unsuccessful
 	 */
-	public static List<Point> stringToCoords(String stringCoords) {
-		List<Point> points = new ArrayList<>();
+	public static List<Coordinates> stringToCoords(String stringCoords) {
+		List<Coordinates> coordinates = new ArrayList<>();
+		SimpleDateFormat dt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault());
+		String date;
+		try {
 
-		String str = stringCoords.replaceAll("[^-?0-9]+", " ");
-		final String[] tokens = str.trim().split(" ");
+			String str = stringCoords.replaceAll("[^-?0-9]+", " ");
+			final String[] tokens = str.trim().split(" ");
 
-		for (int i = 0; i < tokens.length; i += 2) {
-			points.add(new Point(Integer.parseInt(tokens[i]), Integer.parseInt(tokens[i + 1])));
+			for (int i = 0; i < tokens.length; i += 4) {
+				date = tokens[i + 3];
+				date = date.substring(0, date.length() - 1);
+				coordinates.add(new Coordinates(Integer.parseInt(tokens[i]), Integer.parseInt(tokens[i + 1]), (short) Integer.parseInt(tokens[i + 2]), dt.parse(date)));
+			}
+			return coordinates;
 		}
-		return points;
+		catch (Exception e) {
+			Log.e("Coord parse exception: ", e.toString());
+		}
+		return null;
 	}
 
 }

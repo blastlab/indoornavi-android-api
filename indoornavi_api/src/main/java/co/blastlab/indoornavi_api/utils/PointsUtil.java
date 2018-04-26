@@ -4,15 +4,14 @@ import android.graphics.Point;
 
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  * Utility class for parsing data from and to object points coordinates represented as a String.
- *
- * @author Agata Ziółkowska <achmielewska@blastlab.co>
  */
 public class PointsUtil {
 
 	/**
-	 * Converts list of object points coordinates to String representation. String can be evaluate to JavaScript values.
+	 * Converts list of {@link Point} object coordinates to String representation. String can be evaluate to JavaScript values.
 	 *
 	 * @param points List of object points coordinates
 	 * @return String of coordinates values, like [{x: 480, y: 450},{x: 1220, y: 150}] in JavaScript representation.
@@ -31,10 +30,10 @@ public class PointsUtil {
 	}
 
 	/**
-	 * Converts String to List of object points coordinates.
+	 * Converts String to List of {@link Point} object coordinates.
 	 *
 	 * @param stringPoints String of points in JavaScript representation e.g: [{x: 480, y: 450},{x: 1220, y: 150}]
-	 * @return object points coordinates
+	 * @return Point object list
 	 */
 	public static List<Point> stringToPoints(String stringPoints) {
 		List<Point> points = new ArrayList<>();
@@ -48,6 +47,12 @@ public class PointsUtil {
 		return points;
 	}
 
+	/**
+	 * Converts String to {@link Point} object coordinates.
+	 *
+	 * @param stringPoint String containing point in JavaScript representation e.g: [{x: 480, y: 450}]
+	 * @return Point object
+	 */
 	public static Point stringToPoint(String stringPoint) {
 
 		String str = stringPoint.replaceAll("[^-?0-9]+", " ");

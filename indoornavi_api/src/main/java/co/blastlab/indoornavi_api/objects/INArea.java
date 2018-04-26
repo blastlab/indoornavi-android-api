@@ -1,10 +1,7 @@
 package co.blastlab.indoornavi_api.objects;
 
 import android.graphics.Point;
-
-import org.jdeferred.DoneCallback;
-import org.jdeferred.android.AndroidDeferredManager;
-import org.jdeferred.android.AndroidExecutionScope;
+import android.support.annotation.FloatRange;
 
 import java.util.List;
 import java.util.Locale;
@@ -12,7 +9,7 @@ import java.util.Locale;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
- * Class representing an INArea, creates the area object in iframe that communicates with indoornavi frontend server and draws area.
+ * Class representing an area, creates the INArea object in iframe that communicates with frontend server and draws area.
  */
 public class INArea extends INObject {
 
@@ -23,30 +20,16 @@ public class INArea extends INObject {
 	 *
 	 * @param inMap INMap object instance
 	 */
-	public INArea(INMap inMap)
-	{
+	public INArea(INMap inMap) {
 		super(inMap);
 		this.inMap = inMap;
-		this.objectInstance = String.format("area%s",this.hashCode());
+		this.objectInstance = String.format("area%s", this.hashCode());
 		String javaScriptString = String.format("var %s = new INArea(navi);", this.objectInstance);
 		inMap.evaluateJavascript(javaScriptString, null);
 	}
 
 	/**
-	 * Call inherit method from {@link INObject}.
-	 * Method wait till area object is create.
-	 * Use of this method is indispensable to operate on area object.
-	 *
-	 * @param doneCallback DoneCallback interface - trigger when area is create (Promise is resolved).
-	 */
-	public void ready(DoneCallback<String> doneCallback)
-	{
-		AndroidDeferredManager dm = new AndroidDeferredManager();
-		dm.when(checkReady(), AndroidExecutionScope.UI).done(doneCallback);
-	}
-
-	/**
-	 * Place area on the map with all given settings. There is necessary to use points() method before place() method to indicate where area should to be located.
+	 * Place area on the map with all given settings. There is necessary to use points() method before draw() method to indicate where area should to be located.
 	 * Use of this method is indispensable to draw area with set configuration in the IndoorNavi Map.
 	 */
 	public void draw()
@@ -68,7 +51,8 @@ public class INArea extends INObject {
 		inMap.evaluateJavascript(javaScriptString, null);
 	}
 
-	/** Fills Area whit given color.
+	/**
+	 * Fills Area whit given color. To apply this method it's necessary to call draw() after.
 	 *
      * @param color - string that specifies the color. Supports color in hex format '#AABBCC' and rgb format 'rgb(255,255,255)';
      */
@@ -79,11 +63,11 @@ public class INArea extends INObject {
 	}
 
 	/**
-	 * Sets Area opacity.
+	 * Sets Area opacity. To apply this method it's necessary to call draw() after.
 	 *
 	 * @param opacity  - Float between 1.0 and 0. Set it to 1.0 for no opacity, 0 for maximum opacity.
 	 */
-	public void setOpacity(float opacity)
+	public void setOpacity(@FloatRange(from=0.0, to=1.0)float opacity)
 	{
 		String javaScriptString = String.format("%s.setOpacity(%s);", objectInstance, String.format(Locale.US, "%f", opacity));
 		inMap.evaluateJavascript(javaScriptString, null);
