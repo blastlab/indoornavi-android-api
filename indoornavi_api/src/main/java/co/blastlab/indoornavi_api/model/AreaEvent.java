@@ -26,11 +26,11 @@ public class AreaEvent {
 	/**
 	 * AreaEvent constructor
 	 *
-	 * @param tagId - short id of the tag that entered/left given area
-	 * @param date - when tag appeared on given area
-	 * @param areaId - area id
-	 * @param areaName - name of the area
-	 * @param mode - {@link AreaEventMode}
+	 * @param tagId short id of the tag that entered/left given area
+	 * @param date when tag appeared on given area
+	 * @param areaId area id
+	 * @param areaName name of the area
+	 * @param mode {@link AreaEventMode}
 	 */
 	public AreaEvent(int tagId, Date date, int areaId, String areaName, @AreaEventMode String mode)
 	{

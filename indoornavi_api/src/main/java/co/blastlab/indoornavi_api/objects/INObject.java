@@ -9,6 +9,7 @@ import java.util.Locale;
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
+import co.blastlab.indoornavi_api.documentation.IINObject;
 import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.utils.CoordinatesUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
@@ -16,7 +17,7 @@ import co.blastlab.indoornavi_api.utils.PointsUtil;
 /**
  * Class INObject is the root of the IndoorNavi objects hierarchy. Every IN object has INObject as a superclass (except INMap).
  */
-class INObject {
+public class INObject implements IINObject{
 
 	private INMap inMap;
 	String objectInstance;
@@ -50,13 +51,13 @@ class INObject {
 	 *
 	 * @param onReceiveValueCallback interface - invoked when object id is available.
 	 */
-	public void getID( final OnReceiveValueCallback<Integer> onReceiveValueCallback)
+	public void getID( final OnReceiveValueCallback<Long> onReceiveValueCallback)
 	{
 		String javaScriptString = String.format("%s.getID();", objectInstance);
 		inMap.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
 			@Override
 			public void onReceiveValue(String s) {
-				onReceiveValueCallback.onReceiveValue(Integer.parseInt(s));
+				onReceiveValueCallback.onReceiveValue(Long.parseLong(s.substring(0, s.length() - 2)));
 			}
 		});
 	}

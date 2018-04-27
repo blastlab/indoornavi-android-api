@@ -5,13 +5,13 @@ import android.graphics.Point;
 import java.util.List;
 import java.util.Locale;
 
+import co.blastlab.indoornavi_api.documentation.IINPolyline;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
  * Class representing a INPolyline, creates the INPolyline in webView, communicates with frontend server and draws INPolyline.
  */
-
-public class INPolyline extends INObject {
+public class INPolyline extends INObject implements IINPolyline{
 
 	private INMap inMap;
 

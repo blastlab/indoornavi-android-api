@@ -6,12 +6,13 @@ import android.support.annotation.FloatRange;
 import java.util.List;
 import java.util.Locale;
 
+import co.blastlab.indoornavi_api.documentation.IINArea;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
  * Class representing an area, creates the INArea object in iframe that communicates with frontend server and draws area.
  */
-public class INArea extends INObject {
+public class INArea extends INObject implements IINArea{
 
 	private INMap inMap;
 
@@ -41,7 +42,7 @@ public class INArea extends INObject {
 	/**
 	 * Locates area at given coordinates. Coordinates needs to be given as real world dimensions that map is representing. Use of this method is indispensable.
 	 *
-	 * @param points - List of {@link Point} To be able to draw area, at least 3 points must be provided.
+	 * @param points List of {@link Point} To be able to draw area, at least 3 points must be provided.
 	 */
 	public void points(List<Point> points)
 	{
@@ -54,7 +55,7 @@ public class INArea extends INObject {
 	/**
 	 * Fills Area whit given color. To apply this method it's necessary to call draw() after.
 	 *
-     * @param color - string that specifies the color. Supports color in hex format '#AABBCC' and rgb format 'rgb(255,255,255)';
+     * @param color string that specifies the color. Supports color in hex format '#AABBCC' and rgb format 'rgb(255,255,255)';
      */
 	public void setFillColor(String color)
 	{
@@ -65,7 +66,7 @@ public class INArea extends INObject {
 	/**
 	 * Sets Area opacity. To apply this method it's necessary to call draw() after.
 	 *
-	 * @param opacity  - Float between 1.0 and 0. Set it to 1.0 for no opacity, 0 for maximum opacity.
+	 * @param opacity Float between 1.0 and 0. Set it to 1.0 for no opacity, 0 for maximum opacity.
 	 */
 	public void setOpacity(@FloatRange(from=0.0, to=1.0)float opacity)
 	{

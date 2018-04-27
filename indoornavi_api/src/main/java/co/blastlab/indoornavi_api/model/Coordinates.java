@@ -15,10 +15,10 @@ public class Coordinates {
 	/**
 	 * Coordinates constructor
 	 *
-	 * @param x - point's x coordinate
-	 * @param y - point's y coordinate
-	 * @param tagId - short id of the tag
-	 * @param date - when tag appeared under the given coordinates
+	 * @param x point's x coordinate
+	 * @param y point's y coordinate
+	 * @param tagId short id of the tag
+	 * @param date when tag appeared under the given coordinates
 	 */
 	public Coordinates(int x, int y, short tagId, Date date)
 	{

@@ -17,7 +17,7 @@ public class CoordinatesUtil {
 	/**
 	 * Converts object coordinates to String representation. String can be evaluate to JavaScript values.
 	 *
-	 * @param coords  object coordinates
+	 * @param coords object coordinates
 	 * @return String of coordinates values, like {x: 480, y: 450} in JavaScript representation.
 	 */
 	public static String coordsToString(Coordinates coords) {

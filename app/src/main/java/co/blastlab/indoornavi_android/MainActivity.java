@@ -91,13 +91,12 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 		points.add(new Point(750,750));
 	}
 
-	@Override
 	public void onWebViewReady(INMap mapView) {
 		inMap.createMap("http://192.168.1.18:4200", "TestAdmin", 1200, 850);
 		inMap.load(2, new OnObjectReadyCallback() {
 			@Override
 			public void onReady(Object o) {
-				inMap.toggleTagVisibility((short)4);
+				inMap.toggleTagVisibility((short)10999);
 				inMap.addEventListener(INMap.AREA, new OnEventListener() {
 					@Override
 					public void onEvent(Object o) {
@@ -117,9 +116,9 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 				inPolyline.points(points);
 				inPolyline.setLineColor("#12a3b5");
 				inPolyline.draw();
-				inPolyline.getID(new OnReceiveValueCallback<Integer>() {
+				inPolyline.getID(new OnReceiveValueCallback<Long>() {
 					@Override
-					public void onReceiveValue(Integer id) {
+					public void onReceiveValue(Long id) {
 						Log.i("Indoor", "onReceiveValue: " + id);
 					}
 				});
@@ -153,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 			@Override
 			public void onReady(String result) {
 				inMarker1.point(new Point(600, 600));
-
+				inMarker1.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png");
 				inMarker1.setLabel("Lorem Ipsum");
 				inMarker1.addEventListener(new OnMarkerClickListener() {
 					@Override

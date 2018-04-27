@@ -5,10 +5,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Locale;
 
+import co.blastlab.indoornavi_api.documentation.IINInfoWindow;
+
 /**
  * Class representing a info window, creates the INInfoWindow object in iframe that communicates with frontend server and adds info window to a given INObject child.
  */
-public class INInfoWindow extends INObject{
+public class INInfoWindow extends INObject implements IINInfoWindow{
 
 	private INMap inMap;
 	public static final int TOP = 0;
@@ -42,7 +44,7 @@ public class INInfoWindow extends INObject{
 	/**
 	 * Sets height dimension of info window. Use of this method is optional. Default dimensions for info window height is 250px.
 	 *
-	 * @param height - info window height given in pixels, min available dimension is 50px.
+	 * @param height info window height given in pixels, min available dimension is 50px.
 	 */
 	public void height(int height) {
 		String javaScriptString = String.format(Locale.US, "%s.height(%d);", objectInstance, height);
@@ -52,7 +54,7 @@ public class INInfoWindow extends INObject{
 	/**
 	 * Sets width dimension of infoWindow. Use of this method is optional. Default dimensions for info window width is 250px.
 	 *
-	 * @param width - infoWindow width given in pixels, min available dimension is 50px.
+	 * @param width infoWindow width given in pixels, min available dimension is 50px.
 	 */
 	public void width(int width) {
 		String javaScriptString = String.format(Locale.US, "%s.width(%d);", objectInstance, width);
@@ -62,7 +64,7 @@ public class INInfoWindow extends INObject{
 	/**
 	 * Displays info window on {@link INObject} object.
 	 *
-	 * @param inObject - the object on which you want to display info window.
+	 * @param inObject the object on which you want to display info window.
 	 */
 	public void open(INObject inObject) {
 		String javaScriptString = String.format(Locale.US, "%s.open(%s);", objectInstance, inObject.objectInstance);
@@ -72,7 +74,7 @@ public class INInfoWindow extends INObject{
 	/**
 	 * Sets info window content.
 	 *
-	 * @param html - String containing text or html template. To reset info window content it is indispensable to call draw() method again.
+	 * @param html String containing text or html template. To reset info window content it is indispensable to call draw() method again.
 	 */
 	public void setInnerHTML(String html)
 	{
@@ -83,7 +85,7 @@ public class INInfoWindow extends INObject{
 	/**
 	 * Sets info window position relative to the object. Use of this method is optional. Default position for info window is TOP.
 	 *
-	 * @param position - {@link Position}
+	 * @param position {@link Position}
 	 */
 	public void setPosition(@Position int position) {
 		String javaScriptString = String.format(Locale.US, "%s.setPosition(%d);", objectInstance, position);

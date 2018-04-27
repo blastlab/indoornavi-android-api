@@ -6,12 +6,13 @@ import java.util.Locale;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
+import co.blastlab.indoornavi_api.documentation.IINMarker;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
  * Class representing a marker, creates the INMarker object in iframe that communicates with frontend server and places a marker on the map.
  */
-public class INMarker extends INObject {
+public class INMarker extends INObject implements IINMarker{
 
 	private INMap inMap;
 	private int callbackId;
@@ -67,7 +68,7 @@ public class INMarker extends INObject {
 	/**
 	 * Locates marker at given coordinates. Use of this method is indispensable.
 	 *
-	 * @param point - {@link Point} Position will be clipped to the point in the bottom center of marker icon.
+	 * @param point {@link Point} Position will be clipped to the point in the bottom center of marker icon.
 	 */
 	public void point(Point point)
 	{
@@ -78,7 +79,7 @@ public class INMarker extends INObject {
 	/**
 	 * Sets marker label.
 	 *
-	 * @param label - string that will be used as a marker label. If label method isn't used than no label is going to be displayed.
+	 * @param label string that will be used as a marker label. If label method isn't used than no label is going to be displayed.
 	 * To reset label to a new string call this method again passing new label as a string and call draw() method again.
 	 */
 	public void setLabel(String label)

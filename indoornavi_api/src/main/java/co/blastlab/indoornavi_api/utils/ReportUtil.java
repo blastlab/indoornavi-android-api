@@ -26,7 +26,7 @@ public class ReportUtil {
 	/**
 	 * Converts String in Json format to List of {@link AreaEvent} objects.
 	 *
-	 * @param jsonString - String in Json format containing AreaEvent data
+	 * @param jsonString String in Json format containing AreaEvent data
 	 * @return AreaEvent list or null if unsuccessful
 	 */
 	public static List<AreaEvent> jsonToAreaEvent(String jsonString) {
@@ -53,7 +53,7 @@ public class ReportUtil {
 	/**
 	 * Converts String in Json format to List of {@link Coordinates} objects.
 	 *
-	 * @param jsonString - String in Json format containing Coordinates data
+	 * @param jsonString String in Json format containing Coordinates data
 	 * @return Coordinates list or null if unsuccessful
 	 */
 	public static List<Coordinates> jsonToCoordinates(String jsonString) {
@@ -80,7 +80,7 @@ public class ReportUtil {
 	/**
 	 * Create CSV file for given {@link AreaEvent} list
 	 *
-	 * @param events - AreaEvent list
+	 * @param events AreaEvent list
 	 */
 	public static void areaEventToCSV(List<AreaEvent> events) {
 
@@ -111,7 +111,7 @@ public class ReportUtil {
 	/**
 	 * Create CSV file for given {@link Coordinates} list
 	 *
-	 * @param coordinates - Coordinates list
+	 * @param coordinates Coordinates list
 	 */
 	public static void coordinatesToCSV(List<Coordinates> coordinates) {
 

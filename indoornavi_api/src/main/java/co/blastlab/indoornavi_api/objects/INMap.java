@@ -15,6 +15,7 @@ import java.util.Locale;
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
+import co.blastlab.indoornavi_api.documentation.IINMap;
 import co.blastlab.indoornavi_api.interfaces.EventListenerInterface;
 import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
@@ -25,7 +26,7 @@ import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 /**
  * Class representing a map, creates the INMap object to communicate with frontend server.
  */
-public class INMap extends WebView {
+public class INMap extends WebView implements IINMap{
 
 	INObjectInterface inObjectInterface;
 	INMarkerInterface inMarkerInterface;
@@ -44,8 +45,7 @@ public class INMap extends WebView {
 
 	@Retention(RetentionPolicy.SOURCE)
 	@StringDef({AREA,COORDINATES})
-
-	private @interface EventListner {}
+	public @interface EventListner {}
 
 	/**
 	 * Constructs a new WebView with layout parameters.
@@ -74,6 +74,17 @@ public class INMap extends WebView {
 		Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
 
 		String javaScriptString = String.format(Locale.US, "navi.load(%d).then(() => inObjectInterface.ready(%d));", floorId, promiseId);
+		this.evaluateJavascript(javaScriptString, null);
+	}
+
+	/**
+	 * load method overloading.
+	 *
+	 * @param floorId - Id of specific floor.
+	 */
+	public void load(int floorId)
+	{
+		String javaScriptString = String.format(Locale.US, "navi.load(%d);", floorId);
 		this.evaluateJavascript(javaScriptString, null);
 	}
 
@@ -112,7 +123,7 @@ public class INMap extends WebView {
 	/**
 	 * Register a callback to be invoked when event occurs.
 	 *
-	 * @param event - type of event listener
+	 * @param event type of event listener
 	 * @param onEventListener interface - invoked when event occurs.
 	 */
 	public void addEventListener(@EventListner String event, OnEventListener onEventListener) {
@@ -127,7 +138,7 @@ public class INMap extends WebView {
 	/**
 	 * Toggle the tag visibility.
 	 *
-	 * @param tagId - Id of specific tag.
+	 * @param tagId Id of specific tag.
 	 */
 	public void toggleTagVisibility(short tagId) {
 		String javaScriptString = String.format(Locale.US, "navi.toggleTagVisibility(%d);", tagId);

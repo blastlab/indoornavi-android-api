@@ -7,13 +7,14 @@ import java.util.List;
 import java.util.Locale;
 
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
+import co.blastlab.indoornavi_api.documentation.IReport;
 import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.model.Coordinates;
 
 /**
  * Class representing an Report object allows to obtain archived data.
  */
-public class Report {
+public class Report implements IReport {
 
 	private  String objectInstance, targetHost, apiKey;
 	private WebView webView;
@@ -21,9 +22,9 @@ public class Report {
 	/**
 	 * Report object constructor.
 	 *
-	 * @param webView - WebView instance
-	 * @param targetHost - address to the INMap backend server
-	 * @param apiKey - the API key created on INMap server
+	 * @param webView WebView instance
+	 * @param targetHost address to the INMap backend server
+	 * @param apiKey the API key created on INMap server
 	 */
 	public Report(WebView webView, String targetHost, String apiKey) {
 		this.objectInstance = String.format(Locale.US, "report%d",this.hashCode());
@@ -38,10 +39,10 @@ public class Report {
 	/**
 	 * Retrieve list of archived Area events.
 	 *
-	 * @param floorId - id of the floor you want to get area events from
-	 * @param from - start date of the period
-	 * @param to - end date of the period
-	 * @param onObjectReadyCallback - callback interface invoke when {@link AreaEvent} list is ready
+	 * @param floorId id of the floor you want to get area events from
+	 * @param from start date of the period
+	 * @param to end date of the period
+	 * @param onObjectReadyCallback callback interface invoke when {@link AreaEvent} list is ready
 	 */
 	public void getAreaEvents(int floorId, Date from, Date to, OnObjectReadyCallback<List<AreaEvent>> onObjectReadyCallback) {
 
@@ -56,10 +57,10 @@ public class Report {
 	/**
 	 * Retrieve list of archived coordinates.
 	 *
-	 * @param floorId - id of the floor you want to get coordinates from
-	 * @param from - start date of the period
-	 * @param to - end date of the period
-	 * @param onObjectReadyCallback - callback interface invoke when {@link Coordinates} list is ready
+	 * @param floorId id of the floor you want to get coordinates from
+	 * @param from start date of the period
+	 * @param to end date of the period
+	 * @param onObjectReadyCallback callback interface invoke when {@link Coordinates} list is ready
 	 */
 	public void getCoordinates(int floorId, Date from, Date to, OnObjectReadyCallback<List<Coordinates>> onObjectReadyCallback) {
 
