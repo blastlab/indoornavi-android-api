@@ -1,13 +1,14 @@
 package co.blastlab.indoornavi_api.documentation;
 
 import android.graphics.Point;
+import android.support.annotation.ColorInt;
 
 import java.util.List;
 
 /**
  * Class representing a INPolyline, creates the INPolyline in webView, communicates with frontend server and draws INPolyline.
  */
-public interface IINPolyline {
+public interface DocINPolyline {
 	/**
 	 * Place polyline on the map with all given settings.
 	 * There is necessary to use points() method before draw() method to indicate where polyline should to be located.
@@ -16,7 +17,7 @@ public interface IINPolyline {
 	void draw();
 
 	/**
-	 * Locates polyline object at given coordinates. Coordinates needs to be given as List<Point> object.
+	 * Locates polyline object at given coordinates. Coordinates needs to be given as list of {@link Point} object.
 	 * Use of this method is indispensable to draw a polyline.
 	 *
 	 * @param points List of points
@@ -28,5 +29,5 @@ public interface IINPolyline {
 	 *
 	 * @param color String that specifies the color. Supports color in hex format #AABBCC and rgb format rgb(255,255,255).
 	 */
-	void setLineColor(String color);
+	void setLineColor(@ColorInt int color);
 }

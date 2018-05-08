@@ -1,17 +1,18 @@
 package co.blastlab.indoornavi_api.objects;
 
 import android.graphics.Point;
+import android.support.annotation.ColorInt;
 
 import java.util.List;
 import java.util.Locale;
 
-import co.blastlab.indoornavi_api.documentation.IINPolyline;
+import co.blastlab.indoornavi_api.documentation.DocINPolyline;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
  * Class representing a INPolyline, creates the INPolyline in webView, communicates with frontend server and draws INPolyline.
  */
-public class INPolyline extends INObject implements IINPolyline{
+public class INPolyline extends INObject implements DocINPolyline {
 
 	private INMap inMap;
 
@@ -41,7 +42,7 @@ public class INPolyline extends INObject implements IINPolyline{
 	}
 
 	/**
-	 * Locates polyline object at given coordinates. Coordinates needs to be given as List<Point> object.
+	 * Locates polyline object at given coordinates. Coordinates needs to be given as list of {@link Point} object.
 	 * Use of this method is indispensable to draw a polyline.
 	 *
 	 * @param points List of points
@@ -59,9 +60,9 @@ public class INPolyline extends INObject implements IINPolyline{
 	 *
 	 * @param color String that specifies the color. Supports color in hex format #AABBCC and rgb format rgb(255,255,255).
 	 */
-	public void setLineColor(String color)
+	public void setLineColor(@ColorInt int color)
 	{
-		String javaScriptString = String.format("%s.setLineColor('%s');", objectInstance, color);
+		String javaScriptString = String.format("%s.setLineColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
 		inMap.evaluateJavascript(javaScriptString, null);
 	}
 }

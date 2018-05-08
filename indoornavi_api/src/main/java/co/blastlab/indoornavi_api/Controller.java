@@ -1,7 +1,6 @@
 package co.blastlab.indoornavi_api;
 
-import java.util.HashMap;
-import java.util.Map;
+import android.util.SparseArray;
 
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
@@ -16,7 +15,7 @@ public final class Controller {
 	private Controller() {
 	}
 
-	public static volatile Map<Integer, OnMarkerClickListener> markerClickListenerMap = new HashMap<>();
-	public static volatile Map<Integer, OnObjectReadyCallback> promiseCallbackMap = new HashMap<>();
-	public static volatile Map<Integer, OnEventListener> eventListenerMap = new HashMap<>();
+	public static volatile SparseArray<OnMarkerClickListener> markerClickListenerMap = new SparseArray<>();
+	public static volatile SparseArray<OnObjectReadyCallback> promiseCallbackMap = new SparseArray<>();
+	public static volatile SparseArray<OnEventListener> eventListenerMap = new SparseArray<>();
 }

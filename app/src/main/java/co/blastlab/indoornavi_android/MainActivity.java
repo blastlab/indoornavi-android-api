@@ -1,5 +1,6 @@
 package co.blastlab.indoornavi_android;
 
+import android.graphics.Color;
 import android.graphics.Point;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -84,11 +85,13 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 			}
 		});
 
+
+
 		points.add(new Point(480, 480));
 		points.add(new Point(1220, 480));
-		points.add(new Point(1220,1220));
-		points.add(new Point(480,1220));
-		points.add(new Point(750,750));
+		//points.add(new Point(1220,1220));
+		//points.add(new Point(480,1220));
+		//points.add(new Point(750,750));
 	}
 
 	public void onWebViewReady(INMap mapView) {
@@ -114,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 		inPolyline.ready(new OnObjectReadyCallback<String>() {
 			public void onReady(String result) {
 				inPolyline.points(points);
-				inPolyline.setLineColor("#12a3b5");
+				inPolyline.setLineColor(Color.RED);
 				inPolyline.draw();
 				inPolyline.getID(new OnReceiveValueCallback<Long>() {
 					@Override
@@ -139,8 +142,8 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 			@Override
 			public void onReady(String result) {
 				inArea.points(points);
-				inArea.setFillColor("rgb(144,224,017)");
-				inArea.setOpacity((float)0.3);
+				inArea.setFillColor(Color.BLUE);
+				inArea.setOpacity(0.3);
 				inArea.draw();
 			}
 		});
@@ -187,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 
 	public void createReport() {
 		report = new Report(inMap, "http://192.168.1.18:90", "TestAdmin");
-		report.getAreaEvents(2, new Date(1428105600), new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {
+		report.getAreaEvents(2, new Date() ,new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {//new Date(1428105600), new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {
 				@Override
 				public void onReady(List<AreaEvent> areaEvents) {
 					ReportUtil.areaEventToCSV(areaEvents);

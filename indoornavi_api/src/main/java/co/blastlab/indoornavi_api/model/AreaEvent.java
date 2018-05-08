@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.Date;
 
 /**
- * Class representing an AreaEvnt.
+ * Class representing an AreaEvent.
  */
 public class AreaEvent {
 

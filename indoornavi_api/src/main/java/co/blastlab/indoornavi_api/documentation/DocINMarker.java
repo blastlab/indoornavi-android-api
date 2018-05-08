@@ -7,7 +7,7 @@ import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
 /**
  * Class representing a marker, creates the INMarker object in iframe that communicates with frontend server and places a marker on the map.
  */
-public interface IINMarker {
+public interface DocINMarker {
 
 	/**
 	 * Register a callback to be invoked when marker is clicked.

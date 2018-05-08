@@ -1,5 +1,6 @@
 package co.blastlab.indoornavi_api.objects;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.StringDef;
 import android.util.AttributeSet;
@@ -15,7 +16,7 @@ import java.util.Locale;
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
-import co.blastlab.indoornavi_api.documentation.IINMap;
+import co.blastlab.indoornavi_api.documentation.DocINMap;
 import co.blastlab.indoornavi_api.interfaces.EventListenerInterface;
 import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
@@ -26,7 +27,7 @@ import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 /**
  * Class representing a map, creates the INMap object to communicate with frontend server.
  */
-public class INMap extends WebView implements IINMap{
+public class INMap extends WebView implements DocINMap {
 
 	INObjectInterface inObjectInterface;
 	INMarkerInterface inMarkerInterface;
@@ -45,7 +46,7 @@ public class INMap extends WebView implements IINMap{
 
 	@Retention(RetentionPolicy.SOURCE)
 	@StringDef({AREA,COORDINATES})
-	public @interface EventListner {}
+	public @interface EventListener {}
 
 	/**
 	 * Constructs a new WebView with layout parameters.
@@ -88,6 +89,7 @@ public class INMap extends WebView implements IINMap{
 		this.evaluateJavascript(javaScriptString, null);
 	}
 
+	@SuppressLint("SetJavaScriptEnabled")
 	private void init()
 	{
 		this.setWebViewClient(new IndoorWebViewClient());
@@ -109,6 +111,8 @@ public class INMap extends WebView implements IINMap{
 	 *
 	 * @param targetHost address to the frontend server
 	 * @param apiKey the API key created on server
+	 * @param height height of the iframe in pixels
+	 * @param weight weight of the iframe in pixels
 	 */
 	public void createMap(String targetHost, String apiKey, int height, int weight)
 	{
@@ -126,7 +130,7 @@ public class INMap extends WebView implements IINMap{
 	 * @param event type of event listener
 	 * @param onEventListener interface - invoked when event occurs.
 	 */
-	public void addEventListener(@EventListner String event, OnEventListener onEventListener) {
+	public void addEventListener(@EventListener String event, OnEventListener onEventListener) {
 
 		int eventId = onEventListener.hashCode();
 		Controller.eventListenerMap.put(eventId, onEventListener);

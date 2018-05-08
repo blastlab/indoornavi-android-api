@@ -6,7 +6,7 @@ import co.blastlab.indoornavi_api.objects.INObject;
 /**
  * Class representing a info window, creates the INInfoWindow object in iframe that communicates with frontend server and adds info window to a given INObject child.
  */
-public interface IINInfoWindow {
+public interface DocINInfoWindow {
 
 	/**
 	 * Sets height dimension of info window. Use of this method is optional. Default dimensions for info window height is 250px.

@@ -1,6 +1,7 @@
 package co.blastlab.indoornavi_api.utils;
 
 import android.graphics.Point;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,13 +39,19 @@ public class PointsUtil {
 	public static List<Point> stringToPoints(String stringPoints) {
 		List<Point> points = new ArrayList<>();
 
-		String str = stringPoints.replaceAll("[^-?0-9]+", " ");
-		final String[] tokens = str.trim().split(" ");
+		try {
+			String str = stringPoints.replaceAll("[^-?0-9]+", " ");
+			final String[] tokens = str.trim().split(" ");
 
-		for (int i = 0; i < tokens.length; i += 2) {
-			points.add(new Point(Integer.parseInt(tokens[i]), Integer.parseInt(tokens[i + 1])));
+			for (int i = 0; i < tokens.length; i += 2) {
+				points.add(new Point(Integer.parseInt(tokens[i]), Integer.parseInt(tokens[i + 1])));
+			}
+			return points;
 		}
-		return points;
+		catch (Exception e) {
+			Log.e("Points parse Exception", e.toString());
+		}
+		return null;
 	}
 
 	/**
@@ -54,11 +61,16 @@ public class PointsUtil {
 	 * @return Point object
 	 */
 	public static Point stringToPoint(String stringPoint) {
+		try {
+			String str = stringPoint.replaceAll("[^-?0-9]+", " ");
+			final String[] tokens = str.trim().split(" ");
 
-		String str = stringPoint.replaceAll("[^-?0-9]+", " ");
-		final String[] tokens = str.trim().split(" ");
-
-		return new Point(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]));
+			return new Point(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]));
+		}
+		catch (Exception e) {
+			Log.e("Point parse exception", e.toString());
+		}
+		return null;
 	}
 
 	public static String pointToString(Point point) {

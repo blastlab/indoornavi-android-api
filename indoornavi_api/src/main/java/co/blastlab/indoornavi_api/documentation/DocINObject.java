@@ -12,7 +12,7 @@ import co.blastlab.indoornavi_api.model.Coordinates;
 /**
  * Class INObject is the root of the IndoorNavi objects hierarchy. Every IN object has INObject as a superclass (except INMap).
  */
-public interface IINObject {
+public interface DocINObject {
 
 	/**
 	 * Method wait till object is create.

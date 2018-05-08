@@ -1,5 +1,6 @@
 package co.blastlab.indoornavi_api;
 
+import android.util.Log;
 import android.webkit.WebView;
 
 import java.util.Date;
@@ -7,14 +8,14 @@ import java.util.List;
 import java.util.Locale;
 
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
-import co.blastlab.indoornavi_api.documentation.IReport;
+import co.blastlab.indoornavi_api.documentation.DocReport;
 import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.model.Coordinates;
 
 /**
  * Class representing an Report object allows to obtain archived data.
  */
-public class Report implements IReport {
+public class Report implements DocReport {
 
 	private  String objectInstance, targetHost, apiKey;
 	private WebView webView;
@@ -46,12 +47,17 @@ public class Report implements IReport {
 	 */
 	public void getAreaEvents(int floorId, Date from, Date to, OnObjectReadyCallback<List<AreaEvent>> onObjectReadyCallback) {
 
-		int promiseId = onObjectReadyCallback.hashCode();
-		Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
+		if(to.after(from)) {
+			int promiseId = onObjectReadyCallback.hashCode();
+			Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
 
-		String javaScriptString = String.format(Locale.US, "%s.getAreaEvents(%d, new Date(%d), new Date(%d)).then(res => reportInterface.areaEvents(%d, JSON.stringify(res)));", objectInstance, floorId, from.getTime(), to.getTime(), promiseId);
+			String javaScriptString = String.format(Locale.US, "%s.getAreaEvents(%d, new Date(%d), new Date(%d)).then(res => reportInterface.areaEvents(%d, JSON.stringify(res)));", objectInstance, floorId, from.getTime(), to.getTime(), promiseId);
 
-		webView.evaluateJavascript(javaScriptString, null);
+			webView.evaluateJavascript(javaScriptString, null);
+		}
+		else {
+			Log.e("Date range exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + " : " + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Date \"to\" mast be after \"from\"");
+		}
 	}
 
 	/**
@@ -64,10 +70,15 @@ public class Report implements IReport {
 	 */
 	public void getCoordinates(int floorId, Date from, Date to, OnObjectReadyCallback<List<Coordinates>> onObjectReadyCallback) {
 
-		int promiseId = onObjectReadyCallback.hashCode();
-		Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
+		if(to.after(from)) {
+			int promiseId = onObjectReadyCallback.hashCode();
+			Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
 
-		String javaScriptString = String.format(Locale.US, "%s.getCoordinates(%d, new Date(%d), new Date(%d)).then(res => reportInterface.coordinates(%d, JSON.stringify(res)));", objectInstance, floorId, from.getTime(), to.getTime(), promiseId);
-		webView.evaluateJavascript(javaScriptString, null);
+			String javaScriptString = String.format(Locale.US, "%s.getCoordinates(%d, new Date(%d), new Date(%d)).then(res => reportInterface.coordinates(%d, JSON.stringify(res)));", objectInstance, floorId, from.getTime(), to.getTime(), promiseId);
+			webView.evaluateJavascript(javaScriptString, null);
+		}
+		else {
+			Log.e("Date range exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + " : " + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Date \"to\" mast be after \"from\"");
+		}
 	}
 }

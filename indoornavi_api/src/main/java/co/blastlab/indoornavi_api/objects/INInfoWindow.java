@@ -5,12 +5,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Locale;
 
-import co.blastlab.indoornavi_api.documentation.IINInfoWindow;
+import co.blastlab.indoornavi_api.documentation.DocINInfoWindow;
 
 /**
  * Class representing a info window, creates the INInfoWindow object in iframe that communicates with frontend server and adds info window to a given INObject child.
  */
-public class INInfoWindow extends INObject implements IINInfoWindow{
+public class INInfoWindow extends INObject implements DocINInfoWindow{
 
 	private INMap inMap;
 	public static final int TOP = 0;

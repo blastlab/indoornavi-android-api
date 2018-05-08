@@ -7,7 +7,7 @@ import co.blastlab.indoornavi_api.objects.INMap;
 /**
  * Class representing a map, creates the INMap object to communicate with frontend server.
  */
-public interface IINMap {
+public interface DocINMap {
 
 	/**
 	 * Load map of the floor with specific id.
@@ -22,6 +22,8 @@ public interface IINMap {
 	 *
 	 * @param targetHost address to the frontend server
 	 * @param apiKey the API key created on server
+	 * @param height height of the iframe in pixels
+	 * @param weight weight of the iframe in pixels
 	 */
 	void createMap(String targetHost, String apiKey, int height, int weight);
 
@@ -31,7 +33,7 @@ public interface IINMap {
 	 * @param event type of event listener
 	 * @param onEventListener interface - invoked when event occurs.
 	 */
-	void addEventListener(@INMap.EventListner String event, OnEventListener onEventListener);
+	void addEventListener(@INMap.EventListener String event, OnEventListener onEventListener);
 
 	/**
 	 * Toggle the tag visibility.

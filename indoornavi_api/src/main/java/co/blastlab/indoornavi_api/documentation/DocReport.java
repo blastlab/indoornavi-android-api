@@ -7,7 +7,7 @@ import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.model.Coordinates;
 
-public interface IReport {
+public interface DocReport {
 
 	/**
 	 * Retrieve list of archived Area events.

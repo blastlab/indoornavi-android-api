@@ -9,7 +9,7 @@ import java.util.Locale;
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
-import co.blastlab.indoornavi_api.documentation.IINObject;
+import co.blastlab.indoornavi_api.documentation.DocINObject;
 import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.utils.CoordinatesUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
@@ -17,7 +17,7 @@ import co.blastlab.indoornavi_api.utils.PointsUtil;
 /**
  * Class INObject is the root of the IndoorNavi objects hierarchy. Every IN object has INObject as a superclass (except INMap).
  */
-public class INObject implements IINObject{
+public class INObject implements DocINObject {
 
 	private INMap inMap;
 	String objectInstance;
