@@ -10,12 +10,12 @@ public class INMarkerInterface {
 
 	@JavascriptInterface
 	public void onClick(final int callbackId) {
-		Handler handler = new Handler(Looper.getMainLooper());
-		handler.post(new Runnable() {
-			public void run() {
+		//Handler handler = new Handler(Looper.getMainLooper());
+		//handler.post(new Runnable() {
+		//	public void run() {
 				Controller.markerClickListenerMap.get(callbackId).onClick();
-			}
-		});
+		//	}
+		//});
 
 	}
 }

@@ -1,7 +1,6 @@
 package co.blastlab.indoornavi_api.documentation;
 
 import co.blastlab.indoornavi_api.callback.OnEventListener;
-import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.objects.INMap;
 
 /**
@@ -13,9 +12,8 @@ public interface DocINMap {
 	 * Load map of the floor with specific id.
 	 *
 	 * @param floorId Id of specific floor.
-	 * @param onObjectReadyCallback interface - trigger when object is successfully create.
 	 */
-	 void load(int floorId, OnObjectReadyCallback onObjectReadyCallback);
+	 void load(int floorId);
 
 	/**
 	 * Create INMap object.

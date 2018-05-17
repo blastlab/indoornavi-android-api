@@ -45,7 +45,7 @@ public class ReportUtil {
 			return events;
 		}
 		catch(Exception e) {
-				Log.e("Json parse exception: ", e.toString());
+				Log.e("Json parse exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 		}
 		return null;
 	}
@@ -72,7 +72,7 @@ public class ReportUtil {
 			return coordinates;
 		}
 		catch(Exception e) {
-			Log.e("Json parse exception: ", e.toString());
+			Log.e("Json parse exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 		}
 		return null;
 	}
@@ -104,7 +104,7 @@ public class ReportUtil {
 			CSV_Output.close();
 		}
 		catch (Exception e) {
-			Log.e("CSV create exception: ", e.toString());
+			Log.e("CSV create exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 		}
 	}
 
@@ -135,7 +135,7 @@ public class ReportUtil {
 			CSV_Output.close();
 		}
 		catch (Exception e) {
-			Log.e("CSV create exception: ", e.toString());
+			Log.e("CSV create exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 		}
 	}
 }

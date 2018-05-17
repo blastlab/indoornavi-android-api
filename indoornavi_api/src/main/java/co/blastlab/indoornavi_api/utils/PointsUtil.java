@@ -18,16 +18,22 @@ public class PointsUtil {
 	 * @return String of coordinates values, like [{x: 480, y: 450},{x: 1220, y: 150}] in JavaScript representation.
 	 */
 	public static String pointsToString(List<Point> points) {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("[");
+		try {
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append("[");
 
-		for (int i = 0; i < points.size(); i++) {
-			stringBuilder.append(String.format("{x: %d, y: %d},", points.get(i).x, points.get(i).y));
+			for (int i = 0; i < points.size(); i++) {
+				stringBuilder.append(String.format("{x: %d, y: %d},", points.get(i).x, points.get(i).y));
+			}
+			stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+			stringBuilder.append("]");
+
+			return stringBuilder.toString();
 		}
-		stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-		stringBuilder.append("]");
-
-		return stringBuilder.toString();
+		catch (Exception e) {
+			Log.e("Points parse Exception", "(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): " + e.toString());
+		}
+		return null;
 	}
 
 	/**
@@ -49,7 +55,7 @@ public class PointsUtil {
 			return points;
 		}
 		catch (Exception e) {
-			Log.e("Points parse Exception", e.toString());
+			Log.e("Points parse Exception", "(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): " + e.toString());
 		}
 		return null;
 	}
@@ -68,7 +74,7 @@ public class PointsUtil {
 			return new Point(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]));
 		}
 		catch (Exception e) {
-			Log.e("Point parse exception", e.toString());
+			Log.e("Point parse exception", "(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): " + e.toString());
 		}
 		return null;
 	}

@@ -2,9 +2,11 @@ package co.blastlab.indoornavi_api.objects;
 
 import android.graphics.Point;
 import android.support.annotation.ColorInt;
+import android.util.Log;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.documentation.DocINPolyline;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
@@ -21,7 +23,7 @@ public class INPolyline extends INObject implements DocINPolyline {
 	 *
 	 * @param inMap INMap object instance
 	 */
-	public INPolyline(INMap inMap) {
+	private INPolyline(INMap inMap) {
 		super(inMap);
 		this.inMap = inMap;
 		this.objectInstance = String.format(Locale.US, "poly%d", this.hashCode());
@@ -64,5 +66,49 @@ public class INPolyline extends INObject implements DocINPolyline {
 	{
 		String javaScriptString = String.format("%s.setLineColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
 		inMap.evaluateJavascript(javaScriptString, null);
+	}
+
+	public static class INPolylineBuilder  {
+
+		private List<Point> points;
+		private INMap inMap;
+		private @ColorInt
+		int color;
+
+		public INPolylineBuilder(INMap inMap){
+			this.inMap = inMap;
+		}
+
+		public INPolylineBuilder points(List<Point> points)
+		{
+			this.points = points;
+			return this;
+		}
+
+		public INPolylineBuilder setLineColor(@ColorInt int color)
+		{
+			this.color = color;
+			return this;
+		}
+
+		public INPolyline build() {
+			final CountDownLatch latch = new CountDownLatch(1);
+			INPolyline inPolyline = new INPolyline(inMap);
+			inPolyline.ready(object -> latch.countDown());
+
+			try{
+				latch.await();
+
+				inPolyline.points(this.points);
+				inPolyline.setLineColor(this.color);
+				inPolyline.draw();
+				return inPolyline;
+			}
+			catch (Exception e) {
+				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			}
+			return null;
+
+		}
 	}
 }

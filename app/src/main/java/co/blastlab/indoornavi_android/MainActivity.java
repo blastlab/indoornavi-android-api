@@ -2,6 +2,8 @@ package co.blastlab.indoornavi_android;
 
 import android.graphics.Color;
 import android.graphics.Point;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,10 +16,8 @@ import java.util.Date;
 import java.util.List;
 
 import co.blastlab.indoornavi_api.Report;
-import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
-import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.objects.INArea;
@@ -26,6 +26,7 @@ import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.objects.INMarker;
 import co.blastlab.indoornavi_api.objects.INPolyline;
 import co.blastlab.indoornavi_api.callback.OnViewReadyCallback;
+import co.blastlab.indoornavi_api.utils.PointsUtil;
 import co.blastlab.indoornavi_api.utils.ReportUtil;
 
 public class MainActivity extends AppCompatActivity implements OnViewReadyCallback {
@@ -89,108 +90,78 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 
 		points.add(new Point(480, 480));
 		points.add(new Point(1220, 480));
-		//points.add(new Point(1220,1220));
-		//points.add(new Point(480,1220));
-		//points.add(new Point(750,750));
+		points.add(new Point(1220,1220));
+		points.add(new Point(480,1220));
+		points.add(new Point(750,750));
+
+		//AlertDialog dialog = new AlertDialog.Builder(this.getApplicationContext()).show();
+
 	}
 
 	public void onWebViewReady(INMap mapView) {
 		inMap.createMap("http://192.168.1.18:4200", "TestAdmin", 1200, 850);
-		inMap.load(2, new OnObjectReadyCallback() {
-			@Override
-			public void onReady(Object o) {
-				inMap.toggleTagVisibility((short)10999);
-				inMap.addEventListener(INMap.AREA, new OnEventListener() {
-					@Override
-					public void onEvent(Object o) {
-						Log.e("Indoor", "aaaaaa, ratunku!");
-					}
-				});
-			}
-		});
+		inMap.load(2);
 	}
 
 	public void drawPoly()
 	{
+		inPolyline = new INPolyline.INPolylineBuilder(inMap)
+			.points(points)
+			.setLineColor(Color.LTGRAY)
+			.build();
 
-		inPolyline = new INPolyline(inMap);
-		inPolyline.ready(new OnObjectReadyCallback<String>() {
-			public void onReady(String result) {
-				inPolyline.points(points);
-				inPolyline.setLineColor(Color.RED);
-				inPolyline.draw();
-				inPolyline.getID(new OnReceiveValueCallback<Long>() {
-					@Override
-					public void onReceiveValue(Long id) {
-						Log.i("Indoor", "onReceiveValue: " + id);
-					}
-				});
-
-				inPolyline.getPoints(new OnReceiveValueCallback<List<Point>>() {
-					@Override
-					public void onReceiveValue(List<Point> points) {
-
-					}
-				});
-			}
-		});
+		inPolyline.getID(id -> { Log.i("Indoor", "onReceiveValue: " + id); });
+		inPolyline.getPoints(points -> Log.i("Indoor", "onReceiveValue: " + PointsUtil.pointsToString(points)));
 	}
 
 	public void drawArea(){
-		inArea = new INArea(inMap);
-		inArea.ready(new OnObjectReadyCallback<String>() {
-			@Override
-			public void onReady(String result) {
-				inArea.points(points);
-				inArea.setFillColor(Color.BLUE);
-				inArea.setOpacity(0.3);
-				inArea.draw();
-			}
-		});
+		inArea = new INArea.INAreaBuilder(inMap)
+			.points(points)
+			.setFillColor(Color.GREEN)
+			.setOpacity(0.3)
+			.build();
 	}
 
 	public void drawMarker(){
-		inMarker1 = new INMarker(inMap);
-		inMarker1.ready(new OnObjectReadyCallback<String>() {
+		inMarker1 = new INMarker.INMarkerBuilder(inMap)
+			.point(new Point(600, 600))
+			.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
+			//.setLabel("This is label")
+			.build();
+
+		inMarker1.addEventListener(new OnMarkerClickListener() {
 			@Override
-			public void onReady(String result) {
-				inMarker1.point(new Point(600, 600));
-				inMarker1.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png");
-				inMarker1.setLabel("Lorem Ipsum");
-				inMarker1.addEventListener(new OnMarkerClickListener() {
-					@Override
-					public void onClick() {
-						show_toast();
-					}
-				});
-				inMarker1.draw();
+			public void onClick() {
+				show_toast();
 			}
 		});
 	}
 
 	public void drawInfoWindow(){
-		inInfoWindow = new INInfoWindow(inMap);
-		inInfoWindow.ready(new OnObjectReadyCallback<String>() {
-			@Override
-			public void onReady(String result) {
-				inInfoWindow.setInnerHTML("<h2>Lorem ipsum dolor sit amet</h2>");
-				inInfoWindow.setPosition(INInfoWindow.TOP);
-				inInfoWindow.height(200);
-				inInfoWindow.width(100);
-				inInfoWindow.open(inMarker1);
-			}
-		});
+		inInfoWindow = new INInfoWindow.INInfoWindowBuilder(inMap)
+			.height(200)
+			.width(200)
+			.setInnerHTML("<h2>Lorem ipsum dolor sit amet</h2>")
+			.setPosition(INInfoWindow.LEFT)
+			.build();
 	}
 
 	public void show_toast()
 	{
 		Toast.makeText(this, "This is my toast",
 			Toast.LENGTH_LONG).show();
+		Handler handler = new Handler(Looper.getMainLooper());
+		handler.post(new Runnable() {
+			@Override
+			public void run() {
+				inMarker1.addInfoWindow(inInfoWindow);
+			}
+		});
 	}
 
 	public void createReport() {
 		report = new Report(inMap, "http://192.168.1.18:90", "TestAdmin");
-		report.getAreaEvents(2, new Date() ,new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {//new Date(1428105600), new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {
+		report.getAreaEvents(2, new Date(1428105600) ,new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {
 				@Override
 				public void onReady(List<AreaEvent> areaEvents) {
 					ReportUtil.areaEventToCSV(areaEvents);

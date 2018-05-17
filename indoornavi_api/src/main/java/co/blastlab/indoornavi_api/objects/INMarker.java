@@ -1,8 +1,10 @@
 package co.blastlab.indoornavi_api.objects;
 
 import android.graphics.Point;
+import android.util.Log;
 
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
@@ -43,6 +45,8 @@ public class INMarker extends INObject implements DocINMarker {
 
 		String javaScriptString = String.format(Locale.US, "%s.addEventListener(Event.MOUSE.CLICK, () => inMarkerInterface.onClick(%d))", objectInstance, callbackId);
 		inMap.evaluateJavascript(javaScriptString, null);
+
+		draw();
 	}
 
 	/**
@@ -97,6 +101,16 @@ public class INMarker extends INObject implements DocINMarker {
 		inMap.evaluateJavascript(javaScriptString, null);
 	}
 
+	public void addInfoWindow(INInfoWindow inInfoWindow) {
+		if(inInfoWindow != null) {
+			String javaScriptString = String.format(Locale.US, "%s.open(%s);", inInfoWindow.objectInstance, objectInstance);
+			inMap.evaluateJavascript(javaScriptString, null);
+		}
+		else {
+			Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): InfoWindow not created");
+		}
+	}
+
 	/**
 	 * Set marker icon. To apply this method it's necessary to call draw() after.
 	 *
@@ -106,5 +120,55 @@ public class INMarker extends INObject implements DocINMarker {
 	{
 		String javaScriptString = String.format("%s.setIcon('%s');", objectInstance, path);
 		inMap.evaluateJavascript(javaScriptString, null);
+	}
+
+	public static class INMarkerBuilder  {
+
+		private Point point;
+		private INMap inMap;
+		private String label,  icon;
+
+		public INMarkerBuilder(INMap inMap){
+			this.inMap = inMap;
+		}
+
+		public INMarkerBuilder point(Point point)
+		{
+			this.point = point;
+			return this;
+		}
+
+		public INMarkerBuilder setLabel(String label)
+		{
+			this.label = label;
+			return this;
+		}
+
+		public INMarkerBuilder setIcon(String icon)
+		{
+			this.icon = icon;
+			return this;
+		}
+
+		public INMarker build() {
+			final CountDownLatch latch = new CountDownLatch(1);
+			INMarker inMarker = new INMarker(inMap);
+			inMarker.ready(object -> latch.countDown());
+
+			try{
+				latch.await();
+
+				inMarker.point(this.point);
+				inMarker.setLabel(this.label);
+				inMarker.setIcon(this.icon);
+				inMarker.draw();
+				return inMarker;
+			}
+			catch (Exception e) {
+				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			}
+			return null;
+
+		}
 	}
 }

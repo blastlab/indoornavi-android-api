@@ -78,7 +78,7 @@ public class Report implements DocReport {
 			webView.evaluateJavascript(javaScriptString, null);
 		}
 		else {
-			Log.e("Date range exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + " : " + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Date \"to\" mast be after \"from\"");
+			Log.e("Date range exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Date \"to\" mast be after \"from\"");
 		}
 	}
 }

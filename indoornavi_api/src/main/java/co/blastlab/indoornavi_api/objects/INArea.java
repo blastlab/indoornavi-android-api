@@ -7,6 +7,7 @@ import android.util.Log;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.documentation.DocINArea;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
@@ -23,7 +24,7 @@ public class INArea extends INObject implements DocINArea {
 	 *
 	 * @param inMap INMap object instance
 	 */
-	public INArea(INMap inMap) {
+	private INArea(INMap inMap) {
 		super(inMap);
 		this.inMap = inMap;
 		this.objectInstance = String.format("area%s", this.hashCode());
@@ -78,5 +79,56 @@ public class INArea extends INObject implements DocINArea {
 	{
 		String javaScriptString = String.format("%s.setOpacity(%s);", objectInstance, String.format(Locale.US, "%f", opacity));
 		inMap.evaluateJavascript(javaScriptString, null);
+	}
+
+	public static class INAreaBuilder  {
+
+		private List<Point> points;
+		private INMap inMap;
+		private @ColorInt int color;
+		private @FloatRange(from=0.0, to=1.0)double opacity;
+
+		public INAreaBuilder(INMap inMap){
+			this.inMap = inMap;
+		}
+
+		public INAreaBuilder points(List<Point> points)
+		{
+			this.points = points;
+			return this;
+		}
+
+		public INAreaBuilder setFillColor(@ColorInt int color)
+		{
+			this.color = color;
+			return this;
+		}
+
+		public INAreaBuilder setOpacity(@FloatRange(from=0.0, to=1.0)double opacity)
+		{
+			this.opacity = opacity;
+			return this;
+		}
+
+		public INArea build() {
+			final CountDownLatch latch = new CountDownLatch(1);
+			INArea inArea = new INArea(inMap);
+			inArea.ready(object -> 	latch.countDown());
+
+			try{
+				latch.await();
+
+				inArea.points(this.points);
+				inArea.setFillColor(this.color);
+				inArea.setOpacity(this.opacity);
+				inArea.draw();
+				return inArea;
+			}
+			catch (Exception e) {
+				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			}
+			return null;
+
+		}
 	}
 }

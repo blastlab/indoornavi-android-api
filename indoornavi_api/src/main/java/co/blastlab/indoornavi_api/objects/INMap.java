@@ -40,6 +40,7 @@ public class INMap extends WebView implements DocINMap {
 	private String apiKey;
 
 	private int height, weight;
+	private int floorId;
 
 	public static final String AREA = "AREA";
 	public static final String COORDINATES  = "COORDINATES";
@@ -69,7 +70,7 @@ public class INMap extends WebView implements DocINMap {
 	 * @param floorId - Id of specific floor.
 	 * @param onObjectReadyCallback interface - trigger when object is successfully create.
 	 */
-	public void load(int floorId, OnObjectReadyCallback onObjectReadyCallback)
+	private void ready(int floorId, OnObjectReadyCallback onObjectReadyCallback)
 	{
 		int promiseId = onObjectReadyCallback.hashCode();
 		Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
@@ -79,14 +80,14 @@ public class INMap extends WebView implements DocINMap {
 	}
 
 	/**
-	 * load method overloading.
+	 * Load map of the floor with specific id.
 	 *
 	 * @param floorId - Id of specific floor.
 	 */
 	public void load(int floorId)
 	{
-		String javaScriptString = String.format(Locale.US, "navi.load(%d);", floorId);
-		this.evaluateJavascript(javaScriptString, null);
+		this.floorId = floorId;
+		this.ready(floorId, (object) -> Log.i("INMapObject", "map is ready"));
 	}
 
 	@SuppressLint("SetJavaScriptEnabled")

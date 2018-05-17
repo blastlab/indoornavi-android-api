@@ -1,9 +1,12 @@
 package co.blastlab.indoornavi_api.objects;
 
 import android.support.annotation.IntDef;
+import android.util.Log;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.documentation.DocINInfoWindow;
 
@@ -91,4 +94,62 @@ public class INInfoWindow extends INObject implements DocINInfoWindow{
 		String javaScriptString = String.format(Locale.US, "%s.setPosition(%d);", objectInstance, position);
 		inMap.evaluateJavascript(javaScriptString, null);
 	}
+
+	public static class INInfoWindowBuilder  {
+
+		private INMap inMap;
+		private String html;
+		private int height, width;
+		private @Position int position;
+
+		public INInfoWindowBuilder(INMap inMap){
+			this.inMap = inMap;
+		}
+
+		public INInfoWindowBuilder setPosition(@Position int position)
+		{
+			this.position = position;
+			return this;
+		}
+
+		public INInfoWindowBuilder setInnerHTML(String html)
+		{
+			this.html = html;
+			return this;
+		}
+
+		public INInfoWindowBuilder height(int height)
+		{
+			this.height = height;
+			return this;
+		}
+
+		public INInfoWindowBuilder width(int width)
+		{
+			this.width = width;
+			return this;
+		}
+
+		public INInfoWindow build() {
+			final CountDownLatch latch = new CountDownLatch(1);
+			INInfoWindow inInfoWindow = new INInfoWindow(inMap);
+			inInfoWindow.ready(object -> latch.countDown());
+
+			try{
+				latch.await();
+
+				inInfoWindow.setInnerHTML(html);
+				inInfoWindow.setPosition(position);
+				inInfoWindow.height(height);
+				inInfoWindow.width(width);
+				return inInfoWindow;
+			}
+			catch (Exception e) {
+				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			}
+			return null;
+
+		}
+	}
+
 }
