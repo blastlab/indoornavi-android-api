@@ -2,7 +2,7 @@ package co.blastlab.indoornavi_api.callback;
 
 import co.blastlab.indoornavi_api.objects.INMap;
 /**
- * A callback interface used to to observe when page has finished loading.
+ * A callback interface used to observe when page has finished loading.
  */
 public interface OnViewReadyCallback {
 	/**

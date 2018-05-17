@@ -3,69 +3,61 @@ package co.blastlab.indoornavi_api.objects;
 import android.graphics.Point;
 import android.webkit.ValueCallback;
 
-import org.jdeferred.Deferred;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
-
 import java.util.List;
+import java.util.Locale;
 
 import co.blastlab.indoornavi_api.Controller;
+import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
-import co.blastlab.indoornavi_api.model.INCoordinates;
+import co.blastlab.indoornavi_api.documentation.DocINObject;
+import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.utils.CoordinatesUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
- * Class INObject is the root of the indoorNavi objects hierarchy. Every object has INObject as a superclass (except INMap).
- *
- * @author Agata Ziółkowska <achmielewska@blastlab.co>
+ * Class INObject is the root of the IndoorNavi objects hierarchy. Every IN object has INObject as a superclass (except INMap).
  */
-
-class INObject {
+public class INObject implements DocINObject {
 
 	private INMap inMap;
 	String objectInstance;
 
 	/**
+	 * INObject constructor.
 	 *
 	 * @param inMap instance INMap object.
-
 	 */
 	INObject(INMap inMap){
 		this.inMap = inMap;
 	}
 
 	/**
-	 * Checks whether the given object has been created.
+	 * Method wait till object is create.
+	 * Use of this method is indispensable to operate on the object.
 	 *
-	 * @return Promise - will be resolve when injected object is created.
+	 * @param onObjectReadyCallback interface - trigger when object is successfully create.
 	 */
-	Promise checkReady()
+	public void ready(OnObjectReadyCallback onObjectReadyCallback)
 	{
-		Deferred deferred = new DeferredObject();
-		Promise promise = deferred.promise();
+		int promiseId = onObjectReadyCallback.hashCode();
+		Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
 
-		int promiseId = promise.hashCode();
-		Controller.promiseMap.put(promiseId, deferred);
-
-		String javaScriptString = String.format("%s.ready().then(() => inObjectInterface.ready(%d));", objectInstance, promiseId);
+		String javaScriptString = String.format(Locale.US, "%s.ready().then(() => inObjectInterface.ready(%d));", objectInstance, promiseId);
 		inMap.evaluateJavascript(javaScriptString, null);
-
-		return promise;
 	}
 
 	/**
 	 * Return the id of the object.
 	 *
-	 * @param onReceiveValueCallback {@link OnReceiveValueCallback}
+	 * @param onReceiveValueCallback interface - invoked when object id is available.
 	 */
-	public void getID( final OnReceiveValueCallback onReceiveValueCallback)
+	public void getID( final OnReceiveValueCallback<Long> onReceiveValueCallback)
 	{
 		String javaScriptString = String.format("%s.getID();", objectInstance);
 		inMap.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
 			@Override
 			public void onReceiveValue(String s) {
-				onReceiveValueCallback.onReceiveValue(Integer.parseInt(s));
+				onReceiveValueCallback.onReceiveValue(Long.parseLong(s.substring(0, s.length() - 2)));
 			}
 		});
 	}
@@ -73,9 +65,9 @@ class INObject {
 	/**
 	 * Receives coordinates of the given object.
 	 *
-	 * @param onReceiveValueCallback Callback interface {@link OnReceiveValueCallback}
+	 * @param onReceiveValueCallback interface - invoked when list of points is available.
 	 */
-	public void getPoints(final OnReceiveValueCallback onReceiveValueCallback)
+	public void getPoints(final OnReceiveValueCallback<List<Point>> onReceiveValueCallback)
 	{
 		String javaScriptString = String.format("%s.getPoints();", objectInstance);
 		inMap.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
@@ -90,7 +82,6 @@ class INObject {
 
 	/**
 	 * Removes object and destroys it instance in the frontend server, but do not destroys object class instance in your app.
-	 *
 	 */
 	public void remove()
 	{
@@ -101,12 +92,12 @@ class INObject {
 	/**
 	 * Checks if point of given coordinates is inside of the object.
 	 *
-	 * @param inCoordinates checking coordinates
-	 * @param valueCallback Callback interface
+	 * @param coordinates checking coordinates
+	 * @param valueCallback interface - invoked when boolean value is available.
 	 */
-	public void isWithin(INCoordinates inCoordinates, final ValueCallback<Boolean> valueCallback)
+	public void isWithin(Coordinates coordinates, final ValueCallback<Boolean> valueCallback)
 	{
-		String javaScriptString = String.format("%s.isWithin(%s);", objectInstance, CoordinatesUtil.coordsToString(inCoordinates));
+		String javaScriptString = String.format("%s.isWithin(%s);", objectInstance, CoordinatesUtil.coordsToString(coordinates));
 		inMap.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
 			@Override
 			public void onReceiveValue(String s) {

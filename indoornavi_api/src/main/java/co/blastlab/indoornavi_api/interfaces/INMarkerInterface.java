@@ -6,17 +6,16 @@ import android.webkit.JavascriptInterface;
 
 import co.blastlab.indoornavi_api.Controller;
 
-public class INObjectInterface {
+public class INMarkerInterface {
 
 	@JavascriptInterface
-	public void ready(final int promiseId) {
+	public void onClick(final int callbackId) {
 		Handler handler = new Handler(Looper.getMainLooper());
 		handler.post(new Runnable() {
-			@Override
 			public void run() {
-				Controller.promiseCallbackMap.get(promiseId).onReady(null);
-				Controller.promiseCallbackMap.remove(promiseId);
+				Controller.markerClickListenerMap.get(callbackId).onClick();
 			}
 		});
+
 	}
 }

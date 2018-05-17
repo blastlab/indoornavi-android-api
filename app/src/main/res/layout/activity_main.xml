@@ -14,12 +14,42 @@
 </co.blastlab.indoornavi_api.objects.INMap>
 
 	<Button
-		android:id="@+id/button"
+		android:id="@+id/b_poly"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_alignParentBottom="true"
 		android:text="Draw poly"/>
 
+	<Button
+		android:id="@+id/b_area"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:layout_toEndOf="@+id/b_poly"
+		android:text="Draw area"/>
+
+	<Button
+		android:id="@+id/b_marker"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:layout_toEndOf="@+id/b_area"
+		android:text="Draw marker"/>
+
+	<Button
+		android:id="@+id/b_info"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_above="@+id/b_poly"
+		android:text="Draw infoWindow"/>
+
+	<Button
+		android:id="@+id/b_report"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_toEndOf="@+id/b_info"
+		android:layout_above="@+id/b_marker"
+		android:text="Create Report"/>
 
 </RelativeLayout>
 

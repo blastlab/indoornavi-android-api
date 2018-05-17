@@ -1,18 +1,18 @@
 package co.blastlab.indoornavi_api.utils;
 
 import android.graphics.Point;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  * Utility class for parsing data from and to object points coordinates represented as a String.
- *
- * @author Agata Ziółkowska <achmielewska@blastlab.co>
  */
 public class PointsUtil {
 
 	/**
-	 * Converts list of object points coordinates to String representation. String can be evaluate to JavaScript values.
+	 * Converts list of {@link Point} object coordinates to String representation. String can be evaluate to JavaScript values.
 	 *
 	 * @param points List of object points coordinates
 	 * @return String of coordinates values, like [{x: 480, y: 450},{x: 1220, y: 150}] in JavaScript representation.
@@ -31,29 +31,46 @@ public class PointsUtil {
 	}
 
 	/**
-	 * Converts String to List of object points coordinates.
+	 * Converts String to List of {@link Point} object coordinates.
 	 *
 	 * @param stringPoints String of points in JavaScript representation e.g: [{x: 480, y: 450},{x: 1220, y: 150}]
-	 * @return object points coordinates
+	 * @return Point object list
 	 */
 	public static List<Point> stringToPoints(String stringPoints) {
 		List<Point> points = new ArrayList<>();
 
-		String str = stringPoints.replaceAll("[^-?0-9]+", " ");
-		final String[] tokens = str.trim().split(" ");
+		try {
+			String str = stringPoints.replaceAll("[^-?0-9]+", " ");
+			final String[] tokens = str.trim().split(" ");
 
-		for (int i = 0; i < tokens.length; i += 2) {
-			points.add(new Point(Integer.parseInt(tokens[i]), Integer.parseInt(tokens[i + 1])));
+			for (int i = 0; i < tokens.length; i += 2) {
+				points.add(new Point(Integer.parseInt(tokens[i]), Integer.parseInt(tokens[i + 1])));
+			}
+			return points;
 		}
-		return points;
+		catch (Exception e) {
+			Log.e("Points parse Exception", e.toString());
+		}
+		return null;
 	}
 
+	/**
+	 * Converts String to {@link Point} object coordinates.
+	 *
+	 * @param stringPoint String containing point in JavaScript representation e.g: [{x: 480, y: 450}]
+	 * @return Point object
+	 */
 	public static Point stringToPoint(String stringPoint) {
+		try {
+			String str = stringPoint.replaceAll("[^-?0-9]+", " ");
+			final String[] tokens = str.trim().split(" ");
 
-		String str = stringPoint.replaceAll("[^-?0-9]+", " ");
-		final String[] tokens = str.trim().split(" ");
-
-		return new Point(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]));
+			return new Point(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]));
+		}
+		catch (Exception e) {
+			Log.e("Point parse exception", e.toString());
+		}
+		return null;
 	}
 
 	public static String pointToString(Point point) {

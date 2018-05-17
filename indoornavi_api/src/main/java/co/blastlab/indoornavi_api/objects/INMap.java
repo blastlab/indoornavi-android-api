@@ -1,29 +1,52 @@
 package co.blastlab.indoornavi_api.objects;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.support.annotation.StringDef;
 import android.util.AttributeSet;
 import android.util.Log;
 
 import android.webkit.WebView;
 
 import java.io.InputStream;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.util.Locale;
 
+import co.blastlab.indoornavi_api.Controller;
+import co.blastlab.indoornavi_api.callback.OnEventListener;
+import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
+import co.blastlab.indoornavi_api.documentation.DocINMap;
+import co.blastlab.indoornavi_api.interfaces.EventListenerInterface;
+import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
+import co.blastlab.indoornavi_api.interfaces.ReportInterface;
 import co.blastlab.indoornavi_api.web_view.IndoorWebChromeClient;
 import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 
 /**
- * Class representing a INMap, creates the INMap object to communicate with IndoorNavi frontend server.
- *
- * @author Agata Ziółkowska <achmielewska@blastlab.co>
+ * Class representing a map, creates the INMap object to communicate with frontend server.
  */
-public class INMap extends WebView {
+public class INMap extends WebView implements DocINMap {
 
-	public INObjectInterface inObjectInterface;
+	INObjectInterface inObjectInterface;
+	INMarkerInterface inMarkerInterface;
+	ReportInterface reportInterface;
+	EventListenerInterface eventInterface;
+
 	private Context context;
 
 	private String targetHost;
 	private String apiKey;
+
+	private int height, weight;
+
+	public static final String AREA = "AREA";
+	public static final String COORDINATES  = "COORDINATES";
+
+	@Retention(RetentionPolicy.SOURCE)
+	@StringDef({AREA,COORDINATES})
+	public @interface EventListener {}
 
 	/**
 	 * Constructs a new WebView with layout parameters.
@@ -41,16 +64,32 @@ public class INMap extends WebView {
 	}
 
 	/**
-	 *Load map with specific id.
+	 * Load map of the floor with specific id.
 	 *
-	 * @param mapId
+	 * @param floorId - Id of specific floor.
+	 * @param onObjectReadyCallback interface - trigger when object is successfully create.
 	 */
-	public void load(int mapId)
+	public void load(int floorId, OnObjectReadyCallback onObjectReadyCallback)
 	{
-		String javaScriptString = String.format("navi.load(%d);", mapId);
+		int promiseId = onObjectReadyCallback.hashCode();
+		Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
+
+		String javaScriptString = String.format(Locale.US, "navi.load(%d).then(() => inObjectInterface.ready(%d));", floorId, promiseId);
 		this.evaluateJavascript(javaScriptString, null);
 	}
 
+	/**
+	 * load method overloading.
+	 *
+	 * @param floorId - Id of specific floor.
+	 */
+	public void load(int floorId)
+	{
+		String javaScriptString = String.format(Locale.US, "navi.load(%d);", floorId);
+		this.evaluateJavascript(javaScriptString, null);
+	}
+
+	@SuppressLint("SetJavaScriptEnabled")
 	private void init()
 	{
 		this.setWebViewClient(new IndoorWebViewClient());
@@ -72,17 +111,46 @@ public class INMap extends WebView {
 	 *
 	 * @param targetHost address to the frontend server
 	 * @param apiKey the API key created on server
+	 * @param height height of the iframe in pixels
+	 * @param weight weight of the iframe in pixels
 	 */
-	public void createMap(String targetHost, String apiKey)
+	public void createMap(String targetHost, String apiKey, int height, int weight)
 	{
 		this.targetHost = targetHost;
 		this.apiKey = apiKey;
+		this.height = height;
+		this.weight = weight;
 
 		JS_InMapCreate();
 	}
 
+	/**
+	 * Register a callback to be invoked when event occurs.
+	 *
+	 * @param event type of event listener
+	 * @param onEventListener interface - invoked when event occurs.
+	 */
+	public void addEventListener(@EventListener String event, OnEventListener onEventListener) {
+
+		int eventId = onEventListener.hashCode();
+		Controller.eventListenerMap.put(eventId, onEventListener);
+
+		String javaScriptString = String.format(Locale.US, "navi.addEventListener(Event.LISTENER.%s, res => eventInterface.onEvent(%d, %s, stringify(res)));", event, eventId, event);
+		this.evaluateJavascript(javaScriptString, null);
+	}
+
+	/**
+	 * Toggle the tag visibility.
+	 *
+	 * @param tagId Id of specific tag.
+	 */
+	public void toggleTagVisibility(short tagId) {
+		String javaScriptString = String.format(Locale.US, "navi.toggleTagVisibility(%d);", tagId);
+		this.evaluateJavascript(javaScriptString, null);
+	}
+
 	private void JS_InMapCreate() {
-		String javaScriptString = String.format("var navi = new INMap(\"%s\",\"%s\",\"map\",{width:%d,height:%d});", targetHost, apiKey, 1200, 850);
+		String javaScriptString = String.format(Locale.US, "var navi = new INMap(\"%s\",\"%s\",\"map\",{width:%d,height:%d});", targetHost, apiKey, height, weight);
 		this.evaluateJavascript(javaScriptString, null);
 	}
 
@@ -110,5 +178,14 @@ public class INMap extends WebView {
 	{
 		inObjectInterface  = new INObjectInterface();
 		this.addJavascriptInterface(inObjectInterface, "inObjectInterface");
+
+		inMarkerInterface = new INMarkerInterface();
+		this.addJavascriptInterface(inMarkerInterface, "inMarkerInterface");
+
+		reportInterface = new ReportInterface();
+		this.addJavascriptInterface(reportInterface, "reportInterface");
+
+		eventInterface = new EventListenerInterface();
+		this.addJavascriptInterface(eventInterface, "eventInterface");
 	}
 }
