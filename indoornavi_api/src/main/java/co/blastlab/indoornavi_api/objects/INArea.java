@@ -29,7 +29,7 @@ public class INArea extends INObject implements DocINArea {
 		this.inMap = inMap;
 		this.objectInstance = String.format("area%s", this.hashCode());
 		String javaScriptString = String.format("var %s = new INArea(navi);", this.objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -39,7 +39,7 @@ public class INArea extends INObject implements DocINArea {
 	public void draw()
 	{
 		String javaScriptString = String.format("%s.draw();", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -49,13 +49,13 @@ public class INArea extends INObject implements DocINArea {
 	 */
 	public void points(List<Point> points)
 	{
-		if (points.size() > 2) {
+		if (points != null && points.size() > 2) {
 			String javaScriptPoints = String.format("var points = %s;", PointsUtil.pointsToString(points));
-			inMap.evaluateJavascript(javaScriptPoints, null);
+			evaluate(javaScriptPoints, null);
 			String javaScriptString = String.format("%s.points(points);", objectInstance);
-			inMap.evaluateJavascript(javaScriptString, null);
+			evaluate(javaScriptString, null);
 		} else {
-			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + " : " + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): At least 3 points must be provided!");
+			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): At least 3 points must be provided!");
 		}
 	}
 
@@ -67,7 +67,7 @@ public class INArea extends INObject implements DocINArea {
 	public void setFillColor(@ColorInt int color)
 	{
 		String javaScriptString = String.format("%s.setFillColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -78,7 +78,7 @@ public class INArea extends INObject implements DocINArea {
 	public void setOpacity(@FloatRange(from=0.0, to=1.0)double opacity)
 	{
 		String javaScriptString = String.format("%s.setOpacity(%s);", objectInstance, String.format(Locale.US, "%f", opacity));
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	public static class INAreaBuilder  {

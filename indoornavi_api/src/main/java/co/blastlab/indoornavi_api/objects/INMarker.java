@@ -30,7 +30,7 @@ public class INMarker extends INObject implements DocINMarker {
 		this.inMap = inMap;
 
 		String javaScriptString = String.format("var %s = new INMarker(navi);", this.objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -44,7 +44,7 @@ public class INMarker extends INObject implements DocINMarker {
 		Controller.markerClickListenerMap.put(callbackId, onMarkerClickListener);
 
 		String javaScriptString = String.format(Locale.US, "%s.addEventListener(Event.MOUSE.CLICK, () => inMarkerInterface.onClick(%d))", objectInstance, callbackId);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 
 		draw();
 	}
@@ -56,7 +56,7 @@ public class INMarker extends INObject implements DocINMarker {
 
 		Controller.markerClickListenerMap.remove(callbackId);
 		String javaScriptString = String.format("%s.removeEventListener(Event.MOUSE.CLICK)", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class INMarker extends INObject implements DocINMarker {
 	public void draw()
 	{
 		String javaScriptString = String.format("%s.draw();", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -76,8 +76,12 @@ public class INMarker extends INObject implements DocINMarker {
 	 */
 	public void point(Point point)
 	{
-		String javaScriptString = String.format("%s.point(%s);", objectInstance, PointsUtil.pointToString(point));
-		inMap.evaluateJavascript(javaScriptString, null);
+		if(point != null) {
+			String javaScriptString = String.format("%s.point(%s);", objectInstance, PointsUtil.pointToString(point));
+			evaluate(javaScriptString, null);
+		} else {
+			Log.e("NullPointerException ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Point must be provided!");
+		}
 	}
 
 	/**
@@ -89,7 +93,7 @@ public class INMarker extends INObject implements DocINMarker {
 	public void setLabel(String label)
 	{
 		String javaScriptString = String.format("%s.setLabel('%s');", objectInstance, label);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -98,13 +102,13 @@ public class INMarker extends INObject implements DocINMarker {
 	public void removeLabel()
 	{
 		String javaScriptString = String.format("%s.removeLabel();", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	public void addInfoWindow(INInfoWindow inInfoWindow) {
 		if(inInfoWindow != null) {
 			String javaScriptString = String.format(Locale.US, "%s.open(%s);", inInfoWindow.objectInstance, objectInstance);
-			inMap.evaluateJavascript(javaScriptString, null);
+			evaluate(javaScriptString, null);
 		}
 		else {
 			Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): InfoWindow not created");
@@ -119,14 +123,14 @@ public class INMarker extends INObject implements DocINMarker {
 	public void setIcon(String path)
 	{
 		String javaScriptString = String.format("%s.setIcon('%s');", objectInstance, path);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	public static class INMarkerBuilder  {
 
 		private Point point;
 		private INMap inMap;
-		private String label,  icon;
+		private String label = "",  icon = "";
 
 		public INMarkerBuilder(INMap inMap){
 			this.inMap = inMap;

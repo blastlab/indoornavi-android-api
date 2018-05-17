@@ -2,8 +2,6 @@ package co.blastlab.indoornavi_android;
 
 import android.graphics.Color;
 import android.graphics.Point;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,7 +27,7 @@ import co.blastlab.indoornavi_api.callback.OnViewReadyCallback;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 import co.blastlab.indoornavi_api.utils.ReportUtil;
 
-public class MainActivity extends AppCompatActivity implements OnViewReadyCallback {
+public class DemoMainActivity extends AppCompatActivity implements OnViewReadyCallback {
 
 	private INMap inMap;
 	private INPolyline inPolyline;
@@ -87,14 +85,11 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 		});
 
 
-
 		points.add(new Point(480, 480));
 		points.add(new Point(1220, 480));
 		points.add(new Point(1220,1220));
 		points.add(new Point(480,1220));
 		points.add(new Point(750,750));
-
-		//AlertDialog dialog = new AlertDialog.Builder(this.getApplicationContext()).show();
 
 	}
 
@@ -111,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 			.build();
 
 		inPolyline.getID(id -> { Log.i("Indoor", "onReceiveValue: " + id); });
-		inPolyline.getPoints(points -> Log.i("Indoor", "onReceiveValue: " + PointsUtil.pointsToString(points)));
+		inPolyline.getPoints(points -> Log.i("Indoor", "onReceiveValue: " +  PointsUtil.pointsToString(points)));
 	}
 
 	public void drawArea(){
@@ -126,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 		inMarker1 = new INMarker.INMarkerBuilder(inMap)
 			.point(new Point(600, 600))
 			.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
-			//.setLabel("This is label")
+			.setLabel("This is label")
 			.build();
 
 		inMarker1.addEventListener(new OnMarkerClickListener() {
@@ -139,10 +134,10 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 
 	public void drawInfoWindow(){
 		inInfoWindow = new INInfoWindow.INInfoWindowBuilder(inMap)
-			.height(200)
-			.width(200)
+			.height(40)
+			.width(40)
 			.setInnerHTML("<h2>Lorem ipsum dolor sit amet</h2>")
-			.setPosition(INInfoWindow.LEFT)
+			.setPosition(INInfoWindow.TOP)
 			.build();
 	}
 
@@ -150,13 +145,7 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 	{
 		Toast.makeText(this, "This is my toast",
 			Toast.LENGTH_LONG).show();
-		Handler handler = new Handler(Looper.getMainLooper());
-		handler.post(new Runnable() {
-			@Override
-			public void run() {
-				inMarker1.addInfoWindow(inInfoWindow);
-			}
-		});
+		inMarker1.addInfoWindow(inInfoWindow);
 	}
 
 	public void createReport() {

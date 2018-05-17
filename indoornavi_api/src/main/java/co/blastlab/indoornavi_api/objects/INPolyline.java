@@ -29,7 +29,7 @@ public class INPolyline extends INObject implements DocINPolyline {
 		this.objectInstance = String.format(Locale.US, "poly%d", this.hashCode());
 
 		String javaScriptString = String.format("var %s = new INPolyline(navi);", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -40,7 +40,7 @@ public class INPolyline extends INObject implements DocINPolyline {
 	public void draw()
 	{
 		String javaScriptString = String.format("%s.draw();", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -51,10 +51,14 @@ public class INPolyline extends INObject implements DocINPolyline {
 	 */
 	public void points(List<Point> points)
 	{
-		String javaScriptPoints = String.format("var points = %s;", PointsUtil.pointsToString(points));
-		inMap.evaluateJavascript(javaScriptPoints, null);
-		String javaScriptString1 = String.format("%s.points(points);", objectInstance);
-		inMap.evaluateJavascript(javaScriptString1, null);
+		if(points != null) {
+			String javaScriptPoints = String.format("var points = %s;", PointsUtil.pointsToString(points));
+			evaluate(javaScriptPoints, null);
+			String javaScriptString1 = String.format("%s.points(points);", objectInstance);
+			evaluate(javaScriptString1, null);
+		} else {
+			Log.e("NullPointerException ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Points must be provided!");
+		}
 	}
 
 	/**
@@ -65,15 +69,14 @@ public class INPolyline extends INObject implements DocINPolyline {
 	public void setLineColor(@ColorInt int color)
 	{
 		String javaScriptString = String.format("%s.setLineColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	public static class INPolylineBuilder  {
 
 		private List<Point> points;
 		private INMap inMap;
-		private @ColorInt
-		int color;
+		private @ColorInt int color;
 
 		public INPolylineBuilder(INMap inMap){
 			this.inMap = inMap;

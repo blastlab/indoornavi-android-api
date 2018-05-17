@@ -41,7 +41,7 @@ public class INInfoWindow extends INObject implements DocINInfoWindow{
 		this.objectInstance = String.format(Locale.US, "infoWindow%d", this.hashCode());
 
 		String javaScriptString = String.format("var %s = new INInfoWindow(navi);", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -50,8 +50,13 @@ public class INInfoWindow extends INObject implements DocINInfoWindow{
 	 * @param height info window height given in pixels, min available dimension is 50px.
 	 */
 	public void height(int height) {
-		String javaScriptString = String.format(Locale.US, "%s.height(%d);", objectInstance, height);
-		inMap.evaluateJavascript(javaScriptString, null);
+		if(height >= 50) {
+			String javaScriptString = String.format(Locale.US, "%s.height(%d);", objectInstance, height);
+			evaluate(javaScriptString, null);
+		}
+		else {
+			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Height must be greater then 50px");
+		}
 	}
 
 	/**
@@ -60,8 +65,13 @@ public class INInfoWindow extends INObject implements DocINInfoWindow{
 	 * @param width infoWindow width given in pixels, min available dimension is 50px.
 	 */
 	public void width(int width) {
-		String javaScriptString = String.format(Locale.US, "%s.width(%d);", objectInstance, width);
-		inMap.evaluateJavascript(javaScriptString, null);
+		if(width >= 50) {
+			String javaScriptString = String.format(Locale.US, "%s.width(%d);", objectInstance, width);
+			evaluate(javaScriptString, null);
+		}
+		else {
+			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Width must be greater then 50px");
+		}
 	}
 
 	/**
@@ -71,7 +81,7 @@ public class INInfoWindow extends INObject implements DocINInfoWindow{
 	 */
 	public void open(INObject inObject) {
 		String javaScriptString = String.format(Locale.US, "%s.open(%s);", objectInstance, inObject.objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -82,7 +92,7 @@ public class INInfoWindow extends INObject implements DocINInfoWindow{
 	public void setInnerHTML(String html)
 	{
 		String javaScriptString = String.format("%s.setInnerHTML('%s');", objectInstance, html);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -92,15 +102,15 @@ public class INInfoWindow extends INObject implements DocINInfoWindow{
 	 */
 	public void setPosition(@Position int position) {
 		String javaScriptString = String.format(Locale.US, "%s.setPosition(%d);", objectInstance, position);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	public static class INInfoWindowBuilder  {
 
 		private INMap inMap;
-		private String html;
-		private int height, width;
-		private @Position int position;
+		private String html = "";
+		private int height = 50, width = 50;
+		private @Position int position = TOP;
 
 		public INInfoWindowBuilder(INMap inMap){
 			this.inMap = inMap;
