@@ -8,13 +8,12 @@ import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
-import co.blastlab.indoornavi_api.documentation.DocINMarker;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
  * Class represents a marker, creates the INMarker object in iframe that communicates with frontend server and places a marker on the map.
  */
-public class INMarker extends INObject implements DocINMarker {
+public class INMarker extends INObject {
 
 	private INMap inMap;
 	private int callbackId;

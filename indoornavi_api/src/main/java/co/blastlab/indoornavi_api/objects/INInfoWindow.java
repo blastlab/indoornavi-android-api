@@ -8,12 +8,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
-import co.blastlab.indoornavi_api.documentation.DocINInfoWindow;
-
 /**
  * Class represents an info window, creates the INInfoWindow object in iframe that communicates with frontend server and adds info window to a given INObject child.
  */
-public class INInfoWindow extends INObject implements DocINInfoWindow{
+public class INInfoWindow extends INObject {
 
 	private INMap inMap;
 	public static final int TOP = 0;

@@ -16,7 +16,6 @@ import java.util.Locale;
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
-import co.blastlab.indoornavi_api.documentation.DocINMap;
 import co.blastlab.indoornavi_api.interfaces.EventListenerInterface;
 import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
@@ -27,7 +26,7 @@ import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 /**
  * Class represents a map, creates the INMap object to communicate with frontend server.
  */
-public class INMap extends WebView implements DocINMap {
+public class INMap extends WebView {
 
 	INObjectInterface inObjectInterface;
 	INMarkerInterface inMarkerInterface;
@@ -95,7 +94,6 @@ public class INMap extends WebView implements DocINMap {
 	{
 		this.setWebViewClient(new IndoorWebViewClient());
 		this.setWebChromeClient(new IndoorWebChromeClient());
-		this.setWebContentsDebuggingEnabled(true);
 
 		this.getSettings().setJavaScriptEnabled(true);
 		this.getSettings().setDomStorageEnabled(true);

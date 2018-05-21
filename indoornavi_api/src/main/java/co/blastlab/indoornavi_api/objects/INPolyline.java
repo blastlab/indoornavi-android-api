@@ -8,13 +8,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
-import co.blastlab.indoornavi_api.documentation.DocINPolyline;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
  * Class represents a polyline, creates the INPolyline in webView, communicates with frontend server and draws INPolyline.
  */
-public class INPolyline extends INObject implements DocINPolyline {
+public class INPolyline extends INObject {
 
 	private INMap inMap;
 

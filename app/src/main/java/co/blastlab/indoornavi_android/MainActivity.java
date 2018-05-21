@@ -2,15 +2,13 @@ package co.blastlab.indoornavi_android;
 
 import android.graphics.Color;
 import android.graphics.Point;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-
-import org.androidannotations.annotations.ViewById;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,51 +42,48 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 	List<Point> points  = new ArrayList<>();
 
 
-	@ViewById(R.id.drawer_layout)
-	DrawerLayout drawer;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
 		inMap = (INMap) findViewById(R.id.webview);
-//		poly = (Button) findViewById(R.id.b_poly);
-//		area = (Button) findViewById(R.id.b_area);
-//		marker = (Button) findViewById(R.id.b_marker);
-//		infoWindow = (Button) findViewById(R.id.b_info);
-//		repo = (Button) findViewById(R.id.b_report);
+		poly = (Button) findViewById(R.id.b_poly);
+		area = (Button) findViewById(R.id.b_area);
+		marker = (Button) findViewById(R.id.b_marker);
+		infoWindow = (Button) findViewById(R.id.b_info);
+		repo = (Button) findViewById(R.id.b_report);
 
-//		poly.setOnClickListener(new View.OnClickListener() {
-//			@Override
-//			public void onClick(View v) {
-//				drawPoly(null);
-//			}
-//		});
-//		area.setOnClickListener(new View.OnClickListener() {
-//			@Override
-//			public void onClick(View v) {
-//				drawArea(null);
-//			}
-//		});
-//		marker.setOnClickListener(new View.OnClickListener() {
-//			@Override
-//			public void onClick(View v) {
-//				drawMarker(null);
-//			}
-//		});
-//		infoWindow.setOnClickListener(new View.OnClickListener() {
-//			@Override
-//			public void onClick(View v) {
-//				drawInfoWindow(null);
-//			}
-//		});
-//		repo.setOnClickListener(new View.OnClickListener() {
-//			@Override
-//			public void onClick(View v) {
-//				createReport(null);
-//			}
-//		});
+		poly.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				drawPoly(null);
+			}
+		});
+		area.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				drawArea(null);
+			}
+		});
+		marker.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				drawMarker(null);
+			}
+		});
+		infoWindow.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				drawInfoWindow(null);
+			}
+		});
+		repo.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				createReport(null);
+			}
+		});
 
 
 		points.add(new Point(480, 480));
@@ -100,8 +95,8 @@ public class MainActivity extends AppCompatActivity implements OnViewReadyCallba
 	}
 
 	public void onWebViewReady(INMap mapView) {
-		inMap.createMap("http://192.168.11.73:4200", "TestAdmin", 1200, 850);
-		inMap.load(1);
+		inMap.createMap("http://192.168.1.18:4200", "TestAdmin", 1200, 850);
+		inMap.load(2);
 	}
 
 	public void drawPoly(MenuItem item)

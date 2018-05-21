@@ -8,14 +8,13 @@ import java.util.List;
 import java.util.Locale;
 
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
-import co.blastlab.indoornavi_api.documentation.DocReport;
 import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.model.Coordinates;
 
 /**
  * Class represents the Report object allows to obtain archived data.
  */
-public class Report implements DocReport {
+public class Report {
 
 	private  String objectInstance, targetHost, apiKey;
 	private WebView webView;

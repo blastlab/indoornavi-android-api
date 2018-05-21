@@ -9,13 +9,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
-import co.blastlab.indoornavi_api.documentation.DocINArea;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
  * Class represents an area, creates the INArea object in iframe that communicates with frontend server and draws area.
  */
-public class INArea extends INObject implements DocINArea {
+public class INArea extends INObject {
 
 	private INMap inMap;
 
