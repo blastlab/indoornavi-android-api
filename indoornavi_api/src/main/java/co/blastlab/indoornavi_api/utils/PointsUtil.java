@@ -67,7 +67,7 @@ public class PointsUtil {
 	/**
 	 * Converts String to {@link Point} object coordinates.
 	 *
-	 * @param stringPoint String containing point in JavaScript representation e.g: [{x: 480, y: 450}]
+	 * @param stringPoint String contains point in JavaScript representation e.g: [{x: 480, y: 450}]
 	 * @return Point object
 	 */
 	public static Point stringToPoint(String stringPoint) {

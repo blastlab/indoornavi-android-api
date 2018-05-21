@@ -13,7 +13,7 @@ import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.model.Coordinates;
 
 /**
- * Class representing an Report object allows to obtain archived data.
+ * Class represents the Report object allows to obtain archived data.
  */
 public class Report implements DocReport {
 
@@ -21,7 +21,7 @@ public class Report implements DocReport {
 	private WebView webView;
 
 	/**
-	 * Report object constructor.
+	 * Reports object constructor.
 	 *
 	 * @param webView WebView instance
 	 * @param targetHost address to the INMap backend server

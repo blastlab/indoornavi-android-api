@@ -12,7 +12,7 @@ import co.blastlab.indoornavi_api.documentation.DocINPolyline;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
- * Class representing a INPolyline, creates the INPolyline in webView, communicates with frontend server and draws INPolyline.
+ * Class represents a polyline, creates the INPolyline in webView, communicates with frontend server and draws INPolyline.
  */
 public class INPolyline extends INObject implements DocINPolyline {
 
@@ -34,8 +34,8 @@ public class INPolyline extends INObject implements DocINPolyline {
 
 	/**
 	 * Place polyline on the map with all given settings.
-	 * There is necessary to use points() method before draw() method to indicate where polyline should to be located.
-	 * Use of this method is indispensable to draw polyline with set configuration in the WebView.
+	 * There is necessity to use points() method before draw() method to indicate where polyline should be located.
+	 * Using this method is indispensable to draw polyline with set configuration in the WebView.
 	 */
 	public void draw()
 	{
@@ -45,7 +45,7 @@ public class INPolyline extends INObject implements DocINPolyline {
 
 	/**
 	 * Locates polyline object at given coordinates. Coordinates needs to be given as list of {@link Point} object.
-	 * Use of this method is indispensable to draw a polyline.
+	 * Using this method is indispensable to draw a polyline.
 	 *
 	 * @param points List of points
 	 */

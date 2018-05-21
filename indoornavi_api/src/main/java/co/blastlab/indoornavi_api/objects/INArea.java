@@ -13,7 +13,7 @@ import co.blastlab.indoornavi_api.documentation.DocINArea;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
- * Class representing an area, creates the INArea object in iframe that communicates with frontend server and draws area.
+ * Class represents an area, creates the INArea object in iframe that communicates with frontend server and draws area.
  */
 public class INArea extends INObject implements DocINArea {
 
@@ -33,8 +33,8 @@ public class INArea extends INObject implements DocINArea {
 	}
 
 	/**
-	 * Place area on the map with all given settings. There is necessary to use points() method before draw() method to indicate where area should to be located.
-	 * Use of this method is indispensable to draw area with set configuration in the IndoorNavi Map.
+	 * Place area on the map with all given settings. There is necessity to use points() method before draw() method to indicate where area should to be located.
+	 * Using of this method is indispensable to draw area with set configuration in the IndoorNavi Map.
 	 */
 	public void draw()
 	{

@@ -1,6 +1,6 @@
 # __IndoorNavi API 1.0__
 
-IndoorNavi is a Java library used to management IndoorNavi maps for Android devices.
+IndoorNavi is a Java library used to manage IndoorNavi maps for Android devices.
 Library provides simple control for tags movements and visibility, anchor location and occurred events.
 You can also use API to add your own areas, polylines, markers and info windows.
 
@@ -17,7 +17,7 @@ dependencies {
 
 ### __Permissions__
 ```INTERNET``` permission is required to connect with frontend server.
-```WRITE_EXTERNAL_STORAGE``` permission is required only if you want create csv reports.
+```WRITE_EXTERNAL_STORAGE``` permission is required only if you want to create csv reports.
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />

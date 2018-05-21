@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch;
 import co.blastlab.indoornavi_api.documentation.DocINInfoWindow;
 
 /**
- * Class representing a info window, creates the INInfoWindow object in iframe that communicates with frontend server and adds info window to a given INObject child.
+ * Class represents an info window, creates the INInfoWindow object in iframe that communicates with frontend server and adds info window to a given INObject child.
  */
 public class INInfoWindow extends INObject implements DocINInfoWindow{
 
@@ -45,7 +45,7 @@ public class INInfoWindow extends INObject implements DocINInfoWindow{
 	}
 
 	/**
-	 * Sets height dimension of info window. Use of this method is optional. Default dimensions for info window height is 250px.
+	 * Sets height dimension of info window. Using of this method is optional. Default dimensions for info window height is 250px.
 	 *
 	 * @param height info window height given in pixels, min available dimension is 50px.
 	 */
@@ -60,7 +60,7 @@ public class INInfoWindow extends INObject implements DocINInfoWindow{
 	}
 
 	/**
-	 * Sets width dimension of infoWindow. Use of this method is optional. Default dimensions for info window width is 250px.
+	 * Sets width dimension of infoWindow. Using this method is optional. Default dimension for info window width is 250px.
 	 *
 	 * @param width infoWindow width given in pixels, min available dimension is 50px.
 	 */
@@ -87,7 +87,7 @@ public class INInfoWindow extends INObject implements DocINInfoWindow{
 	/**
 	 * Sets info window content.
 	 *
-	 * @param html String containing text or html template. To reset info window content it is indispensable to call draw() method again.
+	 * @param html String contains text or html template. To reset info window content it is indispensable to call draw() method again.
 	 */
 	public void setInnerHTML(String html)
 	{
@@ -96,7 +96,7 @@ public class INInfoWindow extends INObject implements DocINInfoWindow{
 	}
 
 	/**
-	 * Sets info window position relative to the object. Use of this method is optional. Default position for info window is TOP.
+	 * Sets info window position relative to the object. Using this method is optional. Default position for info window is TOP.
 	 *
 	 * @param position {@link Position}
 	 */

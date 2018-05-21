@@ -25,7 +25,7 @@ import co.blastlab.indoornavi_api.web_view.IndoorWebChromeClient;
 import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 
 /**
- * Class representing a map, creates the INMap object to communicate with frontend server.
+ * Class represents a map, creates the INMap object to communicate with frontend server.
  */
 public class INMap extends WebView implements DocINMap {
 
@@ -95,6 +95,7 @@ public class INMap extends WebView implements DocINMap {
 	{
 		this.setWebViewClient(new IndoorWebViewClient());
 		this.setWebChromeClient(new IndoorWebChromeClient());
+		this.setWebContentsDebuggingEnabled(true);
 
 		this.getSettings().setJavaScriptEnabled(true);
 		this.getSettings().setDomStorageEnabled(true);

@@ -12,7 +12,7 @@ import co.blastlab.indoornavi_api.documentation.DocINMarker;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
- * Class representing a marker, creates the INMarker object in iframe that communicates with frontend server and places a marker on the map.
+ * Class represents a marker, creates the INMarker object in iframe that communicates with frontend server and places a marker on the map.
  */
 public class INMarker extends INObject implements DocINMarker {
 
@@ -60,8 +60,8 @@ public class INMarker extends INObject implements DocINMarker {
 	}
 
 	/**
-	 * Place marker on the map with all given settings. There is necessary to use point() method before draw() method to indicate where marker should to be located.
-	 * Use of this method is indispensable to draw marker with set configuration on the map.
+	 * Place marker on the map with all given settings. There is necessity to use point() method before draw() method to indicate where marker should be located.
+	 * Using this method is indispensable to draw marker with set configuration on the map.
 	 */
 	public void draw()
 	{
@@ -70,7 +70,7 @@ public class INMarker extends INObject implements DocINMarker {
 	}
 
 	/**
-	 * Locates marker at given coordinates. Use of this method is indispensable.
+	 * Locates marker at given coordinates. Using this method is indispensable.
 	 *
 	 * @param point {@link Point} Position will be clipped to the point in the bottom center of marker icon.
 	 */
@@ -87,7 +87,7 @@ public class INMarker extends INObject implements DocINMarker {
 	/**
 	 * Sets marker label.
 	 *
-	 * @param label string that will be used as a marker label. If label method isn't used than no label is going to be displayed.
+	 * @param label string that will be used as a marker label. If label method isn't used then no label is going to be displayed.
 	 * To reset label to a new string call this method again passing new label as a string and call draw() method again.
 	 */
 	public void setLabel(String label)

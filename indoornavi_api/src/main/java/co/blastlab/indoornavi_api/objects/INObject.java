@@ -34,8 +34,8 @@ public class INObject implements DocINObject {
 	}
 
 	/**
-	 * Method wait till object is create.
-	 * Use of this method is indispensable to operate on the object.
+	 * Method waits till object is create.
+	 * Using this method is indispensable to operate on the object.
 	 *
 	 * @param onObjectReadyCallback interface - trigger when object is successfully create.
 	 */
@@ -49,7 +49,7 @@ public class INObject implements DocINObject {
 	}
 
 	/**
-	 * Return the id of the object.
+	 * Returns the id of the object.
 	 *
 	 * @param onReceiveValueCallback interface - invoked when object id is available.
 	 */
@@ -83,7 +83,7 @@ public class INObject implements DocINObject {
 	}
 
 	/**
-	 * Removes object and destroys it instance in the frontend server, but do not destroys object class instance in your app.
+	 * Removes object and its instance from frontend server, but do not destroys object class instance in your app.
 	 */
 	public void remove()
 	{
