@@ -44,7 +44,7 @@ It's necessary to add INMap object in XML file.
 Create an instance of INMap class and implement OnViewReadyCallback callback in your Activity. <br>
 When IN Map object is ready OnViewReadyCallback will be invoked, only then you can load the target map.
 ```java
-public class MainActivity extends Activity implements OnViewReadyCallback {
+public class MainActivity extends Activity implements OnINMapReadyCallback {
 
     INMap inMap;
    
@@ -56,7 +56,7 @@ public class MainActivity extends Activity implements OnViewReadyCallback {
         inMap = (INMap) findViewById(R.id.inMap);
     }
    
-    public void onWebViewReady(INMap mapView) {
+    public void onINMapReady(INMap mapView) {
         inMap.createMap("frontend server address", "apiKey", hight, wight);
         inMap.load(floorId)
     }
@@ -65,7 +65,9 @@ public class MainActivity extends Activity implements OnViewReadyCallback {
 ```
 
 ### __How to create object__
-To create any object you have to use object builder pattern, for example:
+To create any object you have to use object builder pattern.
+
+#### __INArea__ object:
 ```java
 INArea inArea = new INArea.INAreaBuilder(inMap)
 	.points(points)
@@ -73,3 +75,63 @@ INArea inArea = new INArea.INAreaBuilder(inMap)
 	.setOpacity(0.3)
 	.build();
 ```
+#### __INPolyline__ object:
+```java
+INPolyline inPolyline = new INPolyline.INPolylineBuilder(inMap)
+	.points(points)
+	.setLineColor(Color.LTGRAY)
+	.build();
+```
+#### __INMarker__ object:
+```java
+INMarker inMarker = new INMarker.INMarkerBuilder(inMap)
+	.point(new Point(600, 600))
+	.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
+	.setLabel("This is label")
+	.build();
+```
+It's possible to add EventListener on the Marker object
+```java
+inMarker.addEventListener(new OnMarkerClickListener() {
+	@Override
+		public void onClick() {
+			Toast.makeText(this, "Hello!", Toast.LENGTH_LONG).show();
+		}
+	});
+```
+
+#### __INInfoWindow__ object:
+```java
+INInfoWindow inInfoWindow = new INInfoWindow.INInfoWindowBuilder(inMap)
+	.height(100)
+	.width(100)
+	.setInnerHTML("<h2>Lorem ipsum dolor sit amet</h2>")
+	.setPosition(INInfoWindow.TOP)
+	.build();
+```
+
+You can attach an info window to a marker:
+```java
+inMarker.addInfoWindow(inInfoWindow);
+```
+
+### __Objects properties__ 
+You can retrive some information about an object, like:
+
+#### ID
+return id of the given object
+```java
+inPolyline.getID(id -> { Log.i("MyTag", "ID: " + id); });
+```
+#### Points
+return points od the given object
+```java
+inPolyline.getPoints(points -> Log.i("MyTag", "Points: " +  PointsUtil.pointsToString(points)));
+```
+
+#### isWithin 
+Checks if given Coordinates are inside of the object. 
+```java
+inArea.isWithin(new Coordinates(200, 800, (short)109999, new Date()), bool -> Log.i("Indoor", "Received value: " + bool));
+```
+

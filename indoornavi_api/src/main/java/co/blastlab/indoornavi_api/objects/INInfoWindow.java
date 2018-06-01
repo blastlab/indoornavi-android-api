@@ -33,7 +33,7 @@ public class INInfoWindow extends INObject {
 	 *
 	 * @param inMap INMap object instance
 	 */
-	public INInfoWindow(INMap inMap) {
+	private INInfoWindow(INMap inMap) {
 		super(inMap);
 		this.inMap = inMap;
 		this.objectInstance = String.format(Locale.US, "infoWindow%d", this.hashCode());

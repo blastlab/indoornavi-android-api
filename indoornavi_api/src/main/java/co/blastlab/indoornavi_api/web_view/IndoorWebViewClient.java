@@ -14,11 +14,11 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import co.blastlab.indoornavi_api.objects.INMap;
-import co.blastlab.indoornavi_api.callback.OnViewReadyCallback;
+import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
 
 public class IndoorWebViewClient extends WebViewClient {
 
-	public OnViewReadyCallback mapReadyCallback;
+	public OnINMapReadyCallback mapReadyCallback;
 
 	@Override
 	public boolean shouldOverrideUrlLoading(WebView view, String url){
@@ -29,8 +29,8 @@ public class IndoorWebViewClient extends WebViewClient {
 	public void onPageFinished(WebView view, String url) {
 		super.onPageFinished(view, url);
 
-		mapReadyCallback = (OnViewReadyCallback) view.getContext();
-		mapReadyCallback.onWebViewReady((INMap) view);
+		mapReadyCallback = (OnINMapReadyCallback) view.getContext();
+		mapReadyCallback.onINMapReady((INMap) view);
 	}
 
 	@Override

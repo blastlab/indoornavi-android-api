@@ -62,7 +62,7 @@ class Http {
 
     doRequest(url, method, body, callback) {
         const xmlHttp = new XMLHttpRequest();
-        xmlHttp.onreadystatechange = function() {
+        xmlHttp.onreadystatechange = function () {
             if (xmlHttp.readyState === 4 && xmlHttp.status === 200)
                 callback(xmlHttp.responseText);
         };
@@ -83,7 +83,7 @@ class Http {
 class AreaEvent {
     static toJSON(eventsArrayString) {
         const events = [];
-        JSON.parse(eventsArrayString).forEach(function(_events) {
+        JSON.parse(eventsArrayString).forEach(function (_events) {
             events.push(new AreaEvent(
                 _events['tagId'],
                 new Date(_events['date']),
@@ -119,12 +119,12 @@ class AreaEvent {
 class Coordinates {
     static toJSON(coordinatesArrayString) {
         const coordinates = [];
-        JSON.parse(coordinatesArrayString).forEach(function(_coordinates) {
+        JSON.parse(coordinatesArrayString).forEach(function (_coordinates) {
             coordinates.push(new Coordinates(
-               _coordinates['point']['x'],
-               _coordinates['point']['y'],
-               _coordinates['tagShortId'],
-               new Date(_coordinates['date'])
+                _coordinates['point']['x'],
+                _coordinates['point']['y'],
+                _coordinates['tagShortId'],
+                new Date(_coordinates['date'])
             ));
         });
         return coordinates;
@@ -160,13 +160,13 @@ class Coordinates {
 
 const Event = {
     MOUSE: {
-            CLICK: 'click',
-            MOUSEOVER: 'mouseover'
-            },
+        CLICK: 'click',
+        MOUSEOVER: 'mouseover'
+    },
     LISTENER: {
-            AREA: 'area',
-            COORDINATES: 'coordinates'
-            }
+        AREA: 'area',
+        COORDINATES: 'coordinates'
+    }
 };
 
 /**
@@ -211,7 +211,7 @@ PositionIt = {
 };
 
 /**
- * Abstract class that communicates with indoornavi frontend server.
+ * Abstract class that communicates with IndoorNavi frontend server.
  * @abstract
  */
 
@@ -369,7 +369,7 @@ class INMapObject {
 
 /**
  * Class representing a INPolyline,
- * creates the INPolyline instance in iframe that communicates with indoornavi frontend server and draws INPolyline
+ * creates the INPolyline instance in iframe that communicates with IndoorNavi frontend server and draws INPolyline
  * @extends INMapObject
  */
 
@@ -420,7 +420,7 @@ class INPolyline extends INMapObject {
                     type: this._type,
                     object: {
                         id: this._id,
-                        points: points,
+                        points: this._points,
                         stroke: this._stroke
                     }
                 }
@@ -517,7 +517,7 @@ class INArea extends INMapObject {
                     type: this._type,
                     object: {
                         id: this._id,
-                        points: points,
+                        points: this._points,
                         opacity: this._opacity,
                         fill: this._fill
                     }
@@ -564,7 +564,7 @@ class INArea extends INMapObject {
 
 /**
  * Class representing a Marker,
- * creates the INMarker object in iframe that communicates with indoornavi frontend server and places a marker.
+ * creates the INMarker object in iframe that communicates with IndoorNavi frontend server and places a marker.
  * @extends INMapObject
  */
 
@@ -726,8 +726,8 @@ class INMarker extends INMapObject {
 }
 
 /**
- * Class representing a InfoWindow,
- * creates the INInfoWindow object in iframe that communicates with indoornavi frontend server and adds info window to a given INObject child.
+ * Class representing an InfoWindow,
+ * creates the INInfoWindow object in iframe that communicates with InndoorNavi frontend server and adds info window to a given INObject child.
  * @extends INMapObject
  */
 
@@ -739,7 +739,6 @@ class INInfoWindow extends INMapObject {
     constructor(navi) {
         super(navi);
         this._type = 'INFO_WINDOW';
-        this._points = null;
         this._content = null;
         this._position = 0;
         this._width = null;
@@ -865,8 +864,8 @@ class INInfoWindow extends INMapObject {
 class INMap {
     /**
      * @constructor
-     * @param {string} targetHost - address to the INMap server
-     * @param {string} apiKey - the API key created on INMap server (must be assigned to your domain)
+     * @param {string} targetHost - address to the IndoorNavi frontend server
+     * @param {string} apiKey - the API key created on IndoorNavi server (must be assigned to your domain)
      * @param {string} containerId of DOM element which will be used to create iframe with map
      * @param {object} config {width: number, height: number} of the iframe in pixels
      */
@@ -923,7 +922,7 @@ class INMap {
      * @param {Event.LISTENER} event - name of the specific event {@link Event}
      * @param {function} callback - this method will be called when the specific event occurs
      * @example
-     * navi.addEventListener('coordinates', data => doSomethingWithINCoordinates(data.coordinates.point));
+     * navi.addEventListener(Event.LISTENER.COORDINATES, data => doSomethingWithCoordinates(data.coordinates.point));
      */
     addEventListener(event, callback) {
         this.checkIsReady();
@@ -937,7 +936,7 @@ class INMap {
 
     checkIsReady() {
         if (!this.isReady) {
-            throw new Error('INMap is not ready. Call load() first and then when promise resolves INMap will be ready.');
+            throw new Error('INMap is not ready. Call load() first and then when promise resolves, INMap will be ready.');
         }
     }
 
@@ -947,7 +946,7 @@ class INMap {
 
 }
 
-class Report {
+class INReport {
 
     static parseDate(date) {
         return date.toISOString().slice(0, -5);
@@ -975,7 +974,7 @@ class Report {
      */
     getCoordinates(floorId, from, to) {
         return new Promise((function(resolve) {
-            this.http.doPost(`${this.targetHost}${this.baseUrl}/coordinates`, {floorId: floorId, from: Report.parseDate(from), to: Report.parseDate(to)}, function (data) {
+            this.http.doPost(`${this.targetHost}${this.baseUrl}/coordinates`, {floorId: floorId, from: INReport.parseDate(from), to: INReport.parseDate(to)}, function (data) {
                 resolve(Coordinates.toJSON(data));
             });
         }).bind(this));
@@ -990,7 +989,7 @@ class Report {
      */
     getAreaEvents(floorId, from, to) {
         return new Promise((function(resolve) {
-            this.http.doPost(`${this.targetHost}${this.baseUrl}/events`, {floorId: floorId, from: Report.parseDate(from), to: Report.parseDate(to)}, function (data) {
+            this.http.doPost(`${this.targetHost}${this.baseUrl}/events`, {floorId: floorId, from: INReport.parseDate(from), to: INReport.parseDate(to)}, function (data) {
                 resolve(AreaEvent.toJSON(data));
             });
         }).bind(this));

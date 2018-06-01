@@ -23,10 +23,9 @@ public class INMarker extends INObject {
 	 *
 	 * @param inMap INMap object instance
 	 */
-	public INMarker(INMap inMap) {
+	private INMarker(INMap inMap) {
 		super(inMap);
 		this.objectInstance = String.format(Locale.US, "marker%d",this.hashCode());
-		this.inMap = inMap;
 
 		String javaScriptString = String.format("var %s = new INMarker(navi);", this.objectInstance);
 		evaluate(javaScriptString, null);
@@ -104,6 +103,11 @@ public class INMarker extends INObject {
 		evaluate(javaScriptString, null);
 	}
 
+	/**
+	 * Displays {@link INInfoWindow} object on marker.
+	 *
+	 * @param inInfoWindow - info window object.
+	 */
 	public void addInfoWindow(INInfoWindow inInfoWindow) {
 		if(inInfoWindow != null) {
 			String javaScriptString = String.format(Locale.US, "%s.open(%s);", inInfoWindow.objectInstance, objectInstance);

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
+import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -39,6 +40,7 @@ public class INArea extends INObject {
 	{
 		String javaScriptString = String.format("%s.draw();", objectInstance);
 		evaluate(javaScriptString, null);
+		Log.i("indoor", "draw!");
 	}
 
 	/**

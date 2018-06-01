@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item android:id="@+id/draw_polyline"
+	      android:icon="@drawable/polyline"
+	      android:title="Draw polyline"/>
+
+	<item android:id="@+id/draw_area"
+	      android:icon="@drawable/area"
+	      android:title="Draw area" />
+
+	<item android:id="@+id/draw_marker"
+	      android:icon="@drawable/marker"
+	      android:title="Add marker" />
+
+	<item android:id="@+id/create_report"
+	      android:icon="@drawable/report"
+	      android:title="Create report" />
+
+</menu>

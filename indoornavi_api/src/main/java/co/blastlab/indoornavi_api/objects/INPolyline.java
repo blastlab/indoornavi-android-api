@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
- * Class represents a polyline, creates the INPolyline in webView, communicates with frontend server and draws INPolyline.
+ * Class represents a polyline, creates the INPolyline in iframe, communicates with frontend server and draws polyline.
  */
 public class INPolyline extends INObject {
 
