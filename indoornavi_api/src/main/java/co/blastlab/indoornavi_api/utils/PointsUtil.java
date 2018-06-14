@@ -18,16 +18,24 @@ public class PointsUtil {
 	 * @return String of coordinates values, like [{x: 480, y: 450},{x: 1220, y: 150}] in JavaScript representation.
 	 */
 	public static String pointsToString(List<Point> points) {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("[");
+		try {
+			if(points == null) throw new Exception("points are not defined!");
 
-		for (int i = 0; i < points.size(); i++) {
-			stringBuilder.append(String.format("{x: %d, y: %d},", points.get(i).x, points.get(i).y));
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append("[");
+
+			for (int i = 0; i < points.size(); i++) {
+				stringBuilder.append(String.format("{x: %d, y: %d},", points.get(i).x, points.get(i).y));
+			}
+			stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+			stringBuilder.append("]");
+
+			return stringBuilder.toString();
 		}
-		stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-		stringBuilder.append("]");
-
-		return stringBuilder.toString();
+		catch (Exception e) {
+			Log.e("Points parse Exception", "(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): " + e);
+		}
+		return null;
 	}
 
 	/**
@@ -40,6 +48,8 @@ public class PointsUtil {
 		List<Point> points = new ArrayList<>();
 
 		try {
+			if(stringPoints.equals("null")) throw new Exception("String must be provided!");
+
 			String str = stringPoints.replaceAll("[^-?0-9]+", " ");
 			final String[] tokens = str.trim().split(" ");
 
@@ -49,7 +59,7 @@ public class PointsUtil {
 			return points;
 		}
 		catch (Exception e) {
-			Log.e("Points parse Exception", e.toString());
+			Log.e("Points parse Exception", "(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): " + e);
 		}
 		return null;
 	}
@@ -57,18 +67,20 @@ public class PointsUtil {
 	/**
 	 * Converts String to {@link Point} object coordinates.
 	 *
-	 * @param stringPoint String containing point in JavaScript representation e.g: [{x: 480, y: 450}]
+	 * @param stringPoint String contains point in JavaScript representation e.g: [{x: 480, y: 450}]
 	 * @return Point object
 	 */
 	public static Point stringToPoint(String stringPoint) {
 		try {
+			if(stringPoint.equals("null")) throw new Exception("String must be provided!");
+
 			String str = stringPoint.replaceAll("[^-?0-9]+", " ");
 			final String[] tokens = str.trim().split(" ");
 
 			return new Point(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]));
 		}
 		catch (Exception e) {
-			Log.e("Point parse exception", e.toString());
+			Log.e("Point parse exception", "(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): " + e);
 		}
 		return null;
 	}

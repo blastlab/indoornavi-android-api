@@ -16,7 +16,6 @@ import java.util.Locale;
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
-import co.blastlab.indoornavi_api.documentation.DocINMap;
 import co.blastlab.indoornavi_api.interfaces.EventListenerInterface;
 import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
@@ -25,9 +24,9 @@ import co.blastlab.indoornavi_api.web_view.IndoorWebChromeClient;
 import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 
 /**
- * Class representing a map, creates the INMap object to communicate with frontend server.
+ * Class represents a map, creates the INMap object to communicate with frontend server.
  */
-public class INMap extends WebView implements DocINMap {
+public class INMap extends WebView {
 
 	INObjectInterface inObjectInterface;
 	INMarkerInterface inMarkerInterface;
@@ -40,6 +39,7 @@ public class INMap extends WebView implements DocINMap {
 	private String apiKey;
 
 	private int height, weight;
+	private int floorId;
 
 	public static final String AREA = "AREA";
 	public static final String COORDINATES  = "COORDINATES";
@@ -69,7 +69,7 @@ public class INMap extends WebView implements DocINMap {
 	 * @param floorId - Id of specific floor.
 	 * @param onObjectReadyCallback interface - trigger when object is successfully create.
 	 */
-	public void load(int floorId, OnObjectReadyCallback onObjectReadyCallback)
+	private void ready(int floorId, OnObjectReadyCallback onObjectReadyCallback)
 	{
 		int promiseId = onObjectReadyCallback.hashCode();
 		Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
@@ -79,14 +79,14 @@ public class INMap extends WebView implements DocINMap {
 	}
 
 	/**
-	 * load method overloading.
+	 * Load map of the floor with specific id.
 	 *
 	 * @param floorId - Id of specific floor.
 	 */
 	public void load(int floorId)
 	{
-		String javaScriptString = String.format(Locale.US, "navi.load(%d);", floorId);
-		this.evaluateJavascript(javaScriptString, null);
+		this.floorId = floorId;
+		this.ready(floorId, (object) -> Log.i("INMapObject", "map is ready"));
 	}
 
 	@SuppressLint("SetJavaScriptEnabled")
@@ -114,12 +114,12 @@ public class INMap extends WebView implements DocINMap {
 	 * @param height height of the iframe in pixels
 	 * @param weight weight of the iframe in pixels
 	 */
-	public void createMap(String targetHost, String apiKey, int height, int weight)
+	public void createMap(String targetHost, String apiKey, int weight, int height)
 	{
 		this.targetHost = targetHost;
 		this.apiKey = apiKey;
-		this.height = height;
 		this.weight = weight;
+		this.height = height;
 
 		JS_InMapCreate();
 	}
@@ -150,7 +150,7 @@ public class INMap extends WebView implements DocINMap {
 	}
 
 	private void JS_InMapCreate() {
-		String javaScriptString = String.format(Locale.US, "var navi = new INMap(\"%s\",\"%s\",\"map\",{width:%d,height:%d});", targetHost, apiKey, height, weight);
+		String javaScriptString = String.format(Locale.US, "var navi = new INMap(\"%s\",\"%s\",\"map\",{width:%d,height:%d});", targetHost, apiKey, weight, height);
 		this.evaluateJavascript(javaScriptString, null);
 	}
 

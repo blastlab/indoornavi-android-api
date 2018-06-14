@@ -8,32 +8,31 @@ import java.util.List;
 import java.util.Locale;
 
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
-import co.blastlab.indoornavi_api.documentation.DocReport;
 import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.model.Coordinates;
 
 /**
- * Class representing an Report object allows to obtain archived data.
+ * Class represents the INReport object allows to obtain archived data.
  */
-public class Report implements DocReport {
+public class INReport {
 
 	private  String objectInstance, targetHost, apiKey;
 	private WebView webView;
 
 	/**
-	 * Report object constructor.
+	 * Reports object constructor.
 	 *
 	 * @param webView WebView instance
 	 * @param targetHost address to the INMap backend server
 	 * @param apiKey the API key created on INMap server
 	 */
-	public Report(WebView webView, String targetHost, String apiKey) {
+	public INReport(WebView webView, String targetHost, String apiKey) {
 		this.objectInstance = String.format(Locale.US, "report%d",this.hashCode());
 		this.targetHost = targetHost;
 		this.apiKey = apiKey;
 		this.webView = webView;
 
-		String javaScriptString = String.format("var %s = new Report('%s', '%s');", objectInstance, targetHost, apiKey);
+		String javaScriptString = String.format("var %s = new INReport('%s', '%s');", objectInstance, targetHost, apiKey);
 		webView.evaluateJavascript(javaScriptString, null);
 	}
 
@@ -78,7 +77,7 @@ public class Report implements DocReport {
 			webView.evaluateJavascript(javaScriptString, null);
 		}
 		else {
-			Log.e("Date range exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + " : " + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Date \"to\" mast be after \"from\"");
+			Log.e("Date range exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Date \"to\" mast be after \"from\"");
 		}
 	}
 }

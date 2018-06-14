@@ -7,14 +7,15 @@ import android.util.Log;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
-import co.blastlab.indoornavi_api.documentation.DocINArea;
+import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
- * Class representing an area, creates the INArea object in iframe that communicates with frontend server and draws area.
+ * Class represents an area, creates the INArea object in iframe that communicates with frontend server and draws area.
  */
-public class INArea extends INObject implements DocINArea {
+public class INArea extends INObject {
 
 	private INMap inMap;
 
@@ -23,22 +24,23 @@ public class INArea extends INObject implements DocINArea {
 	 *
 	 * @param inMap INMap object instance
 	 */
-	public INArea(INMap inMap) {
+	private INArea(INMap inMap) {
 		super(inMap);
 		this.inMap = inMap;
 		this.objectInstance = String.format("area%s", this.hashCode());
 		String javaScriptString = String.format("var %s = new INArea(navi);", this.objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
-	 * Place area on the map with all given settings. There is necessary to use points() method before draw() method to indicate where area should to be located.
-	 * Use of this method is indispensable to draw area with set configuration in the IndoorNavi Map.
+	 * Place area on the map with all given settings. There is necessity to use points() method before draw() method to indicate where area should to be located.
+	 * Using of this method is indispensable to draw area with set configuration in the IndoorNavi Map.
 	 */
 	public void draw()
 	{
 		String javaScriptString = String.format("%s.draw();", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
+		Log.i("indoor", "draw!");
 	}
 
 	/**
@@ -48,13 +50,13 @@ public class INArea extends INObject implements DocINArea {
 	 */
 	public void points(List<Point> points)
 	{
-		if (points.size() > 2) {
+		if (points != null && points.size() > 2) {
 			String javaScriptPoints = String.format("var points = %s;", PointsUtil.pointsToString(points));
-			inMap.evaluateJavascript(javaScriptPoints, null);
+			evaluate(javaScriptPoints, null);
 			String javaScriptString = String.format("%s.points(points);", objectInstance);
-			inMap.evaluateJavascript(javaScriptString, null);
+			evaluate(javaScriptString, null);
 		} else {
-			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + " : " + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): At least 3 points must be provided!");
+			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): At least 3 points must be provided!");
 		}
 	}
 
@@ -66,7 +68,7 @@ public class INArea extends INObject implements DocINArea {
 	public void setFillColor(@ColorInt int color)
 	{
 		String javaScriptString = String.format("%s.setFillColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -77,6 +79,57 @@ public class INArea extends INObject implements DocINArea {
 	public void setOpacity(@FloatRange(from=0.0, to=1.0)double opacity)
 	{
 		String javaScriptString = String.format("%s.setOpacity(%s);", objectInstance, String.format(Locale.US, "%f", opacity));
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
+	}
+
+	public static class INAreaBuilder  {
+
+		private List<Point> points;
+		private INMap inMap;
+		private @ColorInt int color;
+		private @FloatRange(from=0.0, to=1.0)double opacity;
+
+		public INAreaBuilder(INMap inMap){
+			this.inMap = inMap;
+		}
+
+		public INAreaBuilder points(List<Point> points)
+		{
+			this.points = points;
+			return this;
+		}
+
+		public INAreaBuilder setFillColor(@ColorInt int color)
+		{
+			this.color = color;
+			return this;
+		}
+
+		public INAreaBuilder setOpacity(@FloatRange(from=0.0, to=1.0)double opacity)
+		{
+			this.opacity = opacity;
+			return this;
+		}
+
+		public INArea build() {
+			final CountDownLatch latch = new CountDownLatch(1);
+			INArea inArea = new INArea(inMap);
+			inArea.ready(object -> 	latch.countDown());
+
+			try{
+				latch.await();
+
+				inArea.points(this.points);
+				inArea.setFillColor(this.color);
+				inArea.setOpacity(this.opacity);
+				inArea.draw();
+				return inArea;
+			}
+			catch (Exception e) {
+				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			}
+			return null;
+
+		}
 	}
 }

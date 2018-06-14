@@ -1,6 +1,8 @@
 package co.blastlab.indoornavi_api.objects;
 
 import android.graphics.Point;
+import android.os.Handler;
+import android.os.Looper;
 import android.webkit.ValueCallback;
 
 import java.util.List;
@@ -9,7 +11,6 @@ import java.util.Locale;
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
-import co.blastlab.indoornavi_api.documentation.DocINObject;
 import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.utils.CoordinatesUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
@@ -17,7 +18,7 @@ import co.blastlab.indoornavi_api.utils.PointsUtil;
 /**
  * Class INObject is the root of the IndoorNavi objects hierarchy. Every IN object has INObject as a superclass (except INMap).
  */
-public class INObject implements DocINObject {
+public class INObject {
 
 	private INMap inMap;
 	String objectInstance;
@@ -32,8 +33,8 @@ public class INObject implements DocINObject {
 	}
 
 	/**
-	 * Method wait till object is create.
-	 * Use of this method is indispensable to operate on the object.
+	 * Method waits till object is create.
+	 * Using this method is indispensable to operate on the object.
 	 *
 	 * @param onObjectReadyCallback interface - trigger when object is successfully create.
 	 */
@@ -43,18 +44,18 @@ public class INObject implements DocINObject {
 		Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
 
 		String javaScriptString = String.format(Locale.US, "%s.ready().then(() => inObjectInterface.ready(%d));", objectInstance, promiseId);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
-	 * Return the id of the object.
+	 * Returns the id of the object.
 	 *
 	 * @param onReceiveValueCallback interface - invoked when object id is available.
 	 */
 	public void getID( final OnReceiveValueCallback<Long> onReceiveValueCallback)
 	{
 		String javaScriptString = String.format("%s.getID();", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
+		evaluate(javaScriptString, new ValueCallback<String>() {
 			@Override
 			public void onReceiveValue(String s) {
 				onReceiveValueCallback.onReceiveValue(Long.parseLong(s.substring(0, s.length() - 2)));
@@ -70,7 +71,7 @@ public class INObject implements DocINObject {
 	public void getPoints(final OnReceiveValueCallback<List<Point>> onReceiveValueCallback)
 	{
 		String javaScriptString = String.format("%s.getPoints();", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
+		evaluate(javaScriptString, new ValueCallback<String>() {
 			@Override
 			public void onReceiveValue(String s) {
 				List<Point> points;
@@ -81,12 +82,12 @@ public class INObject implements DocINObject {
 	}
 
 	/**
-	 * Removes object and destroys it instance in the frontend server, but do not destroys object class instance in your app.
+	 * Removes object and its instance from frontend server, but do not destroys object class instance in your app.
 	 */
 	public void remove()
 	{
 		String javaScriptString = String.format("%s.remove();", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -98,7 +99,7 @@ public class INObject implements DocINObject {
 	public void isWithin(Coordinates coordinates, final ValueCallback<Boolean> valueCallback)
 	{
 		String javaScriptString = String.format("%s.isWithin(%s);", objectInstance, CoordinatesUtil.coordsToString(coordinates));
-		inMap.evaluateJavascript(javaScriptString, new ValueCallback<String>() {
+		evaluate(javaScriptString, new ValueCallback<String>() {
 			@Override
 			public void onReceiveValue(String s) {
 				if(s != null) {
@@ -106,5 +107,22 @@ public class INObject implements DocINObject {
 				}
 			}
 		});
+	}
+
+	protected void evaluate(String javaScriptString, ValueCallback<String> valueCallback)
+	{
+		if(Looper.myLooper() == Looper.getMainLooper()) {
+			inMap.evaluateJavascript(javaScriptString, valueCallback);
+		}
+		else {
+			Handler handler = new Handler(Looper.getMainLooper());
+			handler.post(new Runnable() {
+				@Override
+				public void run() {
+					inMap.evaluateJavascript(javaScriptString, valueCallback);
+				}
+			});
+
+		}
 	}
 }

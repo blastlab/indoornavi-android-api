@@ -1,16 +1,17 @@
 package co.blastlab.indoornavi_api.objects;
 
 import android.support.annotation.IntDef;
+import android.util.Log;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Locale;
-
-import co.blastlab.indoornavi_api.documentation.DocINInfoWindow;
+import java.util.concurrent.CountDownLatch;
 
 /**
- * Class representing a info window, creates the INInfoWindow object in iframe that communicates with frontend server and adds info window to a given INObject child.
+ * Class represents an info window, creates the INInfoWindow object in iframe that communicates with frontend server and adds info window to a given INObject child.
  */
-public class INInfoWindow extends INObject implements DocINInfoWindow{
+public class INInfoWindow extends INObject {
 
 	private INMap inMap;
 	public static final int TOP = 0;
@@ -32,33 +33,43 @@ public class INInfoWindow extends INObject implements DocINInfoWindow{
 	 *
 	 * @param inMap INMap object instance
 	 */
-	public INInfoWindow(INMap inMap) {
+	private INInfoWindow(INMap inMap) {
 		super(inMap);
 		this.inMap = inMap;
 		this.objectInstance = String.format(Locale.US, "infoWindow%d", this.hashCode());
 
 		String javaScriptString = String.format("var %s = new INInfoWindow(navi);", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
-	 * Sets height dimension of info window. Use of this method is optional. Default dimensions for info window height is 250px.
+	 * Sets height dimension of info window. Using of this method is optional. Default dimensions for info window height is 250px.
 	 *
 	 * @param height info window height given in pixels, min available dimension is 50px.
 	 */
 	public void height(int height) {
-		String javaScriptString = String.format(Locale.US, "%s.height(%d);", objectInstance, height);
-		inMap.evaluateJavascript(javaScriptString, null);
+		if(height >= 50) {
+			String javaScriptString = String.format(Locale.US, "%s.height(%d);", objectInstance, height);
+			evaluate(javaScriptString, null);
+		}
+		else {
+			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Height must be greater then 50px");
+		}
 	}
 
 	/**
-	 * Sets width dimension of infoWindow. Use of this method is optional. Default dimensions for info window width is 250px.
+	 * Sets width dimension of infoWindow. Using this method is optional. Default dimension for info window width is 250px.
 	 *
 	 * @param width infoWindow width given in pixels, min available dimension is 50px.
 	 */
 	public void width(int width) {
-		String javaScriptString = String.format(Locale.US, "%s.width(%d);", objectInstance, width);
-		inMap.evaluateJavascript(javaScriptString, null);
+		if(width >= 50) {
+			String javaScriptString = String.format(Locale.US, "%s.width(%d);", objectInstance, width);
+			evaluate(javaScriptString, null);
+		}
+		else {
+			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Width must be greater then 50px");
+		}
 	}
 
 	/**
@@ -68,27 +79,85 @@ public class INInfoWindow extends INObject implements DocINInfoWindow{
 	 */
 	public void open(INObject inObject) {
 		String javaScriptString = String.format(Locale.US, "%s.open(%s);", objectInstance, inObject.objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
 	 * Sets info window content.
 	 *
-	 * @param html String containing text or html template. To reset info window content it is indispensable to call draw() method again.
+	 * @param html String contains text or html template. To reset info window content it is indispensable to call draw() method again.
 	 */
 	public void setInnerHTML(String html)
 	{
 		String javaScriptString = String.format("%s.setInnerHTML('%s');", objectInstance, html);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
-	 * Sets info window position relative to the object. Use of this method is optional. Default position for info window is TOP.
+	 * Sets info window position relative to the object. Using this method is optional. Default position for info window is TOP.
 	 *
 	 * @param position {@link Position}
 	 */
 	public void setPosition(@Position int position) {
 		String javaScriptString = String.format(Locale.US, "%s.setPosition(%d);", objectInstance, position);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
+
+	public static class INInfoWindowBuilder  {
+
+		private INMap inMap;
+		private String html = "";
+		private int height = 50, width = 50;
+		private @Position int position = TOP;
+
+		public INInfoWindowBuilder(INMap inMap){
+			this.inMap = inMap;
+		}
+
+		public INInfoWindowBuilder setPosition(@Position int position)
+		{
+			this.position = position;
+			return this;
+		}
+
+		public INInfoWindowBuilder setInnerHTML(String html)
+		{
+			this.html = html;
+			return this;
+		}
+
+		public INInfoWindowBuilder height(int height)
+		{
+			this.height = height;
+			return this;
+		}
+
+		public INInfoWindowBuilder width(int width)
+		{
+			this.width = width;
+			return this;
+		}
+
+		public INInfoWindow build() {
+			final CountDownLatch latch = new CountDownLatch(1);
+			INInfoWindow inInfoWindow = new INInfoWindow(inMap);
+			inInfoWindow.ready(object -> latch.countDown());
+
+			try{
+				latch.await();
+
+				inInfoWindow.setInnerHTML(html);
+				inInfoWindow.setPosition(position);
+				inInfoWindow.height(height);
+				inInfoWindow.width(width);
+				return inInfoWindow;
+			}
+			catch (Exception e) {
+				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			}
+			return null;
+
+		}
+	}
+
 }
