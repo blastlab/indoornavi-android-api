@@ -40,7 +40,6 @@ public class INArea extends INObject {
 	{
 		String javaScriptString = String.format("%s.draw();", objectInstance);
 		evaluate(javaScriptString, null);
-		Log.i("indoor", "draw!");
 	}
 
 	/**

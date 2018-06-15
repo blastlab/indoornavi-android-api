@@ -47,7 +47,7 @@ public class InfoWindowClassTest {
 	}
 
 	@Test
-	public void INPolylineCreateTest()
+	public void INInfoWindowCreateTest()
 	{
 		inMap = getActivity().findViewById(R.id.webview);
 

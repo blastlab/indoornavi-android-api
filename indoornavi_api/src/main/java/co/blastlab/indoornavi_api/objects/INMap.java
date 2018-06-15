@@ -2,6 +2,8 @@ package co.blastlab.indoornavi_api.objects;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.StringDef;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -20,6 +22,8 @@ import co.blastlab.indoornavi_api.interfaces.EventListenerInterface;
 import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
 import co.blastlab.indoornavi_api.interfaces.ReportInterface;
+import co.blastlab.indoornavi_api.model.Scale;
+import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.web_view.IndoorWebChromeClient;
 import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 
@@ -40,6 +44,7 @@ public class INMap extends WebView {
 
 	private int height, weight;
 	private int floorId;
+	public Scale scale;
 
 	public static final String AREA = "AREA";
 	public static final String COORDINATES  = "COORDINATES";
@@ -86,7 +91,48 @@ public class INMap extends WebView {
 	public void load(int floorId)
 	{
 		this.floorId = floorId;
-		this.ready(floorId, (object) -> Log.i("INMapObject", "map is ready"));
+		this.ready(floorId, (object) -> getMapDimensions());
+	}
+
+	/**
+	 * Add listener to react when the long click event occurs.
+	 *
+	 * @param onEventListener interface - trigger when the event occurs.
+	 */
+	public void addLongClickListener(OnEventListener onEventListener) {
+
+		waitUntilMapReady((object) -> {
+			int eventId = onEventListener.hashCode();
+			Controller.eventListenerMap.put(eventId, onEventListener);
+
+			String javaScriptString = String.format(Locale.US, "navi.addMapLongClickListener(res => eventInterface.onClickEvent(%s, JSON.stringify(res)));", eventId);
+			this.evaluateJavascript(javaScriptString, null);
+		});
+	}
+
+	private void getMapDimensions() {
+
+		final INMap inMap = this;
+		String javaScriptString = "navi.parameters;";
+		Handler handler = new Handler(Looper.getMainLooper());
+		handler.post(() -> {
+			inMap.evaluateJavascript(javaScriptString, data -> {
+				inMap.scale = MapUtil.stringToScale(data);
+				for(OnObjectReadyCallback readyCallback : Controller.promiseMapReady) {
+					readyCallback.onReady(null);
+				}
+				Controller.promiseMapReady.clear();
+			});
+		});
+	}
+
+	private void waitUntilMapReady(OnObjectReadyCallback onObjectReadyCallback) {
+		if(this.scale != null) {
+			onObjectReadyCallback.onReady(null);
+		}
+		else {
+			Controller.promiseMapReady.add(onObjectReadyCallback);
+		}
 	}
 
 	@SuppressLint("SetJavaScriptEnabled")
@@ -132,11 +178,13 @@ public class INMap extends WebView {
 	 */
 	public void addEventListener(@EventListener String event, OnEventListener onEventListener) {
 
-		int eventId = onEventListener.hashCode();
-		Controller.eventListenerMap.put(eventId, onEventListener);
+		waitUntilMapReady((object) -> {
+			int eventId = onEventListener.hashCode();
+			Controller.eventListenerMap.put(eventId, onEventListener);
 
-		String javaScriptString = String.format(Locale.US, "navi.addEventListener(Event.LISTENER.%s, res => eventInterface.onEvent(%d, %s, stringify(res)));", event, eventId, event);
-		this.evaluateJavascript(javaScriptString, null);
+			String javaScriptString = String.format(Locale.US, "navi.addEventListener(Event.LISTENER.%s, res => eventInterface.onEvent(%d, %s, JSON.stringify(res)));", event, eventId, event);
+			this.evaluateJavascript(javaScriptString, null);
+		});
 	}
 
 	/**
@@ -145,8 +193,10 @@ public class INMap extends WebView {
 	 * @param tagId Id of specific tag.
 	 */
 	public void toggleTagVisibility(short tagId) {
-		String javaScriptString = String.format(Locale.US, "navi.toggleTagVisibility(%d);", tagId);
-		this.evaluateJavascript(javaScriptString, null);
+		waitUntilMapReady((object) -> {
+			String javaScriptString = String.format(Locale.US, "navi.toggleTagVisibility(%d);", tagId);
+			this.evaluateJavascript(javaScriptString, null);
+		});
 	}
 
 	private void JS_InMapCreate() {

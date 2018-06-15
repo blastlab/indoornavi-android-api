@@ -13,17 +13,27 @@ public class ReportInterface {
 
 	@JavascriptInterface
 	public void areaEvents(int promiseId, String areaEvents) {
-		List<AreaEvent> events = ReportUtil.jsonToAreaEvent(areaEvents);
 
-		Controller.promiseCallbackMap.get(promiseId).onReady(events);
+		if(!areaEvents.equals("[]") && !areaEvents.equals("null")) {
+			List<AreaEvent> events = ReportUtil.jsonToAreaEvent(areaEvents);
+			Controller.promiseCallbackMap.get(promiseId).onReady(events);
+		}
+		else {
+			Controller.promiseCallbackMap.get(promiseId).onReady(null);
+		}
 		Controller.promiseCallbackMap.remove(promiseId);
 	}
 
 	@JavascriptInterface
 	public void coordinates(int promiseId, String coords) {
-		List<Coordinates> coordinates = ReportUtil.jsonToCoordinates(coords);
 
-		Controller.promiseCallbackMap.get(promiseId).onReady(coordinates);
+		if(!coords.equals("[]") && !coords.equals("null")) {
+			List<Coordinates> coordinates = ReportUtil.jsonToCoordinates(coords);
+			Controller.promiseCallbackMap.get(promiseId).onReady(coordinates);
+		}
+		else {
+			Controller.promiseCallbackMap.get(promiseId).onReady(null);
+		}
 		Controller.promiseCallbackMap.remove(promiseId);
 	}
 }

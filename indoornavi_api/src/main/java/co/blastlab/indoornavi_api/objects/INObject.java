@@ -3,6 +3,7 @@ package co.blastlab.indoornavi_api.objects;
 import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.webkit.ValueCallback;
 
 import java.util.List;
@@ -55,10 +56,13 @@ public class INObject {
 	public void getID( final OnReceiveValueCallback<Long> onReceiveValueCallback)
 	{
 		String javaScriptString = String.format("%s.getID();", objectInstance);
-		evaluate(javaScriptString, new ValueCallback<String>() {
-			@Override
-			public void onReceiveValue(String s) {
-				onReceiveValueCallback.onReceiveValue(Long.parseLong(s.substring(0, s.length() - 2)));
+		evaluate(javaScriptString, stringID -> {
+			if(!stringID.equals("null")) {
+				onReceiveValueCallback.onReceiveValue(Long.parseLong(stringID.substring(0, stringID.length() - 2)));
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): object isn't created yet!");
+				onReceiveValueCallback.onReceiveValue(null);
 			}
 		});
 	}
@@ -71,12 +75,15 @@ public class INObject {
 	public void getPoints(final OnReceiveValueCallback<List<Point>> onReceiveValueCallback)
 	{
 		String javaScriptString = String.format("%s.getPoints();", objectInstance);
-		evaluate(javaScriptString, new ValueCallback<String>() {
-			@Override
-			public void onReceiveValue(String s) {
+		evaluate(javaScriptString, stringPoints -> {
+			if(!stringPoints.equals("null")) {
 				List<Point> points;
-				points = PointsUtil.stringToPoints(s);
+				points = PointsUtil.stringToPoints(stringPoints);
 				onReceiveValueCallback.onReceiveValue(points);
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): points not set yet! ");
+				onReceiveValueCallback.onReceiveValue(null);
 			}
 		});
 	}
@@ -99,12 +106,13 @@ public class INObject {
 	public void isWithin(Coordinates coordinates, final ValueCallback<Boolean> valueCallback)
 	{
 		String javaScriptString = String.format("%s.isWithin(%s);", objectInstance, CoordinatesUtil.coordsToString(coordinates));
-		evaluate(javaScriptString, new ValueCallback<String>() {
-			@Override
-			public void onReceiveValue(String s) {
-				if(s != null) {
-					valueCallback.onReceiveValue(Boolean.valueOf(s));
-				}
+		evaluate(javaScriptString, stringIsWithin -> {
+			if(stringIsWithin != null) {
+				valueCallback.onReceiveValue(Boolean.valueOf(stringIsWithin));
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): The value can't be determined! ");
+				valueCallback.onReceiveValue(null);
 			}
 		});
 	}
@@ -116,11 +124,8 @@ public class INObject {
 		}
 		else {
 			Handler handler = new Handler(Looper.getMainLooper());
-			handler.post(new Runnable() {
-				@Override
-				public void run() {
-					inMap.evaluateJavascript(javaScriptString, valueCallback);
-				}
+			handler.post(() -> {
+				inMap.evaluateJavascript(javaScriptString, valueCallback);
 			});
 
 		}

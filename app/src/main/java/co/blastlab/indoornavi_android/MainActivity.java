@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.List;
 
 import co.blastlab.indoornavi_api.INReport;
+import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
@@ -34,6 +35,7 @@ import co.blastlab.indoornavi_api.objects.INInfoWindow;
 import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.objects.INMarker;
 import co.blastlab.indoornavi_api.objects.INPolyline;
+import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 import co.blastlab.indoornavi_api.utils.ReportUtil;
 
@@ -56,15 +58,16 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	INReport INReport;
 
-	Button poly, area, marker, infoWindow, repo;
+	//Button poly, area, marker, infoWindow, repo;
 
 	List<Point> points  = new ArrayList<>();
-	private Point lastTouch;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+		verifyInternetPermissions(this);
 
 		inMap = (INMap) findViewById(R.id.webview);
 
@@ -102,35 +105,6 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 					return true;
 				}
 			});
-
-		inMap.setOnLongClickListener(new WebView.OnLongClickListener() {
-
-			public boolean onLongClick(View v) {
-				WebView.HitTestResult hr = ((WebView)v).getHitTestResult();
-				Log.i("Indoor", "x = "+ lastTouch.x + ", y =" + lastTouch.y);
-
-				INMarker marker = new INMarker.INMarkerBuilder(inMap)
-					.point(lastTouch)
-					.build();
-
-				int[] position = new int[2];
-				inMap.getLocationOnScreen(position);
-
-				Log.i("Indoor", "getExtra = "+ hr.getExtra() + "\t\t Type=" + hr.getType());
-				return false;
-			}
-		});
-
-		inMap.setOnTouchListener(new WebView.OnTouchListener() {
-
-			public boolean onTouch(View v, MotionEvent event) {
-
-				lastTouch = new Point(Math.round(event.getX()*2), Math.round(event.getY()*2));
-				return false;
-			}
-
-		});
-
 	}
 
 	public static void verifyStoragePermissions(Activity activity) {
@@ -152,6 +126,17 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	public void onINMapReady(INMap mapView) {
 		inMap.createMap("http://192.168.1.18:4200", "TestAdmin", 1200, 850);
 		inMap.load(2);
+
+		inMap.addLongClickListener(new OnEventListener<String>() {
+			@Override
+			public void onEvent(String s) {
+				Point point = PointsUtil.stringToPoint(s);
+				new INMarker.INMarkerBuilder(inMap)
+					.point(MapUtil.pixelsToRealDimensions(inMap.scale, point))
+					.build();
+			}
+		});
+		inMap.toggleTagVisibility((short)10999);
 	}
 
 	public void drawPoly()
@@ -194,8 +179,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void drawInfoWindow(){
 		inInfoWindow = new INInfoWindow.INInfoWindowBuilder(inMap)
-			.height(40)
-			.width(40)
+			.height(70)
+			.width(50)
 			.setInnerHTML("<h2>Lorem ipsum dolor sit amet</h2>")
 			.setPosition(INInfoWindow.TOP)
 			.build();
@@ -215,14 +200,18 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		INReport.getAreaEvents(2, new Date(1428105600) ,new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {
 				@Override
 				public void onReady(List<AreaEvent> areaEvents) {
-					ReportUtil.areaEventToCSV(areaEvents);
+					if(areaEvents!= null) {
+						ReportUtil.areaEventToCSV(areaEvents);
+					}
 			}
 		});
 
 		INReport.getCoordinates(2, new Date(1428105600), new Date(), new OnObjectReadyCallback<List<Coordinates>>() {
 			@Override
 			public void onReady(List<Coordinates> coordinates) {
-				ReportUtil.coordinatesToCSV(coordinates);
+				if(coordinates!= null) {
+					ReportUtil.coordinatesToCSV(coordinates);
+				}
 			}
 		});
 	}

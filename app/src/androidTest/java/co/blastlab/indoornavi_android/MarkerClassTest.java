@@ -48,7 +48,7 @@ public class MarkerClassTest {
 	}
 
 	@Test
-	public void INPolylineCreateTest()
+	public void INMarkerCreateTest()
 	{
 		inMap = getActivity().findViewById(R.id.webview);
 
