@@ -140,11 +140,13 @@ public class INInfoWindow extends INObject {
 			try{
 				latch.await();
 
-				inInfoWindow.setInnerHTML(html);
-				inInfoWindow.setPosition(position);
-				inInfoWindow.height(height);
-				inInfoWindow.width(width);
-				return inInfoWindow;
+				if(!inInfoWindow.timeout) {
+					inInfoWindow.setInnerHTML(html);
+					inInfoWindow.setPosition(position);
+					inInfoWindow.height(height);
+					inInfoWindow.width(width);
+					return inInfoWindow;
+				}
 			}
 			catch (Exception e) {
 				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
