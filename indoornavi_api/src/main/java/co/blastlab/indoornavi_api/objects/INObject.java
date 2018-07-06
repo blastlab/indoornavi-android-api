@@ -23,7 +23,7 @@ public class INObject {
 
 	private INMap inMap;
 	String objectInstance;
-	protected boolean timeout = false;
+	protected boolean isTimeout = false;
 
 	/**
 	 * INObject constructor.
@@ -58,7 +58,7 @@ public class INObject {
 					Thread.sleep(3000);
 					if(Controller.promiseCallbackMap.indexOfKey(promiseId) > 0) {
 						Log.e("Timeout "," server "+  inMap.targetHost + " not responding");
-						timeout = true;
+						isTimeout = true;
 						Controller.promiseCallbackMap.get(promiseId).onReady(null);
 						Controller.promiseCallbackMap.remove(promiseId);
 						this.stop();

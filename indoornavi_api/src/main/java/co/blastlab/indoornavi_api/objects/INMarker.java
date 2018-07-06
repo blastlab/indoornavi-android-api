@@ -165,7 +165,7 @@ public class INMarker extends INObject {
 			try{
 				latch.await();
 
-				if(!inMarker.timeout) {
+				if(!inMarker.isTimeout) {
 					inMarker.point(this.point);
 					inMarker.setLabel(this.label);
 					inMarker.setIcon(this.icon);

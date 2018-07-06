@@ -100,7 +100,7 @@ public class INPolyline extends INObject {
 
 			try{
 				latch.await();
-				if(!inPolyline.timeout) {
+				if(!inPolyline.isTimeout) {
 					inPolyline.points(this.points);
 					inPolyline.setLineColor(this.color);
 					inPolyline.draw();

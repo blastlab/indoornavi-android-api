@@ -140,7 +140,7 @@ public class INInfoWindow extends INObject {
 			try{
 				latch.await();
 
-				if(!inInfoWindow.timeout) {
+				if(!inInfoWindow.isTimeout) {
 					inInfoWindow.setInnerHTML(html);
 					inInfoWindow.setPosition(position);
 					inInfoWindow.height(height);

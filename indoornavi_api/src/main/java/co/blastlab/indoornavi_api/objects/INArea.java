@@ -118,7 +118,7 @@ public class INArea extends INObject {
 			try{
 				latch.await();
 
-				if(!inArea.timeout) {
+				if(!inArea.isTimeout) {
 					inArea.points(this.points);
 					inArea.setFillColor(this.color);
 					inArea.setOpacity(this.opacity);
