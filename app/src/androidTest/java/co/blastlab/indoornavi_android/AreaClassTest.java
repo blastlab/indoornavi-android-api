@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 import android.webkit.ValueCallback;
 
 import org.junit.Assert;
@@ -19,6 +20,7 @@ import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.objects.INArea;
 import co.blastlab.indoornavi_api.objects.INMap;
+import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 import static android.support.test.InstrumentationRegistry.getInstrumentation;
 
@@ -29,7 +31,7 @@ public class AreaClassTest {
 	INArea inArea;
 
 	INMap inMap;
-	List<Point> points  = new ArrayList<>();
+	List<Point> points = new ArrayList<>();
 
 	public MainActivity getActivity() {
 		if (activity == null) {
@@ -46,56 +48,68 @@ public class AreaClassTest {
 	}
 
 	@Test
-	public void INMapCreateTest() {
+	public void INAreaCreateTest() {
+		final Object syncObject = new Object();
 
 		inMap = getActivity().findViewById(R.id.webview);
 		Assert.assertNotNull(inMap);
-	}
-
-	@Test
-	public void INAreaCreateTest()
-	{
-		inMap = getActivity().findViewById(R.id.webview);
 
 		points.add(new Point(480, 480));
 		points.add(new Point(1220, 480));
-		points.add(new Point(1220,1220));
-		points.add(new Point(480,1220));
-		points.add(new Point(750,750));
+		points.add(new Point(1220, 1220));
+		points.add(new Point(480, 1220));
+		points.add(new Point(750, 750));
 
-		Thread thread = new Thread(new Runnable() {
-			public void run() {
-				inArea = new INArea.INAreaBuilder(inMap)
-					.setFillColor(Color.LTGRAY)
-					.points(points)
-					.setOpacity(0.3)
-					.build();
+		inMap.waitUntilMapReady(data ->
+		{
+			Thread thread = new Thread(new Runnable() {
+				public void run() {
+					inArea = new INArea.INAreaBuilder(inMap)
+						.setFillColor(Color.LTGRAY)
+						.points(points)
+						.setOpacity(0.3)
+						.build();
 
-				Assert.assertNotNull(inArea);
+					Assert.assertNotNull(inArea);
 
-				inArea.getID(new OnReceiveValueCallback<Long>() {
-					@Override
-					public void onReceiveValue(Long aLong) {
-						Assert.assertNotNull(aLong);
-					}
-				});
+					inArea.getID(new OnReceiveValueCallback<Long>() {
+						@Override
+						public void onReceiveValue(Long aLong) {
+							Assert.assertNotNull(aLong);
+						}
+					});
 
-				inArea.getPoints(new OnReceiveValueCallback<List<Point>>() {
-					@Override
-					public void onReceiveValue(List<Point> points) {
-						Assert.assertNotNull(points);
-					}
-				});
+					inArea.getPoints(new OnReceiveValueCallback<List<Point>>() {
+						@Override
+						public void onReceiveValue(List<Point> points) {
+							Assert.assertNotNull(points);
+						}
+					});
 
-				inArea.isWithin(new Coordinates(1200, 500, (short) 10999, new Date()), new ValueCallback<Boolean>() {
-					@Override
-					public void onReceiveValue(Boolean value) {
-						Assert.assertTrue(value);
-					}
-				});
-			}
+					inArea.isWithin(new Coordinates(1200, 500, (short) 10999, new Date()), new ValueCallback<Boolean>() {
+						@Override
+						public void onReceiveValue(Boolean value) {
+							Assert.assertTrue(value);
+
+							synchronized (syncObject) {
+								syncObject.notify();
+							}
+						}
+					});
+
+				}
+			});
+
+			thread.start();
 		});
 
-		thread.start();
+		try {
+			synchronized (syncObject) {
+				syncObject.wait();
+			}
+		} catch (Exception e) {
+			Log.e("Indoornavi test", "Test fail!");
+		}
+
 	}
 }

@@ -146,8 +146,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-		inMap.createMap("http://192.168.1.18:4200", "TestAdmin", metrics.widthPixels/2 + 100, metrics.heightPixels/2);
-		inMap.load(2);
+		inMap.createMap("http://172.16.170.20:4200", "TestAdmin", metrics.widthPixels/2, metrics.heightPixels/2);
+		inMap.load(5);
 
 		inMap.addLongClickListener(new OnEventListener<String>() {
 			@Override

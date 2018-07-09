@@ -3,6 +3,7 @@ package co.blastlab.indoornavi_android;
 import android.app.Instrumentation;
 import android.content.Intent;
 import android.graphics.Point;
+import android.util.Log;
 import android.webkit.ValueCallback;
 
 import org.junit.Assert;
@@ -40,53 +41,62 @@ public class InfoWindowClassTest {
 	}
 
 	@Test
-	public void INMapCreateTest() {
-
-		inMap = getActivity().findViewById(R.id.webview);
-		Assert.assertNotNull(inMap);
-	}
-
-	@Test
 	public void INInfoWindowCreateTest()
 	{
+		final Object syncObject = new Object();
 		inMap = getActivity().findViewById(R.id.webview);
 
 		point = new Point(480, 480);
 
-		Thread thread = new Thread(new Runnable() {
-			public void run() {
-				inInfoWindow = new INInfoWindow.INInfoWindowBuilder(inMap)
-					.height(40)
-					.width(40)
-					.setInnerHTML("<h2>Lorem ipsum dolor sit amet</h2>")
-					.setPosition(INInfoWindow.TOP)
-					.build();
+		inMap.waitUntilMapReady( data ->
+		{
+			Thread thread = new Thread(new Runnable() {
+				public void run() {
+					inInfoWindow = new INInfoWindow.INInfoWindowBuilder(inMap)
+						.height(40)
+						.width(40)
+						.setInnerHTML("<h2>Lorem ipsum dolor sit amet</h2>")
+						.setPosition(INInfoWindow.TOP)
+						.build();
 
-				Assert.assertNotNull(inInfoWindow);
+					Assert.assertNotNull(inInfoWindow);
 
-				inInfoWindow.getID(new OnReceiveValueCallback<Long>() {
-					@Override
-					public void onReceiveValue(Long aLong) {
-						Assert.assertNotNull(aLong);
-					}
-				});
+					inInfoWindow.getID(new OnReceiveValueCallback<Long>() {
+						@Override
+						public void onReceiveValue(Long aLong) {
+							Assert.assertNotNull(aLong);
+						}
+					});
 
-				inInfoWindow.getPoints(new OnReceiveValueCallback<List<Point>>() {
-					@Override
-					public void onReceiveValue(List<Point> points) {
-						Assert.assertNotNull(points);
-					}
-				});
+					inInfoWindow.getPoints(new OnReceiveValueCallback<List<Point>>() {
+						@Override
+						public void onReceiveValue(List<Point> points) {
+							Assert.assertNull(points);
+						}
+					});
 
-				inInfoWindow.isWithin(new Coordinates(200, 400, (short) 10999, new Date()), new ValueCallback<Boolean>() {
-					@Override
-					public void onReceiveValue(Boolean value) {
-						Assert.assertNotNull(value);
-					}
-				});
+					inInfoWindow.isWithin(new Coordinates(200, 400, (short) 10999, new Date()), new ValueCallback<Boolean>() {
+						@Override
+						public void onReceiveValue(Boolean value) {
+							Assert.assertNull(value);
 
-			}
+							synchronized (syncObject) {
+								syncObject.notify();
+							}
+						}
+					});
+
+				}
+			});
+			thread.start();
 		});
-		thread.start();
+
+		try {
+			synchronized (syncObject) {
+				syncObject.wait();
+			}
+		} catch (Exception e) {
+			Log.e("Indoornavi test", "Test fail!");
+		}
 	}
 }

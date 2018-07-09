@@ -107,7 +107,7 @@ public class INObject {
 	{
 		String javaScriptString = String.format("%s.isWithin(%s);", objectInstance, CoordinatesUtil.coordsToString(coordinates));
 		evaluate(javaScriptString, stringIsWithin -> {
-			if(stringIsWithin != null) {
+			if(!stringIsWithin.equals("null")) {
 				valueCallback.onReceiveValue(Boolean.valueOf(stringIsWithin));
 			}
 			else {
