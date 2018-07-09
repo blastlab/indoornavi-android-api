@@ -53,7 +53,7 @@ public class AreaClassTest {
 	}
 
 	@Test
-	public void INPolylineCreateTest()
+	public void INAreaCreateTest()
 	{
 		inMap = getActivity().findViewById(R.id.webview);
 

@@ -53,6 +53,8 @@ public class INInfoWindow extends INObject {
 			evaluate(javaScriptString, null);
 		}
 		else {
+			String javaScriptString = String.format(Locale.US, "%s.height(%d);", objectInstance, 50);
+			evaluate(javaScriptString, null);
 			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Height must be greater then 50px");
 		}
 	}
@@ -68,18 +70,10 @@ public class INInfoWindow extends INObject {
 			evaluate(javaScriptString, null);
 		}
 		else {
+			String javaScriptString = String.format(Locale.US, "%s.width(%d);", objectInstance, 50);
+			evaluate(javaScriptString, null);
 			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Width must be greater then 50px");
 		}
-	}
-
-	/**
-	 * Displays info window on {@link INObject} object.
-	 *
-	 * @param inObject the object on which you want to display info window.
-	 */
-	public void open(INObject inObject) {
-		String javaScriptString = String.format(Locale.US, "%s.open(%s);", objectInstance, inObject.objectInstance);
-		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -107,7 +101,7 @@ public class INInfoWindow extends INObject {
 
 		private INMap inMap;
 		private String html = "";
-		private int height = 50, width = 50;
+		private int height = 250, width = 250;
 		private @Position int position = TOP;
 
 		public INInfoWindowBuilder(INMap inMap){
@@ -146,17 +140,18 @@ public class INInfoWindow extends INObject {
 			try{
 				latch.await();
 
-				inInfoWindow.setInnerHTML(html);
-				inInfoWindow.setPosition(position);
-				inInfoWindow.height(height);
-				inInfoWindow.width(width);
-				return inInfoWindow;
+				if(!inInfoWindow.isTimeout) {
+					inInfoWindow.setInnerHTML(html);
+					inInfoWindow.setPosition(position);
+					inInfoWindow.height(height);
+					inInfoWindow.width(width);
+					return inInfoWindow;
+				}
 			}
 			catch (Exception e) {
 				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 			}
 			return null;
-
 		}
 	}
 

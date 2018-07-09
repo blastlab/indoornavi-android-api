@@ -40,7 +40,6 @@ public class INArea extends INObject {
 	{
 		String javaScriptString = String.format("%s.draw();", objectInstance);
 		evaluate(javaScriptString, null);
-		Log.i("indoor", "draw!");
 	}
 
 	/**
@@ -119,11 +118,13 @@ public class INArea extends INObject {
 			try{
 				latch.await();
 
-				inArea.points(this.points);
-				inArea.setFillColor(this.color);
-				inArea.setOpacity(this.opacity);
-				inArea.draw();
-				return inArea;
+				if(!inArea.isTimeout) {
+					inArea.points(this.points);
+					inArea.setFillColor(this.color);
+					inArea.setOpacity(this.opacity);
+					inArea.draw();
+					return inArea;
+				}
 			}
 			catch (Exception e) {
 				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);

@@ -165,11 +165,13 @@ public class INMarker extends INObject {
 			try{
 				latch.await();
 
-				inMarker.point(this.point);
-				inMarker.setLabel(this.label);
-				inMarker.setIcon(this.icon);
-				inMarker.draw();
-				return inMarker;
+				if(!inMarker.isTimeout) {
+					inMarker.point(this.point);
+					inMarker.setLabel(this.label);
+					inMarker.setIcon(this.icon);
+					inMarker.draw();
+					return inMarker;
+				}
 			}
 			catch (Exception e) {
 				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);

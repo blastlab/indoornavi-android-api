@@ -100,11 +100,12 @@ public class INPolyline extends INObject {
 
 			try{
 				latch.await();
-
-				inPolyline.points(this.points);
-				inPolyline.setLineColor(this.color);
-				inPolyline.draw();
-				return inPolyline;
+				if(!inPolyline.isTimeout) {
+					inPolyline.points(this.points);
+					inPolyline.setLineColor(this.color);
+					inPolyline.draw();
+					return inPolyline;
+				}
 			}
 			catch (Exception e) {
 				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
