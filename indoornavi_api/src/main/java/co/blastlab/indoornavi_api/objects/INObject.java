@@ -23,6 +23,7 @@ public class INObject {
 
 	private INMap inMap;
 	String objectInstance;
+	protected boolean isTimeout = false;
 
 	/**
 	 * INObject constructor.
@@ -46,6 +47,29 @@ public class INObject {
 
 		String javaScriptString = String.format(Locale.US, "%s.ready().then(() => inObjectInterface.ready(%d));", objectInstance, promiseId);
 		evaluate(javaScriptString, null);
+		setTimeout(promiseId);
+	}
+
+	private void setTimeout(int promiseId) {
+		Thread thread = new Thread() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(3000);
+					if(Controller.promiseCallbackMap.indexOfKey(promiseId) > 0) {
+						Log.e("Timeout "," server "+  inMap.targetHost + " not responding");
+						isTimeout = true;
+						Controller.promiseCallbackMap.get(promiseId).onReady(null);
+						Controller.promiseCallbackMap.remove(promiseId);
+						this.stop();
+					}
+				}
+				catch (InterruptedException e) {
+					Log.e("Indoor", "thread exception");
+				}
+			}
+		};
+		thread.start();
 	}
 
 	/**
@@ -61,7 +85,7 @@ public class INObject {
 				onReceiveValueCallback.onReceiveValue(Long.parseLong(stringID.substring(0, stringID.length() - 2)));
 			}
 			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): object isn't created yet!");
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
 				onReceiveValueCallback.onReceiveValue(null);
 			}
 		});
@@ -82,7 +106,7 @@ public class INObject {
 				onReceiveValueCallback.onReceiveValue(points);
 			}
 			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): points not set yet! ");
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): points not set yet! ");
 				onReceiveValueCallback.onReceiveValue(null);
 			}
 		});
@@ -111,7 +135,7 @@ public class INObject {
 				valueCallback.onReceiveValue(Boolean.valueOf(stringIsWithin));
 			}
 			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): The value can't be determined! ");
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): The value can't be determined! ");
 				valueCallback.onReceiveValue(null);
 			}
 		});

@@ -39,7 +39,7 @@ public class INMap extends WebView {
 
 	private Context context;
 
-	private String targetHost;
+	public String targetHost;
 	private String apiKey;
 
 	private int height, weight;
@@ -145,6 +145,7 @@ public class INMap extends WebView {
 		this.getSettings().setDomStorageEnabled(true);
 		this.getSettings().setUseWideViewPort(true);
 		this.getSettings().setLoadWithOverviewMode(true);
+		this.getSettings().setUseWideViewPort(true);
 
 		this.getSettings().setAllowFileAccess(false);
 		this.getSettings().setAllowFileAccessFromFileURLs(false);
