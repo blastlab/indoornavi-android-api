@@ -149,21 +149,14 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		inMap.createMap("http://172.16.170.20:4200", "TestAdmin", metrics.widthPixels/2, metrics.heightPixels/2);
 		inMap.load(5);
 
-		inMap.addLongClickListener(new OnEventListener<String>() {
+		inMap.addLongClickListener(new OnEventListener<Point>() {
 			@Override
-			public void onEvent(String s) {
+			public void onEvent(Point point) {
 				vibrator.vibrate(500);
-				Point point = PointsUtil.stringToPoint(s);
 				new INMarker.INMarkerBuilder(inMap)
 					.point(MapUtil.pixelsToRealDimensions(inMap.scale, point))
 					.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
 					.build();
-			}
-		});
-		inMap.addEventListener(INMap.AREA, new OnEventListener() {
-			@Override
-			public void onEvent(Object o) {
-
 			}
 		});
 

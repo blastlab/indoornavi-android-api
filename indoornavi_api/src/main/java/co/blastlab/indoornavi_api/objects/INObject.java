@@ -61,7 +61,6 @@ public class INObject {
 						isTimeout = true;
 						Controller.promiseCallbackMap.get(promiseId).onReady(null);
 						Controller.promiseCallbackMap.remove(promiseId);
-						this.stop();
 					}
 				}
 				catch (InterruptedException e) {
