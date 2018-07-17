@@ -66,39 +66,42 @@ public class PolylineClassTest {
 		points.add(new Point(480,1220));
 		points.add(new Point(750,750));
 
-		Thread thread = new Thread(new Runnable() {
-			public void run() {
-				inPolyline = new INPolyline.INPolylineBuilder(inMap)
-					.setLineColor(Color.GREEN)
-					.points(points)
-					.build();
+		inMap.waitUntilMapReady( data -> {
 
-				Assert.assertNotNull(inPolyline);
+			Thread thread = new Thread(new Runnable() {
+				public void run() {
+					inPolyline = new INPolyline.INPolylineBuilder(inMap)
+						.setLineColor(Color.GREEN)
+						.points(points)
+						.build();
 
-				inPolyline.getID(new OnReceiveValueCallback<Long>() {
-					@Override
-					public void onReceiveValue(Long aLong) {
-						Assert.assertNotNull(aLong);
-					}
-				});
+					Assert.assertNotNull(inPolyline);
 
-				inPolyline.getPoints(new OnReceiveValueCallback<List<Point>>() {
-					@Override
-					public void onReceiveValue(List<Point> points) {
-						Assert.assertNotNull(points);
-					}
-				});
+					inPolyline.getID(new OnReceiveValueCallback<Long>() {
+						@Override
+						public void onReceiveValue(Long aLong) {
+							Assert.assertNotNull(aLong);
+						}
+					});
 
-				inPolyline.isWithin(new Coordinates(200, 400, (short) 10999, new Date()), new ValueCallback<Boolean>() {
-					@Override
-					public void onReceiveValue(Boolean value) {
-						Assert.assertNotNull(value);
-					}
-				});
-			}
+					inPolyline.getPoints(new OnReceiveValueCallback<List<Point>>() {
+						@Override
+						public void onReceiveValue(List<Point> points) {
+							Assert.assertNotNull(points);
+						}
+					});
+
+					inPolyline.isWithin(new Coordinates(200, 400, (short) 10999, new Date()), new ValueCallback<Boolean>() {
+						@Override
+						public void onReceiveValue(Boolean value) {
+							Assert.assertNotNull(value);
+						}
+					});
+				}
+			});
+
+			thread.start();
 		});
-
-		thread.start();
 	}
 }
 

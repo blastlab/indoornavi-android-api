@@ -126,7 +126,7 @@ public class INMap extends WebView {
 		});
 	}
 
-	private void waitUntilMapReady(OnObjectReadyCallback onObjectReadyCallback) {
+	public void waitUntilMapReady(OnObjectReadyCallback onObjectReadyCallback) {
 		if(this.scale != null) {
 			onObjectReadyCallback.onReady(null);
 		}

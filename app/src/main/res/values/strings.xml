@@ -1,3 +1,9 @@
 <resources>
 	<string name="app_name">IndoorNavi_Android</string>
+	<string name="draw_polyline">Draw polyline</string>
+	<string name="draw_area">Draw area</string>
+	<string name="add_marker">Add marker</string>
+	<string name="create_report">Create report</string>
+	<string name="indoornavi">IndoorNavi</string>
+
 </resources>

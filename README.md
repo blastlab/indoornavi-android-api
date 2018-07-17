@@ -1,3 +1,13 @@
+# __Documentation__
+
+[Install Sphinx] (http://www.sphinx-doc.org/en/master/usage/installation.html)
+
+Go to Documentation folder and run:
+```
+make html
+```
+It will make HTML files in build folder.
+
 # __IndoorNavi API 1.0__
 
 IndoorNavi is a Java library used to manage IndoorNavi maps for Android devices.
