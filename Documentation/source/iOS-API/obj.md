@@ -38,7 +38,7 @@ ___Swift___
 ```swift
 let polyline = INPolyline(withMap: map)
 polyline.set(points: pointsArray)
-polyline.setColorWith(red: 0.3, green: 0.8, blue: 0.3)
+polyline.color = .green
 polyline.draw()
 ```
 
@@ -46,7 +46,7 @@ ___Objective-C___
 ```objc
 INPolyline* polyline = [[INPolyline alloc] initWithMap:blueComponent];
 [polyline setPointsArray:pointsArray withArraySize:arraySize];
-[polyline setColorWithRed:0.3 green:0.8 blue:0.3];
+polyline.color = UIColor.greenColor;
 [polyline draw];
 ```
 
@@ -58,8 +58,7 @@ ___Swift___
 ```swift
 let area = INArea(withMap: yourMap)
 area.set(points: yourPointsArray)
-area.setFillColor(red: 0.3, green: 0.8, blue: 0.3)
-area.setOpacity(0.5)
+area.color = UIColor(red: 0.8, green: 0.4, blue: 0.2, alpha: 0.5)
 area.draw()
 ```
 
@@ -67,8 +66,7 @@ ___Objective-C___
 ```objc
 INArea* area = [[INArea alloc] initWithMap:yourMap];
 [area setPointsArray:pointsArray withArraySize:arraySize];
-[area setFillColorWithRed:0.3 green:0.8 blue:0.3];
-[area setOpacity:0.5];
+area.color = [UIColor colorWithRed:0.8 green:0.3 blue:0.2 alpha:0.5];
 [area draw];
 ```
 
