@@ -126,7 +126,7 @@ public class INMap extends WebView {
 		});
 	}
 
-	private void waitUntilMapReady(OnObjectReadyCallback onObjectReadyCallback) {
+	public void waitUntilMapReady(OnObjectReadyCallback onObjectReadyCallback) {
 		if(this.scale != null) {
 			onObjectReadyCallback.onReady(null);
 		}
@@ -183,7 +183,7 @@ public class INMap extends WebView {
 			int eventId = onEventListener.hashCode();
 			Controller.eventListenerMap.put(eventId, onEventListener);
 
-			String javaScriptString = String.format(Locale.US, "navi.addEventListener(Event.LISTENER.%s, res => eventInterface.onEvent(%d, %s, JSON.stringify(res)));", event, eventId, event);
+			String javaScriptString = String.format(Locale.US, "navi.addEventListener(Event.LISTENER.%s, res => eventInterface.onEvent(%d, \"%s\", JSON.stringify(res)));", event, eventId, event);
 			this.evaluateJavascript(javaScriptString, null);
 		});
 	}

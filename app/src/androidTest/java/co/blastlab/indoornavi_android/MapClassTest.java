@@ -52,7 +52,7 @@ public class MapClassTest {
 			Assert.assertNotNull(is1);
 		}
 		catch (Exception e) {
-			new AssertionError("Open file from assets error");
+			throw new AssertionError("Open file from assets error");
 		}
 	}
 }

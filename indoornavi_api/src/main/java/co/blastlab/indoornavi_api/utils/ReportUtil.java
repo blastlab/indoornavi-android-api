@@ -29,7 +29,7 @@ public class ReportUtil {
 	 * @param jsonString String in Json format containing AreaEvent data
 	 * @return AreaEvent list or null if unsuccessful
 	 */
-	public static List<AreaEvent> jsonToAreaEvent(String jsonString) {
+	public static List<AreaEvent> jsonToAreaEventArray(String jsonString) {
 		List<AreaEvent> events = new ArrayList<>();
 		SimpleDateFormat dt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault());
 		String date;
@@ -56,7 +56,7 @@ public class ReportUtil {
 	 * @param jsonString String in Json format containing Coordinates data
 	 * @return Coordinates list or null if unsuccessful
 	 */
-	public static List<Coordinates> jsonToCoordinates(String jsonString) {
+	public static List<Coordinates> jsonToCoordinatesArray(String jsonString) {
 		List<Coordinates> coordinates = new ArrayList<>();
 		SimpleDateFormat dt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault());
 		String date;

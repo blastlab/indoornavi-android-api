@@ -61,7 +61,6 @@ public class INObject {
 						isTimeout = true;
 						Controller.promiseCallbackMap.get(promiseId).onReady(null);
 						Controller.promiseCallbackMap.remove(promiseId);
-						this.stop();
 					}
 				}
 				catch (InterruptedException e) {
@@ -131,7 +130,7 @@ public class INObject {
 	{
 		String javaScriptString = String.format("%s.isWithin(%s);", objectInstance, CoordinatesUtil.coordsToString(coordinates));
 		evaluate(javaScriptString, stringIsWithin -> {
-			if(stringIsWithin != null) {
+			if(!stringIsWithin.equals("null")) {
 				valueCallback.onReceiveValue(Boolean.valueOf(stringIsWithin));
 			}
 			else {

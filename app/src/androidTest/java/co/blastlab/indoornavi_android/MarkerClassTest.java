@@ -54,40 +54,42 @@ public class MarkerClassTest {
 
 		point = new Point(480, 480);
 
-		Thread thread = new Thread(new Runnable() {
-			public void run() {
-				inMarker = new INMarker.INMarkerBuilder(inMap)
-					.setLabel("Label")
-					.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
-					.point(point)
-					.build();
+		inMap.waitUntilMapReady( data -> {
 
-				Assert.assertNotNull(inMarker);
+			Thread thread = new Thread(new Runnable() {
+				public void run() {
+					inMarker = new INMarker.INMarkerBuilder(inMap)
+						.setLabel("Label")
+						.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
+						.point(point)
+						.build();
 
-				inMarker.getID(new OnReceiveValueCallback<Long>() {
-					@Override
-					public void onReceiveValue(Long aLong) {
-						Assert.assertNotNull(aLong);
-					}
-				});
+					Assert.assertNotNull(inMarker);
 
-				inMarker.getPoints(new OnReceiveValueCallback<List<Point>>() {
-					@Override
-					public void onReceiveValue(List<Point> points) {
-						Assert.assertNotNull(points);
-					}
-				});
+					inMarker.getID(new OnReceiveValueCallback<Long>() {
+						@Override
+						public void onReceiveValue(Long aLong) {
+							Assert.assertNotNull(aLong);
+						}
+					});
 
-				inMarker.isWithin(new Coordinates(200, 400, (short) 10999, new Date()), new ValueCallback<Boolean>() {
-					@Override
-					public void onReceiveValue(Boolean value) {
-						Assert.assertNotNull(value);
-					}
-				});
+					inMarker.getPoints(new OnReceiveValueCallback<List<Point>>() {
+						@Override
+						public void onReceiveValue(List<Point> points) {
+							Assert.assertNotNull(points);
+						}
+					});
 
-			}
+					inMarker.isWithin(new Coordinates(200, 400, (short) 10999, new Date()), new ValueCallback<Boolean>() {
+						@Override
+						public void onReceiveValue(Boolean value) {
+							Assert.assertNotNull(value);
+						}
+					});
+				}
+			});
+
+			thread.start();
 		});
-
-		thread.start();
 	}
 }
