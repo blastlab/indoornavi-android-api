@@ -62,7 +62,7 @@ public class INArea extends INObject {
 	/**
 	 * Fills Area whit given color. To apply this method it's necessary to call draw() after.
 	 *
-     * @param color string that specifies the color. Supports color in hex format '#AABBCC' and rgb format 'rgb(255,255,255)';
+     * @param color that specifies the color.
      */
 	public void setFillColor(@ColorInt int color)
 	{

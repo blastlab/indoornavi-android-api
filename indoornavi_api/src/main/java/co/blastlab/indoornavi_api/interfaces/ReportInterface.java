@@ -15,7 +15,7 @@ public class ReportInterface {
 	public void areaEvents(int promiseId, String areaEvents) {
 
 		if(!areaEvents.equals("[]") && !areaEvents.equals("null")) {
-			List<AreaEvent> events = ReportUtil.jsonToAreaEvent(areaEvents);
+			List<AreaEvent> events = ReportUtil.jsonToAreaEventArray(areaEvents);
 			Controller.promiseCallbackMap.get(promiseId).onReady(events);
 		}
 		else {
@@ -28,7 +28,7 @@ public class ReportInterface {
 	public void coordinates(int promiseId, String coords) {
 
 		if(!coords.equals("[]") && !coords.equals("null")) {
-			List<Coordinates> coordinates = ReportUtil.jsonToCoordinates(coords);
+			List<Coordinates> coordinates = ReportUtil.jsonToCoordinatesArray(coords);
 			Controller.promiseCallbackMap.get(promiseId).onReady(coordinates);
 		}
 		else {

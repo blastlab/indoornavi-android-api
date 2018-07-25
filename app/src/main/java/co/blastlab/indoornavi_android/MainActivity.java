@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-		inMap.createMap("http://172.16.170.20:4200", "TestAdmin", metrics.widthPixels/2, metrics.heightPixels/2);
+		inMap.createMap("http://172.16.170.20:4200", "TestAdmin", metrics.widthPixels-250, metrics.heightPixels-200);
 		inMap.load(5);
 
 		inMap.addLongClickListener(new OnEventListener<Point>() {
@@ -168,19 +168,48 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void addAreaListeners() {
-		inMap.addEventListener(INMap.AREA, new OnEventListener() {
+		inMap.addEventListener(INMap.AREA, new OnEventListener<AreaEvent>() {
 			@Override
-			public void onEvent(Object o) {
-				Toast.makeText(getApplicationContext(), "Event occured!", Toast.LENGTH_LONG).show();
+			public void onEvent(AreaEvent areaEvent) {
+				String msg = areaEvent.mode.equals("ON_ENTER") ? "You entered the area!" : "You left the area!";
+				Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+				showArea(areaEvent);
 			}
 		});
+	}
+
+	private void showArea(AreaEvent areaEvent) {
+
+		if(areaEvent.mode.equals("ON_ENTER")) {
+			int index;
+			switch (areaEvent.areaName) {
+				case "Office 1":
+					index = 0;
+					break;
+				case "Office 2":
+					index = 1;
+					break;
+				default:
+					index = 2;
+					break;
+			}
+			inArea = new INArea.INAreaBuilder(inMap)
+				.points(getPointsSetByIndex(index))
+				.setFillColor(Color.GREEN)
+				.setOpacity(0.3)
+				.build();
+		} else {
+			inArea.remove();
+		}
+
+
 	}
 
 	public void drawPoly(int index)
 	{
 		inPolyline = new INPolyline.INPolylineBuilder(inMap)
 			.points(getPointsSetByIndex(index))
-			.setLineColor(Color.LTGRAY)
+			.setLineColor(Color.RED)
 			.build();
 
 		inPolyline.getID(id -> { Log.i("Indoor", "onReceiveValue: " + id); });
@@ -252,9 +281,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void drawInfoWindow(){
 		inInfoWindow = new INInfoWindow.INInfoWindowBuilder(inMap)
-			.height(70)
-			.width(50)
-			.setInnerHTML("<h2>Lorem ipsum dolor sit amet</h2>")
+			.height(150)
+			.width(150)
+			.setInnerHTML("<h3>Lorem ipsum dolor sit amet</h3>")
 			.setPosition(INInfoWindow.TOP)
 			.build();
 	}
@@ -269,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	public void createReport(int index) {
 		verifyStoragePermissions(this);
 
-		INReport = new INReport(inMap, "http://192.168.1.18:90", "TestAdmin");
+		INReport = new INReport(inMap, "http://172.16.170.20:90", "TestAdmin");
 
 		switch(index) {
 			case 0:
