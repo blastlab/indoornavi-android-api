@@ -29,10 +29,10 @@ API was created to trace and control tag movements.
 .. toctree::
     :caption: Android API
 
-    map
-    start
-    obj
-    inter
+    Android-API/start
+    Android-API/map
+    Android-API/obj
+    Android-API/inter
 
 .. toctree::
     :caption: iOS API

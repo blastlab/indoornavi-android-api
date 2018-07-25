@@ -13,3 +13,5 @@ public void onINMapReady(INMap mapView) {
     inMap.load(floorId)
     }
 ```
+
+![image](screenshots/mapa.png)

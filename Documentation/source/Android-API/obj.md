@@ -14,6 +14,10 @@ INPolyline inPolyline = new INPolyline.INPolylineBuilder(inMap)
     .build();
 ```
 
+<br>
+![image](screenshots/poly.png)
+<br>
+
 ## __INArea__
 
 An INArea is a closed area, defined with a series of points which starts and ends at the same point.
@@ -26,6 +30,10 @@ INArea inArea = new INArea.INAreaBuilder(inMap)
     .setOpacity(0.3)
     .build();
 ```
+
+<br>
+![image](screenshots/area.png)
+<br>
 
 ## __INMarker__
 
@@ -70,6 +78,10 @@ You can attach an info window to a marker:
 ```java
 inMarker.addInfoWindow(inInfoWindow);
 ```
+
+<br>
+![image](screenshots/marker.png)
+<br>
 
 ## __Objects properties__
 You can retrieve some information about an object, like:
