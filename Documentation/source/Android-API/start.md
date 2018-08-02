@@ -4,9 +4,9 @@ This guide contains a quick start to add and manage indoor navigation.
 
 ## __Prepare project__
 
-If you want to access map in your Android project it's necessary to create a proper building configuration on frontend server.
+If you want to access map in your Android project it's necessary to create a proper building configuration on the frontend server.
 Ones you create `Complex --> Building --> Floor` and upload the appropriate map, it's necessary to add a proper scale and publish map on the server.
-You have to check ID of the floor you want to show in the app and address of the frontend server.
+You have to check the ID of the floor you want to show in the app and address of the frontend server.
 
 <div class="note">      
    Note: The entire process is presented in the javascript-api documentation.
@@ -58,7 +58,7 @@ public class MainActivity extends Activity implements OnINMapReadyCallback {
     }
 
     public void onINMapReady(INMap mapView) {
-        inMap.createMap("frontend server address", "apiKey", hight, wight);
+        inMap.createMap("frontend server address", "apiKey", height, wight);
         inMap.load(floorId)
     }
 }
