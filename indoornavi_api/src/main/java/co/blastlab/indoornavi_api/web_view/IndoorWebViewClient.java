@@ -60,7 +60,7 @@ public class IndoorWebViewClient extends WebViewClient {
 	@Override
 	public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
 
-		if (request.getUrl().getEncodedPath().contains("Navi.js")) {
+		if (request.getUrl().getEncodedPath() != null && request.getUrl().getEncodedPath().contains("Navi.js")) {
 			try {
 				AssetManager assets = view.getContext().getAssets();
 				Uri uri = Uri.parse(request.getUrl().getEncodedPath());
