@@ -31,6 +31,21 @@ dependencies {
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 ```
 
+### __SafeBrowsingResponse__
+Used to indicate an action to take when hitting a malicious URL.
+<div class="note">      
+   Functionality is added in API level 27.
+</div>
+
+
+```xml
+<application>
+	<meta-data android:name="android.webkit.WebView.EnableSafeBrowsing"
+			   android:value="true" />
+</application>
+```
+
+
 ### __Layout (XML file)__
 It's necessary to add INMap object in XML file.
 ```xml
@@ -59,7 +74,11 @@ public class MainActivity extends Activity implements OnINMapReadyCallback {
 
     public void onINMapReady(INMap mapView) {
         inMap.createMap("frontend server address", "apiKey", height, wight);
-        inMap.load(floorId)
+        inMap.load(floorId, new OnObjectReadyCallback() {
+			@Override
+			public void onReady(Object o) {
+			}
+		});
     }
 }
 ```

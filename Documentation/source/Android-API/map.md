@@ -10,7 +10,11 @@ inMap = (INMap) findViewById(R.id.inMap);
 
 public void onINMapReady(INMap mapView) {
    inMap.createMap("http://mybuilding.com", "apiKey", height, width);
-    inMap.load(floorId)
+    inMap.load(floorId, new OnObjectReadyCallback() {
+			@Override
+			public void onReady(Object o) {
+			}
+		});
     }
 ```
 
