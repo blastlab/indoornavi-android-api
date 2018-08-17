@@ -1,10 +1,10 @@
 package co.blastlab.indoornavi_api.objects;
 
 import android.graphics.Point;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import java.util.Locale;
-import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
@@ -158,12 +158,9 @@ public class INMarker extends INObject {
 		}
 
 		public INMarker build() {
-			final CountDownLatch latch = new CountDownLatch(1);
-			INMarker inMarker = new INMarker(inMap);
-			inMarker.ready(object -> latch.countDown());
-
 			try{
-				latch.await();
+				INMarker inMarker = new INMarker(inMap);
+				inMarker = new INMarker.INMarkerBuilder.MyAsyncTask(inMarker).execute().get();
 
 				if(!inMarker.isTimeout) {
 					inMarker.point(this.point);
@@ -177,7 +174,23 @@ public class INMarker extends INObject {
 				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 			}
 			return null;
+		}
 
+		private static class MyAsyncTask extends AsyncTask<Void, Void, INMarker> {
+			INMarker inMarker;
+			boolean ready = false;
+
+			private MyAsyncTask(INMarker inMarker) {
+				super();
+				this.inMarker = inMarker;
+				this.inMarker.ready(data -> ready = true);
+			}
+
+			@Override
+			protected INMarker doInBackground(Void... arg0) {
+				while(!ready);
+				return inMarker;
+			}
 		}
 	}
 }

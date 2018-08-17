@@ -1,12 +1,12 @@
 package co.blastlab.indoornavi_api.objects;
 
 import android.graphics.Point;
+import android.os.AsyncTask;
 import android.support.annotation.ColorInt;
 import android.util.Log;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
@@ -94,12 +94,10 @@ public class INPolyline extends INObject {
 		}
 
 		public INPolyline build() {
-			final CountDownLatch latch = new CountDownLatch(1);
-			INPolyline inPolyline = new INPolyline(inMap);
-			inPolyline.ready(object -> latch.countDown());
+			try {
+				INPolyline inPolyline = new INPolyline(inMap);
+				inPolyline = new MyAsyncTask(inPolyline).execute().get();
 
-			try{
-				latch.await();
 				if(!inPolyline.isTimeout) {
 					inPolyline.points(this.points);
 					inPolyline.setLineColor(this.color);
@@ -111,7 +109,23 @@ public class INPolyline extends INObject {
 				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 			}
 			return null;
+		}
 
+		private static class MyAsyncTask extends AsyncTask<Void, Void, INPolyline> {
+			INPolyline inPolyline;
+			boolean ready = false;
+
+			private MyAsyncTask(INPolyline inPolyline) {
+				super();
+				this.inPolyline = inPolyline;
+				this.inPolyline.ready(data -> ready = true);
+			}
+
+			@Override
+			protected INPolyline doInBackground(Void... arg0) {
+				while(!ready);
+				return inPolyline;
+			}
 		}
 	}
 }

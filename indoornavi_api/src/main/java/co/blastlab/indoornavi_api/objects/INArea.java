@@ -1,15 +1,14 @@
 package co.blastlab.indoornavi_api.objects;
 
 import android.graphics.Point;
+import android.os.AsyncTask;
 import android.support.annotation.ColorInt;
 import android.support.annotation.FloatRange;
 import android.util.Log;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CountDownLatch;
 
-import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -111,12 +110,9 @@ public class INArea extends INObject {
 		}
 
 		public INArea build() {
-			final CountDownLatch latch = new CountDownLatch(1);
-			INArea inArea = new INArea(inMap);
-			inArea.ready(object -> 	latch.countDown());
-
 			try{
-				latch.await();
+				INArea inArea = new INArea(inMap);
+				inArea = new INArea.INAreaBuilder.MyAsyncTask(inArea).execute().get();
 
 				if(!inArea.isTimeout) {
 					inArea.points(this.points);
@@ -130,7 +126,23 @@ public class INArea extends INObject {
 				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 			}
 			return null;
+		}
 
+		private static class MyAsyncTask extends AsyncTask<Void, Void, INArea> {
+			INArea inArea;
+			boolean ready = false;
+
+			private MyAsyncTask(INArea inArea) {
+				super();
+				this.inArea = inArea;
+				this.inArea.ready(data -> ready = true);
+			}
+
+			@Override
+			protected INArea doInBackground(Void... arg0) {
+				while(!ready);
+				return inArea;
+			}
 		}
 	}
 }

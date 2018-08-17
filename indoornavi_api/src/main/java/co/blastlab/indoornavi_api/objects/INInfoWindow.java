@@ -1,12 +1,12 @@
 package co.blastlab.indoornavi_api.objects;
 
+import android.os.AsyncTask;
 import android.support.annotation.IntDef;
 import android.util.Log;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Locale;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Class represents an info window, creates the INInfoWindow object in iframe that communicates with frontend server and adds info window to a given INObject child.
@@ -133,12 +133,9 @@ public class INInfoWindow extends INObject {
 		}
 
 		public INInfoWindow build() {
-			final CountDownLatch latch = new CountDownLatch(1);
-			INInfoWindow inInfoWindow = new INInfoWindow(inMap);
-			inInfoWindow.ready(object -> latch.countDown());
-
 			try{
-				latch.await();
+				INInfoWindow inInfoWindow = new INInfoWindow(inMap);
+				inInfoWindow = new MyAsyncTask(inInfoWindow).execute().get();
 
 				if(!inInfoWindow.isTimeout) {
 					inInfoWindow.setInnerHTML(html);
@@ -153,6 +150,22 @@ public class INInfoWindow extends INObject {
 			}
 			return null;
 		}
-	}
 
+		private static class MyAsyncTask extends AsyncTask<Void, Void, INInfoWindow> {
+			INInfoWindow inInfoWindow;
+			boolean ready = false;
+
+			private MyAsyncTask(INInfoWindow inInfoWindow) {
+				super();
+				this.inInfoWindow = inInfoWindow;
+				this.inInfoWindow.ready(data -> ready = true);
+			}
+
+			@Override
+			protected INInfoWindow doInBackground(Void... arg0) {
+				while(!ready);
+				return inInfoWindow;
+			}
+		}
+	}
 }

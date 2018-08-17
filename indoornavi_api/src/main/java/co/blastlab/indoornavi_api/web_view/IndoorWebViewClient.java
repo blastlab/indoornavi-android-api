@@ -5,10 +5,12 @@ import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
+import android.webkit.SafeBrowsingResponse;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,8 +20,6 @@ import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
 
 public class IndoorWebViewClient extends WebViewClient {
 
-	public OnINMapReadyCallback mapReadyCallback;
-
 	@Override
 	public boolean shouldOverrideUrlLoading(WebView view, String url){
 		return true;
@@ -28,6 +28,7 @@ public class IndoorWebViewClient extends WebViewClient {
 	@Override
 	public void onPageFinished(WebView view, String url) {
 		super.onPageFinished(view, url);
+		OnINMapReadyCallback mapReadyCallback;
 
 		mapReadyCallback = (OnINMapReadyCallback) view.getContext();
 		mapReadyCallback.onINMapReady((INMap) view);
@@ -74,4 +75,14 @@ public class IndoorWebViewClient extends WebViewClient {
 		}
 		return super.shouldInterceptRequest(view, request);
 	}
+
+	@TargetApi(Build.VERSION_CODES.O_MR1)
+	@Override
+	public void onSafeBrowsingHit(WebView view, WebResourceRequest request,
+	                              int threatType, SafeBrowsingResponse callback) {
+		callback.backToSafety(true);
+		Toast.makeText(view.getContext(), "Unsafe web page blocked.",
+			Toast.LENGTH_LONG).show();
+	}
+
 }

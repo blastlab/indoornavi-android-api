@@ -18,6 +18,7 @@ import java.util.Locale;
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
+import co.blastlab.indoornavi_api.interfaces.DataInterface;
 import co.blastlab.indoornavi_api.interfaces.EventListenerInterface;
 import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
@@ -36,6 +37,7 @@ public class INMap extends WebView {
 	INMarkerInterface inMarkerInterface;
 	ReportInterface reportInterface;
 	EventListenerInterface eventInterface;
+	DataInterface dataInterface;
 
 	private Context context;
 
@@ -87,11 +89,15 @@ public class INMap extends WebView {
 	 * Load map of the floor with specific id.
 	 *
 	 * @param floorId - Id of specific floor.
+	 * @param onObjectReadyCallback interface - trigger when map is successfully loaded.
 	 */
-	public void load(int floorId)
+	public void load(int floorId, OnObjectReadyCallback onObjectReadyCallback)
 	{
 		this.floorId = floorId;
-		this.ready(floorId, (object) -> getMapDimensions());
+		this.ready(floorId, (object) -> {
+			getMapDimensions();
+			waitUntilMapReady(onObjectReadyCallback);
+		});
 	}
 
 	/**
@@ -238,5 +244,8 @@ public class INMap extends WebView {
 
 		eventInterface = new EventListenerInterface();
 		this.addJavascriptInterface(eventInterface, "eventInterface");
+
+		dataInterface = new DataInterface();
+		this.addJavascriptInterface(dataInterface, "dataInterface");
 	}
 }

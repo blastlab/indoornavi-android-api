@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import co.blastlab.indoornavi_api.INData;
 import co.blastlab.indoornavi_api.INReport;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
@@ -50,9 +51,11 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private INArea inArea;
 	private INMarker inMarker1;
 	private INInfoWindow inInfoWindow;
+	private INReport INReport;
 
-	private DrawerLayout mDrawerLayout;
-
+	private int floorId = 2;
+	private String frontendServer = "http://192.168.1.23:4200";
+	private String backendServer = "http://192.168.1.23:90";
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
 	private static final int REQUEST_INTERNET= 1;
 	private static String[] PERMISSIONS= {
@@ -60,19 +63,16 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		Manifest.permission.WRITE_EXTERNAL_STORAGE
 	};
 
-	INReport INReport;
-
 	List<Point> points_office_1  = new ArrayList<>();
 	List<Point> points_office_2  = new ArrayList<>();
 	List<Point> points_office_3  = new ArrayList<>();
 
+	DrawerLayout mDrawerLayout;
 	Vibrator vibrator;
-
 	ExpandableListAdapter mMenuAdapter;
 	ExpandableListView expandableList;
 	List<ExpandedMenuModel> listDataHeader;
 	HashMap<ExpandedMenuModel, List<String>> listDataChild;
-
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -146,8 +146,12 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-		inMap.createMap("http://172.16.170.20:4200", "TestAdmin", metrics.widthPixels-250, metrics.heightPixels-200);
-		inMap.load(5);
+		inMap.createMap(frontendServer, "TestAdmin", metrics.widthPixels-250, metrics.heightPixels-200);
+		inMap.load(floorId, new OnObjectReadyCallback() {
+			@Override
+			public void onReady(Object o) {
+			}
+		});
 
 		inMap.addLongClickListener(new OnEventListener<Point>() {
 			@Override
@@ -212,8 +216,12 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			.setLineColor(Color.RED)
 			.build();
 
-		inPolyline.getID(id -> { Log.i("Indoor", "onReceiveValue: " + id); });
-		inPolyline.getPoints(points -> Log.i("Indoor", "onReceiveValue: " +  PointsUtil.pointsToString(points)));
+		if(inPolyline!= null) {
+			inPolyline.getID(id -> {
+				Log.i("Indoor", "onReceiveValue: " + id);
+			});
+			inPolyline.getPoints(points -> Log.i("Indoor", "onReceiveValue: " + PointsUtil.pointsToString(points)));
+		}
 	}
 
 	public void drawArea(int index){
@@ -223,7 +231,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			.setOpacity(0.3)
 			.build();
 
-		inArea.isWithin(new Coordinates(200, 800, (short)109999, new Date()), bool -> Log.i("Indoor", "Received value: " + bool));
+		if(inArea!= null) {
+			inArea.isWithin(new Coordinates(200, 800, (short) 109999, new Date()), bool -> Log.i("Indoor", "Received value: " + bool));
+		}
 	}
 
 	public List<Point> getPointsSetByIndex(int index) {
@@ -245,14 +255,16 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			.setLabel(getMarkerLabel(index))
 			.build();
 
-		drawInfoWindow();
+		if(inMarker1!= null) {
+			drawInfoWindow();
 
-		inMarker1.addEventListener(new OnMarkerClickListener() {
-			@Override
-			public void onClick() {
-				show_toast();
-			}
-		});
+			inMarker1.addEventListener(new OnMarkerClickListener() {
+				@Override
+				public void onClick() {
+					show_toast();
+				}
+			});
+		}
 	}
 
 	public String getMarkerLabel(int index) {
@@ -298,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	public void createReport(int index) {
 		verifyStoragePermissions(this);
 
-		INReport = new INReport(inMap, "http://172.16.170.20:90", "TestAdmin");
+		INReport = new INReport(inMap, backendServer, "TestAdmin");
 
 		switch(index) {
 			case 0:
@@ -307,11 +319,14 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			case 1:
 				createCoordinatesReport(INReport);
 				break;
+			case 2:
+				getPaths();
+				break;
 		}
 	}
 
 	public void createAreaEventsReport(INReport inReport) {
-		INReport.getAreaEvents(2, new Date(1428105600) ,new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {
+		INReport.getAreaEvents(floorId, new Date(1428105600) ,new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {
 			@Override
 			public void onReady(List<AreaEvent> areaEvents) {
 				String msg;
@@ -328,7 +343,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void createCoordinatesReport(INReport inReport) {
-		inReport.getCoordinates(2, new Date(1428105600), new Date(), new OnObjectReadyCallback<List<Coordinates>>() {
+		inReport.getCoordinates(floorId, new Date(1428105600), new Date(), new OnObjectReadyCallback<List<Coordinates>>() {
 			@Override
 			public void onReady(List<Coordinates> coordinates) {
 				String msg;
@@ -342,6 +357,14 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
 			}
 		});
+	}
+
+	public void getPaths() {
+		INData inData = new INData(inMap,backendServer, "TestAdmin" );
+		inData.getPaths(floorId, paths -> {
+				Log.i("Indoor", "Received path: " + paths);
+			}
+		);
 	}
 
 	public void setNavigationViewListener() {
@@ -407,6 +430,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		List<String> heading2 = new ArrayList<String>();
 		heading2.add("Area events");
 		heading2.add("Coordinates");
+		heading2.add("Paths");
 
 		listDataChild.put(listDataHeader.get(0), heading1);
 		listDataChild.put(listDataHeader.get(1), heading1);
