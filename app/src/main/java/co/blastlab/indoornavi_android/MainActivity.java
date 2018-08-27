@@ -54,9 +54,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private INInfoWindow inInfoWindow;
 	private INReport INReport;
 
-	private int floorId = 2;
-	private String frontendServer = "http://192.168.1.23:4200";
-	private String backendServer = "http://192.168.1.23:90";
+	private int floorId = 7;
+	private String frontendServer = "http://192.168.1.29:4200";
+	private String backendServer = "http://192.168.1.29:90";
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
 	private static final int REQUEST_INTERNET= 1;
 	private static String[] PERMISSIONS= {

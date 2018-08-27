@@ -5,12 +5,10 @@ import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
-import android.webkit.SafeBrowsingResponse;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,14 +73,4 @@ public class IndoorWebViewClient extends WebViewClient {
 		}
 		return super.shouldInterceptRequest(view, request);
 	}
-
-	@TargetApi(Build.VERSION_CODES.O_MR1)
-	@Override
-	public void onSafeBrowsingHit(WebView view, WebResourceRequest request,
-	                              int threatType, SafeBrowsingResponse callback) {
-		callback.backToSafety(true);
-		Toast.makeText(view.getContext(), "Unsafe web page blocked.",
-			Toast.LENGTH_LONG).show();
-	}
-
 }

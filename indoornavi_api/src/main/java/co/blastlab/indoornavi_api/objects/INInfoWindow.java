@@ -7,6 +7,7 @@ import android.util.Log;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Class represents an info window, creates the INInfoWindow object in iframe that communicates with frontend server and adds info window to a given INObject child.
@@ -134,8 +135,12 @@ public class INInfoWindow extends INObject {
 
 		public INInfoWindow build() {
 			try{
+				CountDownLatch latch = new CountDownLatch(1);
+
 				INInfoWindow inInfoWindow = new INInfoWindow(inMap);
-				inInfoWindow = new MyAsyncTask(inInfoWindow).execute().get();
+				inInfoWindow.ready(data -> latch.countDown());
+
+				latch.await();
 
 				if(!inInfoWindow.isTimeout) {
 					inInfoWindow.setInnerHTML(html);
@@ -149,23 +154,6 @@ public class INInfoWindow extends INObject {
 				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 			}
 			return null;
-		}
-
-		private static class MyAsyncTask extends AsyncTask<Void, Void, INInfoWindow> {
-			INInfoWindow inInfoWindow;
-			boolean ready = false;
-
-			private MyAsyncTask(INInfoWindow inInfoWindow) {
-				super();
-				this.inInfoWindow = inInfoWindow;
-				this.inInfoWindow.ready(data -> ready = true);
-			}
-
-			@Override
-			protected INInfoWindow doInBackground(Void... arg0) {
-				while(!ready);
-				return inInfoWindow;
-			}
 		}
 	}
 }
