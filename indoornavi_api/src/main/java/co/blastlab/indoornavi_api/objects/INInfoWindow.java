@@ -1,5 +1,6 @@
 package co.blastlab.indoornavi_api.objects;
 
+import android.graphics.Point;
 import android.os.AsyncTask;
 import android.support.annotation.IntDef;
 import android.util.Log;
@@ -9,25 +10,19 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
+import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
+import co.blastlab.indoornavi_api.utils.PointsUtil;
+
+import static co.blastlab.indoornavi_api.objects.INInfoWindow.Position.TOP;
+
 /**
  * Class represents an info window, creates the INInfoWindow object in iframe that communicates with frontend server and adds info window to a given INObject child.
  */
 public class INInfoWindow extends INObject {
 
 	private INMap inMap;
-	public static final int TOP = 0;
-	public static final int RIGHT = 1;
-	public static final int BOTTOM = 2;
-	public static final int LEFT = 3;
-	public static final int TOP_RIGHT = 4;
-	public static final int TOP_LEFT = 5;
-	public static final int BOTTOM_RIGHT = 6;
-	public static final int BOTTOM_LEFT = 7;
 
-	@IntDef({TOP, RIGHT, BOTTOM, LEFT, TOP_RIGHT, TOP_LEFT, BOTTOM_RIGHT, BOTTOM_LEFT})
-
-	@Retention(RetentionPolicy.SOURCE)
-	public @interface Position {}
+	public enum Position {TOP, RIGHT, BOTTOM, LEFT, TOP_RIGHT, TOP_LEFT, BOTTOM_RIGHT, BOTTOM_LEFT}
 
 	/**
 	 * INInfoWindow constructor
@@ -48,16 +43,34 @@ public class INInfoWindow extends INObject {
 	 *
 	 * @param height info window height given in pixels, min available dimension is 50px.
 	 */
-	public void height(int height) {
+	public void setHeight(int height) {
 		if(height >= 50) {
-			String javaScriptString = String.format(Locale.US, "%s.height(%d);", objectInstance, height);
+			String javaScriptString = String.format(Locale.US, "%s.setHeight(%d);", objectInstance, height);
 			evaluate(javaScriptString, null);
 		}
 		else {
-			String javaScriptString = String.format(Locale.US, "%s.height(%d);", objectInstance, 50);
+			String javaScriptString = String.format(Locale.US, "%s.setHeight(%d);", objectInstance, 50);
 			evaluate(javaScriptString, null);
 			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Height must be greater then 50px");
 		}
+	}
+
+	/**
+	 * Receives height of the info window
+	 *
+	 * @param onReceiveValueCallback interface - invoked when info window height value is available. Return Integer value.
+	 */
+	public void getHeight(final OnReceiveValueCallback<Integer> onReceiveValueCallback) {
+		String javaScriptString = String.format("%s.getHeight();", objectInstance);
+		evaluate(javaScriptString, stringHeight -> {
+			if(!stringHeight.equals("null")) {
+				onReceiveValueCallback.onReceiveValue(Integer.parseInt(stringHeight));
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
+				onReceiveValueCallback.onReceiveValue(null);
+			}
+		});
 	}
 
 	/**
@@ -65,16 +78,34 @@ public class INInfoWindow extends INObject {
 	 *
 	 * @param width infoWindow width given in pixels, min available dimension is 50px.
 	 */
-	public void width(int width) {
+	public void setWidth(int width) {
 		if(width >= 50) {
-			String javaScriptString = String.format(Locale.US, "%s.width(%d);", objectInstance, width);
+			String javaScriptString = String.format(Locale.US, "%s.setWidth(%d);", objectInstance, width);
 			evaluate(javaScriptString, null);
 		}
 		else {
-			String javaScriptString = String.format(Locale.US, "%s.width(%d);", objectInstance, 50);
+			String javaScriptString = String.format(Locale.US, "%s.setWidth(%d);", objectInstance, 50);
 			evaluate(javaScriptString, null);
 			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Width must be greater then 50px");
 		}
+	}
+
+	/**
+	 * Receives width of the info window
+	 *
+	 * @param onReceiveValueCallback interface - invoked when info window width value is available. Return Integer value.
+	 */
+	public void getWidth( final OnReceiveValueCallback<Integer> onReceiveValueCallback) {
+		String javaScriptString = String.format("%s.getWidth();", objectInstance);
+		evaluate(javaScriptString, stringWidth -> {
+			if(!stringWidth.equals("null")) {
+				onReceiveValueCallback.onReceiveValue(Integer.parseInt(stringWidth));
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
+				onReceiveValueCallback.onReceiveValue(null);
+			}
+		});
 	}
 
 	/**
@@ -82,10 +113,29 @@ public class INInfoWindow extends INObject {
 	 *
 	 * @param html String contains text or html template. To reset info window content it is indispensable to call draw() method again.
 	 */
-	public void setInnerHTML(String html)
+	public void setContent(String html)
 	{
-		String javaScriptString = String.format("%s.setInnerHTML('%s');", objectInstance, html);
+		String javaScriptString = String.format("%s.setContent('%s');", objectInstance, html);
 		evaluate(javaScriptString, null);
+	}
+
+	/**
+	 * Receives info window content.
+	 *
+	 * @param onReceiveValueCallback interface - invoked when info window content value is available. Return String containing text or html template.
+	 */
+	public void getContent(final OnReceiveValueCallback<String> onReceiveValueCallback)
+	{
+		String javaScriptString = String.format("%s.getContent();", objectInstance);
+		evaluate(javaScriptString, stringContent -> {
+			if(!stringContent.equals("null")) {
+				onReceiveValueCallback.onReceiveValue(stringContent);
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): points not set yet! ");
+				onReceiveValueCallback.onReceiveValue(null);
+			}
+		});
 	}
 
 	/**
@@ -93,9 +143,27 @@ public class INInfoWindow extends INObject {
 	 *
 	 * @param position {@link Position}
 	 */
-	public void setPosition(@Position int position) {
-		String javaScriptString = String.format(Locale.US, "%s.setPosition(%d);", objectInstance, position);
+	public void setPositionAt(Position position) {
+		String javaScriptString = String.format(Locale.US, "%s.setPositionAt(%d);", objectInstance, position.ordinal());
 		evaluate(javaScriptString, null);
+	}
+
+	/**
+	 * Receives position of the info window
+	 *
+	 * @param onReceiveValueCallback interface - invoked when info window position value is available. Return {@link Position} enum value.
+	 */
+	public void getPositionAt( final OnReceiveValueCallback<Position> onReceiveValueCallback) {
+		String javaScriptString = String.format("%s.getPositionAt();", objectInstance);
+		evaluate(javaScriptString, stringPosition -> {
+			if(!stringPosition.equals("null")) {
+				onReceiveValueCallback.onReceiveValue(Position.values()[Integer.parseInt(stringPosition)]);
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
+				onReceiveValueCallback.onReceiveValue(null);
+			}
+		});
 	}
 
 	public static class INInfoWindowBuilder  {
@@ -103,31 +171,31 @@ public class INInfoWindow extends INObject {
 		private INMap inMap;
 		private String html = "";
 		private int height = 250, width = 250;
-		private @Position int position = TOP;
+		private Position position = TOP;
 
 		public INInfoWindowBuilder(INMap inMap){
 			this.inMap = inMap;
 		}
 
-		public INInfoWindowBuilder setPosition(@Position int position)
+		public INInfoWindowBuilder setPositionAt(Position position)
 		{
 			this.position = position;
 			return this;
 		}
 
-		public INInfoWindowBuilder setInnerHTML(String html)
+		public INInfoWindowBuilder setContent(String html)
 		{
 			this.html = html;
 			return this;
 		}
 
-		public INInfoWindowBuilder height(int height)
+		public INInfoWindowBuilder setHeight(int height)
 		{
 			this.height = height;
 			return this;
 		}
 
-		public INInfoWindowBuilder width(int width)
+		public INInfoWindowBuilder setWidth(int width)
 		{
 			this.width = width;
 			return this;
@@ -143,10 +211,10 @@ public class INInfoWindow extends INObject {
 				latch.await();
 
 				if(!inInfoWindow.isTimeout) {
-					inInfoWindow.setInnerHTML(html);
-					inInfoWindow.setPosition(position);
-					inInfoWindow.height(height);
-					inInfoWindow.width(width);
+					inInfoWindow.setContent(html);
+					inInfoWindow.setPositionAt(position);
+					inInfoWindow.setHeight(height);
+					inInfoWindow.setWidth(width);
 					return inInfoWindow;
 				}
 			}

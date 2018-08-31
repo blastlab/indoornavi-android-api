@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
+import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -47,12 +48,12 @@ public class INArea extends INObject {
 	 *
 	 * @param points List of {@link Point} To be able to draw area, at least 3 points must be provided.
 	 */
-	public void points(List<Point> points)
+	public void setPoints(List<Point> points)
 	{
 		if (points != null && points.size() > 2) {
 			String javaScriptPoints = String.format("var points = %s;", PointsUtil.pointsToString(points));
 			evaluate(javaScriptPoints, null);
-			String javaScriptString = String.format("%s.points(points);", objectInstance);
+			String javaScriptString = String.format("%s.setPoints(points);", objectInstance);
 			evaluate(javaScriptString, null);
 		} else {
 			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): At least 3 points must be provided!");
@@ -60,14 +61,52 @@ public class INArea extends INObject {
 	}
 
 	/**
+	 * Receives coordinates of the area.
+	 *
+	 * @param onReceiveValueCallback interface - invoked when list of points is available. Return {@link Point} object.
+	 */
+	public void getPoints(final OnReceiveValueCallback<List<Point>> onReceiveValueCallback)
+	{
+		String javaScriptString = String.format("%s.getPoints();", objectInstance);
+		evaluate(javaScriptString, stringPoints -> {
+			if(!stringPoints.equals("null")) {
+				onReceiveValueCallback.onReceiveValue(PointsUtil.stringToPoints(stringPoints));
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): points not set yet! ");
+				onReceiveValueCallback.onReceiveValue(null);
+			}
+		});
+	}
+
+	/**
 	 * Fills Area whit given color. To apply this method it's necessary to call draw() after.
 	 *
      * @param color that specifies the color.
      */
-	public void setFillColor(@ColorInt int color)
+	public void setColor(@ColorInt int color)
 	{
-		String javaScriptString = String.format("%s.setFillColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
+		String javaScriptString = String.format("%s.setColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
 		evaluate(javaScriptString, null);
+	}
+
+	/**
+	 * Receives color of the area.
+	 *
+	 * @param onReceiveValueCallback interface - invoked when area color is available. Return color value represent as an Integer.
+	 */
+	public void getColor(final OnReceiveValueCallback<Integer> onReceiveValueCallback)
+	{
+		String javaScriptString = String.format("%s.getColor();", objectInstance);
+		evaluate(javaScriptString, stringColor -> {
+			if(!stringColor.equals("null")) {
+				onReceiveValueCallback.onReceiveValue(Integer.parseInt(stringColor.replaceFirst("#", ""), 16));
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): points not set yet! ");
+				onReceiveValueCallback.onReceiveValue(null);
+			}
+		});
 	}
 
 	/**
@@ -81,6 +120,25 @@ public class INArea extends INObject {
 		evaluate(javaScriptString, null);
 	}
 
+	/**
+	 * Receives opacity of the area
+	 *
+	 * @param onReceiveValueCallback interface - invoked when area opacity is available.  Return  Float value.
+	 */
+	public void getOpacity(final OnReceiveValueCallback<Float> onReceiveValueCallback)
+	{
+		String javaScriptString = String.format("%s.getOpacity();", objectInstance);
+		evaluate(javaScriptString, stringOpacity -> {
+			if(!stringOpacity.equals("null")) {
+				onReceiveValueCallback.onReceiveValue(Float.parseFloat(stringOpacity));
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): points not set yet! ");
+				onReceiveValueCallback.onReceiveValue(null);
+			}
+		});
+	}
+
 	public static class INAreaBuilder  {
 
 		private List<Point> points;
@@ -92,13 +150,13 @@ public class INArea extends INObject {
 			this.inMap = inMap;
 		}
 
-		public INAreaBuilder points(List<Point> points)
+		public INAreaBuilder setPoints(List<Point> points)
 		{
 			this.points = points;
 			return this;
 		}
 
-		public INAreaBuilder setFillColor(@ColorInt int color)
+		public INAreaBuilder setColor(@ColorInt int color)
 		{
 			this.color = color;
 			return this;
@@ -120,8 +178,8 @@ public class INArea extends INObject {
 				latch.await();
 
 				if(!inArea.isTimeout) {
-					inArea.points(this.points);
-					inArea.setFillColor(this.color);
+					inArea.setPoints(this.points);
+					inArea.setColor(this.color);
 					inArea.setOpacity(this.opacity);
 					inArea.draw();
 					return inArea;

@@ -95,8 +95,8 @@ public class INMap extends WebView {
 	{
 		this.floorId = floorId;
 		this.ready(floorId, (object) -> {
-			getMapDimensions();
 			waitUntilMapReady(onObjectReadyCallback);
+			getMapDimensions();
 		});
 	}
 

@@ -74,7 +74,7 @@ public class INObject {
 	/**
 	 * Returns the id of the object.
 	 *
-	 * @param onReceiveValueCallback interface - invoked when object id is available.
+	 * @param onReceiveValueCallback interface - invoked when object id is available. Return Long value.
 	 */
 	public void getID( final OnReceiveValueCallback<Long> onReceiveValueCallback)
 	{
@@ -85,27 +85,6 @@ public class INObject {
 			}
 			else {
 				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
-				onReceiveValueCallback.onReceiveValue(null);
-			}
-		});
-	}
-
-	/**
-	 * Receives coordinates of the given object.
-	 *
-	 * @param onReceiveValueCallback interface - invoked when list of points is available.
-	 */
-	public void getPoints(final OnReceiveValueCallback<List<Point>> onReceiveValueCallback)
-	{
-		String javaScriptString = String.format("%s.getPoints();", objectInstance);
-		evaluate(javaScriptString, stringPoints -> {
-			if(!stringPoints.equals("null")) {
-				List<Point> points;
-				points = PointsUtil.stringToPoints(stringPoints);
-				onReceiveValueCallback.onReceiveValue(points);
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): points not set yet! ");
 				onReceiveValueCallback.onReceiveValue(null);
 			}
 		});

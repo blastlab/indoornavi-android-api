@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
+import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -49,12 +50,12 @@ public class INPolyline extends INObject {
 	 *
 	 * @param points List of points
 	 */
-	public void points(List<Point> points)
+	public void setPoints(List<Point> points)
 	{
 		if(points != null) {
 			String javaScriptPoints = String.format("var points = %s;", PointsUtil.pointsToString(points));
 			evaluate(javaScriptPoints, null);
-			String javaScriptString1 = String.format("%s.points(points);", objectInstance);
+			String javaScriptString1 = String.format("%s.setPoints(points);", objectInstance);
 			evaluate(javaScriptString1, null);
 		} else {
 			Log.e("NullPointerException ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Points must be provided!");
@@ -62,14 +63,51 @@ public class INPolyline extends INObject {
 	}
 
 	/**
+	 * Receives coordinates of the polyline.
+	 *
+	 * @param onReceiveValueCallback interface - invoked when list of points is available. Return list of {@link Point} object.
+	 */
+	public void getPoints(final OnReceiveValueCallback<List<Point>> onReceiveValueCallback)
+	{
+		String javaScriptString = String.format("%s.getPoints();", objectInstance);
+		evaluate(javaScriptString, stringPoints -> {
+			if(!stringPoints.equals("null")) {
+				onReceiveValueCallback.onReceiveValue(PointsUtil.stringToPoints(stringPoints));
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): points not set yet! ");
+				onReceiveValueCallback.onReceiveValue(null);
+			}
+		});
+	}
+
+	/**
 	 * Set color of points and lines in polyline object. To apply this method it's necessary to call draw() after.
 	 *
 	 * @param color String that specifies the color. Supports color in hex format #AABBCC and rgb format rgb(255,255,255).
 	 */
-	public void setLineColor(@ColorInt int color)
+	public void setColor(@ColorInt int color)
 	{
-		String javaScriptString = String.format("%s.setLineColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
+		String javaScriptString = String.format("%s.setColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
 		evaluate(javaScriptString, null);
+	}
+
+	/**
+	 * Gets color of the polyline. Return color value represent as an Integer.
+	 *
+	 * @param onReceiveValueCallback interface - invoked when polyline color is available. Return Integer value.
+	 */
+	public void getColor(final OnReceiveValueCallback<Integer> onReceiveValueCallback) {
+		String javaScriptString = String.format("%s.getColor();", objectInstance);
+		evaluate(javaScriptString, stringColor-> {
+			if(!stringColor.equals("null")) {
+				onReceiveValueCallback.onReceiveValue(Integer.parseInt(stringColor.replaceFirst("#", "").replaceAll("\"", ""), 16));
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
+				onReceiveValueCallback.onReceiveValue(null);
+			}
+		});
 	}
 
 	public static class INPolylineBuilder  {
@@ -82,13 +120,13 @@ public class INPolyline extends INObject {
 			this.inMap = inMap;
 		}
 
-		public INPolylineBuilder points(List<Point> points)
+		public INPolylineBuilder setPoints(List<Point> points)
 		{
 			this.points = points;
 			return this;
 		}
 
-		public INPolylineBuilder setLineColor(@ColorInt int color)
+		public INPolylineBuilder setColor(@ColorInt int color)
 		{
 			this.color = color;
 			return this;
@@ -104,8 +142,8 @@ public class INPolyline extends INObject {
 				latch.await();
 
 				if(!inPolyline.isTimeout) {
-					inPolyline.points(this.points);
-					inPolyline.setLineColor(this.color);
+					inPolyline.setPoints(this.points);
+					inPolyline.setColor(this.color);
 					inPolyline.draw();
 					return inPolyline;
 				}

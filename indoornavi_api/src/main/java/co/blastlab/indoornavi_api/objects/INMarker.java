@@ -9,6 +9,7 @@ import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
+import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -73,14 +74,32 @@ public class INMarker extends INObject {
 	 *
 	 * @param point {@link Point} Position will be clipped to the point in the bottom center of marker icon.
 	 */
-	public void point(Point point)
+	public void setPosition(Point point)
 	{
 		if(point != null) {
-			String javaScriptString = String.format("%s.point(%s);", objectInstance, PointsUtil.pointToString(point));
+			String javaScriptString = String.format("%s.setPosition(%s);", objectInstance, PointsUtil.pointToString(point));
 			evaluate(javaScriptString, null);
 		} else {
 			Log.e("NullPointerException ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Point must be provided!");
 		}
+	}
+
+	/**
+	 * Receives position of the marker.
+	 *
+	 * @param onReceiveValueCallback interface - invoked when marker position is available. Return {@link Point} object.
+	 */
+	public void getPosition( final OnReceiveValueCallback<Point> onReceiveValueCallback) {
+		String javaScriptString = String.format("%s.getPosition();", objectInstance);
+		evaluate(javaScriptString, stringPosition -> {
+			if(!stringPosition.equals("null")) {
+				onReceiveValueCallback.onReceiveValue(PointsUtil.stringToPoint(stringPosition));
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
+				onReceiveValueCallback.onReceiveValue(null);
+			}
+		});
 	}
 
 	/**
@@ -93,6 +112,25 @@ public class INMarker extends INObject {
 	{
 		String javaScriptString = String.format("%s.setLabel('%s');", objectInstance, label);
 		evaluate(javaScriptString, null);
+	}
+
+	/**
+	 * Receives label placed on the marker
+	 *
+	 * @param onReceiveValueCallback interface - invoked when marker label is available. Return String value.
+	 */
+	public void getLabel(final OnReceiveValueCallback<String> onReceiveValueCallback)
+	{
+		String javaScriptString = String.format("%s.getLabel();", objectInstance);
+		evaluate(javaScriptString, stringContent -> {
+			if(!stringContent.equals("null")) {
+				onReceiveValueCallback.onReceiveValue(stringContent);
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): points not set yet! ");
+				onReceiveValueCallback.onReceiveValue(null);
+			}
+		});
 	}
 
 	/**
@@ -140,7 +178,7 @@ public class INMarker extends INObject {
 			this.inMap = inMap;
 		}
 
-		public INMarkerBuilder point(Point point)
+		public INMarkerBuilder setPosition(Point point)
 		{
 			this.point = point;
 			return this;
@@ -168,7 +206,7 @@ public class INMarker extends INObject {
 				latch.await();
 
 				if(!inMarker.isTimeout) {
-					inMarker.point(this.point);
+					inMarker.setPosition(this.point);
 					inMarker.setLabel(this.label);
 					inMarker.setIcon(this.icon);
 					inMarker.draw();
