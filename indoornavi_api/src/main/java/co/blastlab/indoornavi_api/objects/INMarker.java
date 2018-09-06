@@ -19,6 +19,9 @@ public class INMarker extends INObject {
 
 	private INMap inMap;
 	private int callbackId;
+	private Point point;
+	private String label = "";
+	private String icon = "";
 
 	/**
 	 * INMArker constructor.
@@ -77,6 +80,7 @@ public class INMarker extends INObject {
 	public void setPosition(Point point)
 	{
 		if(point != null) {
+			this.point = point;
 			String javaScriptString = String.format("%s.setPosition(%s);", objectInstance, PointsUtil.pointToString(point));
 			evaluate(javaScriptString, null);
 		} else {
@@ -85,21 +89,10 @@ public class INMarker extends INObject {
 	}
 
 	/**
-	 * Receives position of the marker.
-	 *
-	 * @param onReceiveValueCallback interface - invoked when marker position is available. Return {@link Point} object.
+	 * @return position of the marker as a {@link Point} object.
 	 */
-	public void getPosition( final OnReceiveValueCallback<Point> onReceiveValueCallback) {
-		String javaScriptString = String.format("%s.getPosition();", objectInstance);
-		evaluate(javaScriptString, stringPosition -> {
-			if(!stringPosition.equals("null")) {
-				onReceiveValueCallback.onReceiveValue(PointsUtil.stringToPoint(stringPosition));
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
-				onReceiveValueCallback.onReceiveValue(null);
-			}
-		});
+	public Point getPosition() {
+		return this.point;
 	}
 
 	/**
@@ -110,27 +103,17 @@ public class INMarker extends INObject {
 	 */
 	public void setLabel(String label)
 	{
+		this.label = label;
 		String javaScriptString = String.format("%s.setLabel('%s');", objectInstance, label);
 		evaluate(javaScriptString, null);
 	}
 
 	/**
-	 * Receives label placed on the marker
-	 *
-	 * @param onReceiveValueCallback interface - invoked when marker label is available. Return String value.
+	 * @return label placed on the marker.
 	 */
-	public void getLabel(final OnReceiveValueCallback<String> onReceiveValueCallback)
+	public String getLabel()
 	{
-		String javaScriptString = String.format("%s.getLabel();", objectInstance);
-		evaluate(javaScriptString, stringContent -> {
-			if(!stringContent.equals("null")) {
-				onReceiveValueCallback.onReceiveValue(stringContent);
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): points not set yet! ");
-				onReceiveValueCallback.onReceiveValue(null);
-			}
-		});
+		return this.label;
 	}
 
 	/**
@@ -164,51 +147,52 @@ public class INMarker extends INObject {
 	 */
 	public void setIcon(String path)
 	{
+		this.icon = icon;
 		String javaScriptString = String.format("%s.setIcon('%s');", objectInstance, path);
 		evaluate(javaScriptString, null);
 	}
 
+	/**
+	 * @return icon set as a marker.
+	 */
+	public String getIcon() {
+		return this.icon;
+	}
+
 	public static class INMarkerBuilder  {
 
-		private Point point;
-		private INMap inMap;
-		private String label = "",  icon = "";
+		private INMarker inMarker;
 
 		public INMarkerBuilder(INMap inMap){
-			this.inMap = inMap;
+			inMarker = new INMarker(inMap);
 		}
 
 		public INMarkerBuilder setPosition(Point point)
 		{
-			this.point = point;
+			inMarker.setPosition(point);
 			return this;
 		}
 
 		public INMarkerBuilder setLabel(String label)
 		{
-			this.label = label;
+			inMarker.setLabel(label);
 			return this;
 		}
 
 		public INMarkerBuilder setIcon(String icon)
 		{
-			this.icon = icon;
+			inMarker.setIcon(icon);
 			return this;
 		}
 
 		public INMarker build() {
 			try{
 				CountDownLatch latch = new CountDownLatch(1);
-
-				INMarker inMarker = new INMarker(inMap);
 				inMarker.ready(data -> latch.countDown());
 
 				latch.await();
 
 				if(!inMarker.isTimeout) {
-					inMarker.setPosition(this.point);
-					inMarker.setLabel(this.label);
-					inMarker.setIcon(this.icon);
 					inMarker.draw();
 					return inMarker;
 				}

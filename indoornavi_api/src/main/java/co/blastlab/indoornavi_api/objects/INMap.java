@@ -41,12 +41,11 @@ public class INMap extends WebView {
 
 	private Context context;
 
-	public String targetHost;
+	private  String targetHost;
 	private String apiKey;
-
 	private int height, weight;
 	private int floorId;
-	public Scale scale;
+	private Scale scale;
 
 	public static final String AREA = "AREA";
 	public static final String COORDINATES  = "COORDINATES";
@@ -130,6 +129,25 @@ public class INMap extends WebView {
 				Controller.promiseMapReady.clear();
 			});
 		});
+	}
+
+	/**
+	 * @return Scale set to map object.
+	 */
+	public Scale getMapScale() {
+		return this.scale;
+	}
+
+	public String getTargetHost() {
+		return this.targetHost;
+	}
+
+	public String getApiKey() {
+		return apiKey;
+	}
+
+	public int getFloorId() {
+		return this.floorId;
 	}
 
 	public void waitUntilMapReady(OnObjectReadyCallback onObjectReadyCallback) {

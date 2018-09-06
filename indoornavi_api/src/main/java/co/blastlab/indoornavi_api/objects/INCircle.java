@@ -15,6 +15,11 @@ import co.blastlab.indoornavi_api.utils.PointsUtil;
 public class INCircle extends INObject {
 
 	private INMap inMap;
+	private Point position;
+	private int radius;
+	private @ColorInt int color;
+	private @FloatRange(from=0.0, to=1.0)double opacity;
+	private Border border;
 
 	/**
 	 * INCircle constructor
@@ -47,6 +52,7 @@ public class INCircle extends INObject {
 	public void setPosition(Point position)
 	{
 		if (position != null) {
+			this.position = position;
 			String javaScriptString = String.format(Locale.ENGLISH, "%s.setPosition(new Point(%d, %d));", objectInstance, position.x, position.y);
 			evaluate(javaScriptString, null);
 		} else {
@@ -55,21 +61,10 @@ public class INCircle extends INObject {
 	}
 
 	/**
-	 * Gets position of the circle
-	 *
-	 * @param onReceiveValueCallback interface - invoked when circle position is available. Return {@link Point} object.
+	 * @return position of the circle. Return {@link Point} object.
 	 */
-	public void getPosition( final OnReceiveValueCallback<Point> onReceiveValueCallback) {
-		String javaScriptString = String.format("%s.getPosition();", objectInstance);
-		evaluate(javaScriptString, stringPosition -> {
-			if(!stringPosition.equals("null")) {
-				onReceiveValueCallback.onReceiveValue(PointsUtil.stringToPoint(stringPosition));
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
-				onReceiveValueCallback.onReceiveValue(null);
-			}
-		});
+	public Point getPosition() {
+		return this.position;
 	}
 
 	/**
@@ -79,26 +74,16 @@ public class INCircle extends INObject {
 	 */
 	public void setRadius(int radius)
 	{
+		this.radius = radius;
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.setRadius(%d);", objectInstance, radius);
 		evaluate(javaScriptString, null);
 	}
 
 	/**
-	 * Gets radius of the circle
-	 *
-	 * @param onReceiveValueCallback interface - invoked when circle radius is available. Return Integer value.
+	 * @return radius of the circle. Return Integer value.
 	 */
-	public void getRadius(final OnReceiveValueCallback<Integer> onReceiveValueCallback) {
-		String javaScriptString = String.format("%s.getRadius();", objectInstance);
-		evaluate(javaScriptString, stringRadius-> {
-			if(!stringRadius.equals("null")) {
-				onReceiveValueCallback.onReceiveValue(Integer.parseInt(stringRadius));
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
-				onReceiveValueCallback.onReceiveValue(null);
-			}
-		});
+	public int getRadius() {
+		return this.radius;
 	}
 
 	/**
@@ -108,26 +93,16 @@ public class INCircle extends INObject {
 	 */
 	public void setColor(@ColorInt int color)
 	{
+		this.color = color;
 		String javaScriptString = String.format("%s.setColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
 		evaluate(javaScriptString, null);
 	}
 
 	/**
-	 * Gets color of the circle
-	 *
-	 * @param onReceiveValueCallback interface - invoked when circle color is available. Return color value represent as an Integer..
+	 * @return color of the circle represent as an Integer.
 	 */
-	public void getColor(final OnReceiveValueCallback<Integer> onReceiveValueCallback) {
-		String javaScriptString = String.format("%s.getColor();", objectInstance);
-		evaluate(javaScriptString, stringColor-> {
-			if(!stringColor.equals("null")) {
-				onReceiveValueCallback.onReceiveValue(Integer.parseInt(stringColor.replaceFirst("#", "").replaceAll("\"", ""), 16));
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
-				onReceiveValueCallback.onReceiveValue(null);
-			}
-		});
+	public @ColorInt int getColor() {
+		return this.color;
 	}
 
 	/**
@@ -137,26 +112,16 @@ public class INCircle extends INObject {
 	 */
 	public void setOpacity(@FloatRange(from=0.0, to=1.0)double opacity)
 	{
+		this.opacity = opacity;
 		String javaScriptString = String.format("%s.setOpacity(%s);", objectInstance, String.format(Locale.US, "%f", opacity));
 		evaluate(javaScriptString, null);
 	}
 
 	/**
-	 * Gets opacity of the circle
-	 *
-	 * @param onReceiveValueCallback interface - invoked when circle opacity is available. Return Float value.
+	 * @return opacity of the circle. Return Float value.
 	 */
-	public void getOpacity(final OnReceiveValueCallback<Float> onReceiveValueCallback) {
-		String javaScriptString = String.format("%s.getOpacity();", objectInstance);
-		evaluate(javaScriptString, stringOpacity-> {
-			if(!stringOpacity.equals("null")) {
-				onReceiveValueCallback.onReceiveValue(Float.parseFloat(stringOpacity));
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
-				onReceiveValueCallback.onReceiveValue(null);
-			}
-		});
+	public @FloatRange(from=0.0, to=1.0)double getOpacity() {
+		return this.opacity;
 	}
 
 	/**
@@ -166,91 +131,64 @@ public class INCircle extends INObject {
 	 */
 	public void setBorder(Border border)
 	{
+		this.border = border;
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.setBorder(new Border(%d, '%s'));", objectInstance, border.width, String.format("#%06X", (0xFFFFFF & border.color)));
 		evaluate(javaScriptString, null);
 	}
 
 	/**
 	 * Gets border of the circle.
-	 *
-	 * @param onReceiveValueCallback interface - invoked when circle border is available. Return {@link Border} object.
 	 */
-	public void getBorder(final OnReceiveValueCallback<Border> onReceiveValueCallback) {
-		String javaScriptString = String.format("%s.getBorder();", objectInstance);
-		evaluate(javaScriptString, stringOpacity-> {
-			if(!stringOpacity.equals("null")) {
-				try {
-					JSONObject jsonObject = new JSONObject(stringOpacity);
-					onReceiveValueCallback.onReceiveValue(new Border(jsonObject.getInt("width"), Integer.parseInt(jsonObject.getString("color").replaceFirst("#", ""), 16)));
-				} catch (Exception e) {
-
-				}
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
-				onReceiveValueCallback.onReceiveValue(null);
-			}
-		});
+	public Border getBorder() {
+		return this.border;
 	}
 
 	public static class INCircleBuilder  {
 
-		private Point position;
-		private INMap inMap;
-		private int radius;
-		private @ColorInt int color;
-		private @FloatRange(from=0.0, to=1.0)double opacity;
-		private Border border;
+		private INCircle inCircle;
 
 		public INCircleBuilder(INMap inMap){
-			this.inMap = inMap;
+			inCircle = new INCircle(inMap);
 		}
 
 		public INCircle.INCircleBuilder setPosition(Point position)
 		{
-			this.position = position;
+			inCircle.setPosition(position);
 			return this;
 		}
 
 		public INCircle.INCircleBuilder setRadius(int radius)
 		{
-			this.radius = radius;
+			inCircle.setRadius(radius);
 			return this;
 		}
 
 		public INCircle.INCircleBuilder setColor(@ColorInt int color)
 		{
-			this.color = color;
+			inCircle.setColor(color);
 			return this;
 		}
 
 		public INCircle.INCircleBuilder setOpacity(@FloatRange(from=0.0, to=1.0)double opacity)
 		{
-			this.opacity = opacity;
+			inCircle.setOpacity(opacity);
 			return this;
 		}
 
 		public INCircle.INCircleBuilder setBorder(Border border)
 		{
-			this.border = border;
+			inCircle.setBorder(border);
 			return this;
 		}
 
 		public INCircle build() {
 			try{
 				CountDownLatch latch = new CountDownLatch(1);
-
-				INCircle inCircle = new INCircle(inMap);
 				inCircle.ready(data -> latch.countDown());
 
 				latch.await();
 
 				if(!inCircle.isTimeout) {
-					inCircle.setPosition(this.position);
-					inCircle.setRadius(this.radius);
-					inCircle.setColor(this.color);
-					inCircle.setOpacity(this.opacity);
-					inCircle.setBorder(this.border);
 					inCircle.draw();
 					return inCircle;
 				}

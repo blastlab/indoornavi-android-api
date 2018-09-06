@@ -21,6 +21,9 @@ import static co.blastlab.indoornavi_api.objects.INInfoWindow.Position.TOP;
 public class INInfoWindow extends INObject {
 
 	private INMap inMap;
+	private String html = "";
+	private int height = 250, width = 250;
+	private Position position = TOP;
 
 	public enum Position {TOP, RIGHT, BOTTOM, LEFT, TOP_RIGHT, TOP_LEFT, BOTTOM_RIGHT, BOTTOM_LEFT}
 
@@ -45,6 +48,7 @@ public class INInfoWindow extends INObject {
 	 */
 	public void setHeight(int height) {
 		if(height >= 50) {
+			this.height = height;
 			String javaScriptString = String.format(Locale.US, "%s.setHeight(%d);", objectInstance, height);
 			evaluate(javaScriptString, null);
 		}
@@ -80,6 +84,7 @@ public class INInfoWindow extends INObject {
 	 */
 	public void setWidth(int width) {
 		if(width >= 50) {
+			this.width = width;
 			String javaScriptString = String.format(Locale.US, "%s.setWidth(%d);", objectInstance, width);
 			evaluate(javaScriptString, null);
 		}
@@ -115,6 +120,7 @@ public class INInfoWindow extends INObject {
 	 */
 	public void setContent(String html)
 	{
+		this.html = html;
 		String javaScriptString = String.format("%s.setContent('%s');", objectInstance, html);
 		evaluate(javaScriptString, null);
 	}
@@ -144,6 +150,7 @@ public class INInfoWindow extends INObject {
 	 * @param position {@link Position}
 	 */
 	public void setPositionAt(Position position) {
+		this.position = position;
 		String javaScriptString = String.format(Locale.US, "%s.setPositionAt(%d);", objectInstance, position.ordinal());
 		evaluate(javaScriptString, null);
 	}
@@ -169,52 +176,44 @@ public class INInfoWindow extends INObject {
 	public static class INInfoWindowBuilder  {
 
 		private INMap inMap;
-		private String html = "";
-		private int height = 250, width = 250;
-		private Position position = TOP;
+		private INInfoWindow inInfoWindow;
 
 		public INInfoWindowBuilder(INMap inMap){
-			this.inMap = inMap;
+			inInfoWindow = new INInfoWindow(inMap);
 		}
 
 		public INInfoWindowBuilder setPositionAt(Position position)
 		{
-			this.position = position;
+			inInfoWindow.setPositionAt(position);
 			return this;
 		}
 
 		public INInfoWindowBuilder setContent(String html)
 		{
-			this.html = html;
+			inInfoWindow.setContent(html);
 			return this;
 		}
 
 		public INInfoWindowBuilder setHeight(int height)
 		{
-			this.height = height;
+			inInfoWindow.setHeight(height);
 			return this;
 		}
 
 		public INInfoWindowBuilder setWidth(int width)
 		{
-			this.width = width;
+			inInfoWindow.setWidth(width);
 			return this;
 		}
 
 		public INInfoWindow build() {
 			try{
 				CountDownLatch latch = new CountDownLatch(1);
-
-				INInfoWindow inInfoWindow = new INInfoWindow(inMap);
 				inInfoWindow.ready(data -> latch.countDown());
 
 				latch.await();
 
 				if(!inInfoWindow.isTimeout) {
-					inInfoWindow.setContent(html);
-					inInfoWindow.setPositionAt(position);
-					inInfoWindow.setHeight(height);
-					inInfoWindow.setWidth(width);
 					return inInfoWindow;
 				}
 			}

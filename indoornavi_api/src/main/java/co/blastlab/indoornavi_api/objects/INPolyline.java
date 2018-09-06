@@ -18,6 +18,8 @@ import co.blastlab.indoornavi_api.utils.PointsUtil;
 public class INPolyline extends INObject {
 
 	private INMap inMap;
+	private List<Point> points;
+	private @ColorInt int color;
 
 	/**
 	 * INPolyline constructor.
@@ -53,6 +55,7 @@ public class INPolyline extends INObject {
 	public void setPoints(List<Point> points)
 	{
 		if(points != null) {
+			this.points = points;
 			String javaScriptPoints = String.format("var points = %s;", PointsUtil.pointsToString(points));
 			evaluate(javaScriptPoints, null);
 			String javaScriptString1 = String.format("%s.setPoints(points);", objectInstance);
@@ -63,22 +66,11 @@ public class INPolyline extends INObject {
 	}
 
 	/**
-	 * Receives coordinates of the polyline.
-	 *
-	 * @param onReceiveValueCallback interface - invoked when list of points is available. Return list of {@link Point} object.
+	 * @return coordinates of the polyline as a list of {@link Point} object.
 	 */
-	public void getPoints(final OnReceiveValueCallback<List<Point>> onReceiveValueCallback)
+	public List<Point> getPoints()
 	{
-		String javaScriptString = String.format("%s.getPoints();", objectInstance);
-		evaluate(javaScriptString, stringPoints -> {
-			if(!stringPoints.equals("null")) {
-				onReceiveValueCallback.onReceiveValue(PointsUtil.stringToPoints(stringPoints));
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): points not set yet! ");
-				onReceiveValueCallback.onReceiveValue(null);
-			}
-		});
+		return this.points;
 	}
 
 	/**
@@ -88,62 +80,47 @@ public class INPolyline extends INObject {
 	 */
 	public void setColor(@ColorInt int color)
 	{
+		this.color = color;
 		String javaScriptString = String.format("%s.setColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
 		evaluate(javaScriptString, null);
 	}
 
 	/**
-	 * Gets color of the polyline. Return color value represent as an Integer.
-	 *
-	 * @param onReceiveValueCallback interface - invoked when polyline color is available. Return Integer value.
+	 * @return color of the polyline. Return color value represent as an Integer.
 	 */
-	public void getColor(final OnReceiveValueCallback<Integer> onReceiveValueCallback) {
-		String javaScriptString = String.format("%s.getColor();", objectInstance);
-		evaluate(javaScriptString, stringColor-> {
-			if(!stringColor.equals("null")) {
-				onReceiveValueCallback.onReceiveValue(Integer.parseInt(stringColor.replaceFirst("#", "").replaceAll("\"", ""), 16));
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
-				onReceiveValueCallback.onReceiveValue(null);
-			}
-		});
+	public @ColorInt int getColor() {
+		return this.color;
 	}
 
 	public static class INPolylineBuilder  {
 
-		private List<Point> points;
-		private INMap inMap;
-		private @ColorInt int color;
+		private INPolyline inPolyline;
 
 		public INPolylineBuilder(INMap inMap){
-			this.inMap = inMap;
+			inPolyline = new INPolyline(inMap);
 		}
 
 		public INPolylineBuilder setPoints(List<Point> points)
 		{
-			this.points = points;
+			inPolyline.setPoints(points);
 			return this;
 		}
 
 		public INPolylineBuilder setColor(@ColorInt int color)
 		{
-			this.color = color;
+			inPolyline.setColor(color);
 			return this;
 		}
 
 		public INPolyline build() {
 			try {
 				CountDownLatch latch = new CountDownLatch(1);
-
-				INPolyline inPolyline = new INPolyline(inMap);
 				inPolyline.ready(data -> latch.countDown());
 
 				latch.await();
 
 				if(!inPolyline.isTimeout) {
-					inPolyline.setPoints(this.points);
-					inPolyline.setColor(this.color);
+
 					inPolyline.draw();
 					return inPolyline;
 				}

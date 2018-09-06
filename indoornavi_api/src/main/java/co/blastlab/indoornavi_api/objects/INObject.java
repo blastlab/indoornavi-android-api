@@ -57,7 +57,7 @@ public class INObject {
 				try {
 					Thread.sleep(3000);
 					if(Controller.promiseCallbackMap.indexOfKey(promiseId) > -1) {
-						Log.e("Timeout "," server "+  inMap.targetHost + " not responding");
+						Log.e("Timeout "," server "+  inMap.getTargetHost() + " not responding");
 						isTimeout = true;
 						Controller.promiseCallbackMap.get(promiseId).onReady(null);
 						Controller.promiseCallbackMap.remove(promiseId);
