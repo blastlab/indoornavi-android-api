@@ -13,7 +13,7 @@ public class PhoneConnection extends Connection {
 	@Override
 	protected String doInBackground(String... params) {
 
-		String userData = "{ \"userData\": \"" + params[0] + "\"}";
+		String userData = String.format("{ \"userData\": \"%s\"}", params[0]);
 
 		try {
 			HttpURLConnection httpConnection = openConnection(Connection.AUTH);
