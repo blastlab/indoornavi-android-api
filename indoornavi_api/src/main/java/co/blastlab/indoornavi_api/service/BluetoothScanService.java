@@ -36,7 +36,6 @@ import java.util.UUID;
 
 import co.blastlab.indoornavi_api.algorithm.Algorithm;
 import co.blastlab.indoornavi_api.algorithm.model.Anchor;
-import co.blastlab.indoornavi_api.algorithm.model.Point;
 import co.blastlab.indoornavi_api.algorithm.model.Position;
 
 public class BluetoothScanService extends Service {
@@ -47,6 +46,7 @@ public class BluetoothScanService extends Service {
 	public static final int ACTION_BLUETOOTH_NOT_ENABLED = 2;
 	public static final int ACTION_BLUETOOTH_PERMISSION_NOT_GRANTED = 3;
 	public static final int ACTION_LOCATION_PERMISSION_NOT_GRANTED = 4;
+	public static final int ACTION_POSITION= 5;
 	public static boolean SERVICE_CONNECTED = false;
 
 	private BluetoothManager mBluetoothManager;
@@ -122,6 +122,7 @@ public class BluetoothScanService extends Service {
 		checkSupport();
 		checkBluetoothPermission();
 		checkBluetoothEnable();
+		addDefaultConf();
 	}
 
 	public class BluetoothBinder extends Binder {
@@ -195,6 +196,7 @@ public class BluetoothScanService extends Service {
 			mBluetoothAdapter = mBluetoothManager.getAdapter();
 
 			btScanner = mBluetoothAdapter.getBluetoothLeScanner();
+			algorithm = new Algorithm();
 		}
 
 		uuid = new ParcelUuid(UUID.fromString("2a49e0a7-8ad8-479d-834d-dc2e407dfd30"));
@@ -260,14 +262,22 @@ public class BluetoothScanService extends Service {
 		isFistPosition = false;
 		final Handler handler = new Handler();
 		handler.postDelayed(() -> {
-			Point position = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
+			Position position = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
 				if(position != null) {
-					positionsArray.add(new Position(position, new Date().getTime()));
+					position.timestamp = new Date().getTime();
+					positionsArray.add(position);
+					sendPositionToactivity(position);
 					executePeriodicTask();
 				} else {
 					isFistPosition = true;
 				}
 		}, 3000);
+	}
+
+	private void sendPositionToactivity(Position position) {
+		if(mHandler != null) {
+			mHandler.obtainMessage(ACTION_POSITION, position).sendToTarget();
+		}
 	}
 
 	private void executePeriodicTask() {
@@ -289,9 +299,12 @@ public class BluetoothScanService extends Service {
 	}
 
 	private void getPosition() {
-		Point point = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
+		Position point = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
 		if(point != null) {
-			positionsArray.add(new Position(algorithm.getIntersectionCircleLine(getLastKnownPosition(), point), new Date().getTime()));
+			Position newPosition = algorithm.getIntersectionCircleLine(getLastKnownPosition(), point);
+			newPosition.timestamp = new Date().getTime();
+			positionsArray.add(newPosition);
+			sendPositionToactivity(newPosition);
 		}
 	}
 
@@ -305,8 +318,8 @@ public class BluetoothScanService extends Service {
 		return byteArray[29];
 	}
 
-	private Point getLastKnownPosition() {
-		return positionsArray.isEmpty() ? null : positionsArray.get(positionsArray.size()-1).position;
+	private Position getLastKnownPosition() {
+		return positionsArray.isEmpty() ? null : positionsArray.get(positionsArray.size()-1);
 	}
 
 	private Anchor getAnchor(int id) {
@@ -319,5 +332,13 @@ public class BluetoothScanService extends Service {
 
 		isFistPosition = true;
 		timer.cancel();
+	}
+
+
+	private void addDefaultConf() {
+		anchorConfiguration.append(52865, new Anchor(52865, new Position(7.49, 7.35, 1.80)));
+		anchorConfiguration.append(51855, new Anchor(51855, new Position(0.74, 0.30, 1.80)));
+		anchorConfiguration.append(33413, new Anchor(33413, new Position(12.60, 0.05, 1.80)));
+		anchorConfiguration.append(54694, new Anchor(54694, new Position(11.20, 7.45, 1.80)));
 	}
 }

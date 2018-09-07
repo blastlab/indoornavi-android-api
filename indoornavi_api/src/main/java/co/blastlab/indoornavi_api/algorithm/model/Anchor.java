@@ -6,7 +6,7 @@ import java.util.List;
 public class Anchor {
 
 	public int id;
-	public Point position;
+	public Position position;
 	public double distance = 100.0;
 	public double distanceXY = 100.0;
 	public List<Integer> rssi_array = new ArrayList<>();
@@ -14,10 +14,8 @@ public class Anchor {
 	public int configNumber;
 	public int rssiRef;
 
-	public Anchor(int id, Point position, int rssiRef, int configNumber) {
+	public Anchor(int id, Position position) {
 		this.id = id;
 		this.position = position;
-		this.configNumber = configNumber;
-		this.rssiRef = rssiRef;
 	}
 }

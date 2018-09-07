@@ -38,6 +38,7 @@ import java.util.List;
 
 import co.blastlab.indoornavi_api.INData;
 import co.blastlab.indoornavi_api.INReport;
+import co.blastlab.indoornavi_api.algorithm.model.Position;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
@@ -579,6 +580,10 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 					break;
 				case BluetoothScanService.ACTION_LOCATION_PERMISSION_NOT_GRANTED:
 					Log.d(BluetoothScanService.TAG,  "Location Permission not granted");
+					break;
+				case BluetoothScanService.ACTION_POSITION:
+					Position position = (Position) msg.obj;
+					Log.e(BluetoothScanService.TAG,  "Position: x:" + position.x + ", y: " + position.y);
 					break;
 			}
 		}

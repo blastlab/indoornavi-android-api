@@ -8,8 +8,8 @@ import java.util.Random;
 
 import co.blastlab.indoornavi_api.algorithm.model.Anchor;
 import co.blastlab.indoornavi_api.algorithm.model.PairOfPoints;
-import co.blastlab.indoornavi_api.algorithm.model.Point;
 import co.blastlab.ble_applications.utils.Matrix;
+import co.blastlab.indoornavi_api.algorithm.model.Position;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
@@ -35,7 +35,7 @@ public class Algorithm {
 
 	//public Localization() {}
 
-	public Point getPosition(LocalizationMethod localizationMethod, SparseArray<Anchor> anchorMatrix, double maxDistanceFromAnchor) {
+	public Position getPosition(LocalizationMethod localizationMethod, SparseArray<Anchor> anchorMatrix, double maxDistanceFromAnchor) {
 		if(anchorMatrix == null || anchorMatrix.size() == 0) return null;
 
 		this.anchorMatrix = anchorMatrix;
@@ -59,14 +59,14 @@ public class Algorithm {
 			double x = (anchor1.position.x + anchor2.position.x) / 2.0 + (anchor2.position.x - anchor1.position.x) * (pow(anchor1.distanceXY, 2) - pow(anchor2.distanceXY, 2)) / (2.0 * distance * distance);
 			double y = (anchor1.position.y + anchor2.position.y) / 2.0 + (anchor2.position.y - anchor1.position.y) * (pow(anchor1.distanceXY, 2) - pow(anchor2.distanceXY, 2)) / (2.0 * distance * distance);
 
-			Point pointA = new Point(x + 2.0 * (anchor1.position.y - anchor2.position.y) * delta / (distance * distance),
+			Position pointA = new Position(x + 2.0 * (anchor1.position.y - anchor2.position.y) * delta / (distance * distance),
 				y - 2.0 * (anchor1.position.x - anchor2.position.x) * delta / (distance * distance), 0);
-			Point pointB =new Point(x - 2.0 * (anchor1.position.y - anchor2.position.y) * delta / (distance * distance),
+			Position pointB =new Position(x - 2.0 * (anchor1.position.y - anchor2.position.y) * delta / (distance * distance),
 				y + 2.0 * (anchor1.position.x - anchor2.position.x) * delta / (distance * distance), 0);
 			return new PairOfPoints(pointA, pointB, 0);
 
 		} else {
-			Point point = getBestPointBetweenTwoNotCrossingAnchors(anchor1, anchor2);
+			Position point = getBestPointBetweenTwoNotCrossingAnchors(anchor1, anchor2);
 			return new PairOfPoints(point, null, 0);
 		}
 	}
@@ -79,7 +79,7 @@ public class Algorithm {
 		return sqrt(sqrtStatement) / 4.0;
 	}
 
-	private Point getBestPointBetweenTwoNotCrossingAnchors(Anchor anchor1, Anchor anchor2) {
+	private Position getBestPointBetweenTwoNotCrossingAnchors(Anchor anchor1, Anchor anchor2) {
 		double dx = abs(anchor1.position.x - anchor2.position.x);
 		double dy = abs(anchor1.position.y - anchor2.position.y);
 
@@ -97,7 +97,7 @@ public class Algorithm {
 		else {
 			y = anchor2.position.y + ((anchor2.distanceXY * dy) / (anchor1.distanceXY + anchor2.distanceXY));
 		}
-		return new Point(x, y, 0);
+		return new Position(x, y, 0);
 	}
 
 	private List<Anchor> getThreeNearestAnchors(SparseArray<Anchor> anchorMatrix) {
@@ -121,7 +121,7 @@ public class Algorithm {
 		return bestThreeAnchors;
 	}
 
-	private double getDistance(Point pointA, Point pointB) {
+	private double getDistance(Position pointA, Position pointB) {
 		return sqrt((pointA.x - pointB.x) * (pointA.x - pointB.x) + (pointA.y - pointB.y) * (pointA.y - pointB.y));
 	}
 
@@ -195,7 +195,7 @@ public class Algorithm {
 		}
 	}
 
-	private Point trilatationMethod(SparseArray<Anchor> anchorMatrix) {
+	private Position trilatationMethod(SparseArray<Anchor> anchorMatrix) {
 
 		int n = anchorMatrix.size();
 
@@ -219,16 +219,16 @@ public class Algorithm {
 		Matrix res = (matrixA.transpose().multiply(matrixA)).solve(matrixA.transpose().multiply(matrixb));
 
 
-		return new Point(res.data[0][0], res.data[1][0], 0.0);
+		return new Position(res.data[0][0], res.data[1][0], 0.0);
 	}
 
-	private Point crossingCirclesMethod(SparseArray<Anchor> anchorMatrix) {
+	private Position crossingCirclesMethod(SparseArray<Anchor> anchorMatrix) {
 
 		rssiFilter();
 		getDistanceFromNode();
 		List<Anchor> bestThreeAnchors = getThreeNearestAnchors(anchorMatrix);
 
-		List<Point> nearestPointArray = new ArrayList<>();
+		List<Position> nearestPointArray = new ArrayList<>();
 		List<Anchor> closeAnchors = new ArrayList<>();
 
 		for(Anchor anchor : bestThreeAnchors)
@@ -245,7 +245,7 @@ public class Algorithm {
 			}
 		}
 		else if(closeAnchors.size() == 1){
-			nearestPointArray.add(new Point(closeAnchors.get(0).position.x,closeAnchors.get(0).position.y, 0));
+			nearestPointArray.add(new Position(closeAnchors.get(0).position.x,closeAnchors.get(0).position.y, 0));
 		}
 		else {
 			return null;
@@ -253,10 +253,10 @@ public class Algorithm {
 		return getMeanPointFromPointsList(getThreeClosesPoints(nearestPointArray));
 	}
 
-	private List<Point> getThreeClosesPoints(List<Point> points) {
-		List<Point> bestThreePoints = new ArrayList<>();
+	private List<Position> getThreeClosesPoints(List<Position> points) {
+		List<Position> bestThreePoints = new ArrayList<>();
 
-		for(Point point : points) {
+		for(Position point : points) {
 			for(int i = 0; i < points.size(); i++) {
 				point.z += getDistance(point, points.get(i));
 			}
@@ -284,17 +284,17 @@ public class Algorithm {
 		return bestThreePoints;
 	}
 
-	private Point getMeanPointFromPointsList(List<Point> nearestPointArray) {
+	private Position getMeanPointFromPointsList(List<Position> nearestPointArray) {
 		double x = 0, y = 0;
 		for (int i = 0; i < nearestPointArray.size(); ++i) {
 			x += nearestPointArray.get(i).x;
 			y += nearestPointArray.get(i).y;
 		}
 
-		return new Point( x > 0 ? x / nearestPointArray.size() : 0, y > 0 ? y / nearestPointArray.size() : 0, 0);
+		return new Position( x > 0 ? x / nearestPointArray.size() : 0, y > 0 ? y / nearestPointArray.size() : 0, 0);
 	}
 
-	public Point getIntersectionCircleLine(Point circlePosition, Point nextPosition) {
+	public Position getIntersectionCircleLine(Position circlePosition, Position nextPosition) {
 		double distance = getDistance(circlePosition, nextPosition);
 
 		if(distance < circleRange) {
@@ -303,12 +303,12 @@ public class Algorithm {
 
 		if((circlePosition.x - nextPosition.x) == 0) {
 			double x_correction = circlePosition.y > nextPosition.y ? (-circleRange) : circleRange;
-			return new Point(circlePosition.x, circlePosition.y +  x_correction, 0);
+			return new Position(circlePosition.x, circlePosition.y +  x_correction, 0);
 		}
 
 		if((circlePosition.y - nextPosition.y) == 0) {
 			double y_correction = circlePosition.x > nextPosition.x ? (-circleRange) : circleRange;
-			return new Point(circlePosition.x + y_correction, circlePosition.y, 0);
+			return new Position(circlePosition.x + y_correction, circlePosition.y, 0);
 		}
 
 		double a = (circlePosition.y - nextPosition.y) / (circlePosition.x - nextPosition.x);
@@ -320,11 +320,11 @@ public class Algorithm {
 
 		double x_1 = (- B - sqrt(pow(B,2) - 4*A*C)) / (2*A);
 		double y_1 = a*x_1 + b;
-		Point pointA = new Point(x_1, y_1, 0);
+		Position pointA = new Position(x_1, y_1, 0);
 
 		double x_2 = (- B + sqrt(pow(B,2) - 4*A*C)) / (2*A);
 		double y_2 = a*x_2 + b;
-		Point pointB = new Point(x_2, y_2, 0);
+		Position pointB = new Position(x_2, y_2, 0);
 
 		if(getDistance(pointA, nextPosition) < getDistance(pointB, nextPosition)) {
 			return pointA;
