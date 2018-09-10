@@ -99,26 +99,6 @@ public class INObject {
 		evaluate(javaScriptString, null);
 	}
 
-	/**
-	 * Checks if point of given coordinates is inside of the object.
-	 *
-	 * @param coordinates checking coordinates
-	 * @param valueCallback interface - invoked when boolean value is available.
-	 */
-	public void isWithin(Coordinates coordinates, final ValueCallback<Boolean> valueCallback)
-	{
-		String javaScriptString = String.format("%s.isWithin(%s);", objectInstance, CoordinatesUtil.coordsToString(coordinates));
-		evaluate(javaScriptString, stringIsWithin -> {
-			if(!stringIsWithin.equals("null")) {
-				valueCallback.onReceiveValue(Boolean.valueOf(stringIsWithin));
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): The value can't be determined! ");
-				valueCallback.onReceiveValue(null);
-			}
-		});
-	}
-
 	protected void evaluate(String javaScriptString, ValueCallback<String> valueCallback)
 	{
 		if(Looper.myLooper() == Looper.getMainLooper()) {

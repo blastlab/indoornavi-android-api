@@ -5,12 +5,15 @@ import android.os.AsyncTask;
 import android.support.annotation.ColorInt;
 import android.support.annotation.FloatRange;
 import android.util.Log;
+import android.webkit.ValueCallback;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
+import co.blastlab.indoornavi_api.model.Coordinates;
+import co.blastlab.indoornavi_api.utils.CoordinatesUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -110,6 +113,26 @@ public class INArea extends INObject {
 	public @FloatRange(from=0.0, to=1.0)double getOpacity()
 	{
 		return this.opacity;
+	}
+
+	/**
+	 * Checks if point of given coordinates is inside of the area.
+	 *
+	 * @param coordinates checking coordinates
+	 * @param valueCallback interface - invoked when boolean value is available.
+	 */
+	public void isWithin(Coordinates coordinates, final ValueCallback<Boolean> valueCallback)
+	{
+		String javaScriptString = String.format("%s.isWithin(%s);", objectInstance, CoordinatesUtil.coordsToString(coordinates));
+		evaluate(javaScriptString, stringIsWithin -> {
+			if(!stringIsWithin.equals("null")) {
+				valueCallback.onReceiveValue(Boolean.valueOf(stringIsWithin));
+			}
+			else {
+				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): The value can't be determined! ");
+				valueCallback.onReceiveValue(null);
+			}
+		});
 	}
 
 	public static class INAreaBuilder  {
