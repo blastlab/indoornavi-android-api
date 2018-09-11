@@ -26,7 +26,7 @@ public class Connection extends AsyncTask<String, String, String> {
 	}
 
 	@Override
-	protected String doInBackground(String... params){
+	protected String doInBackground(String... params) {
 		return null;
 	}
 
@@ -36,7 +36,7 @@ public class Connection extends AsyncTask<String, String, String> {
 			httpConnection = (HttpURLConnection) mUrl.openConnection();
 			return httpConnection;
 		} catch (Exception e) {
-			Log.e("Exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 		}
 		return null;
 	}
@@ -55,7 +55,7 @@ public class Connection extends AsyncTask<String, String, String> {
 			httpConnection.setDoInput(true);
 			httpConnection.setDoOutput(true);
 		} catch (Exception e) {
-			Log.e("Exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Http Connection error.");
+			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Http Connection error.");
 
 		}
 	}
@@ -72,7 +72,7 @@ public class Connection extends AsyncTask<String, String, String> {
 			return stringBuilder.toString();
 
 		} catch (Exception e) {
-			Log.e("Exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 
 		}
 		return null;
@@ -89,7 +89,7 @@ public class Connection extends AsyncTask<String, String, String> {
 			os.close();
 
 		} catch (Exception e) {
-			Log.e("Exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 
 		}
 	}

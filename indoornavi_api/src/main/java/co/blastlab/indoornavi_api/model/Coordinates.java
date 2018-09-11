@@ -9,7 +9,7 @@ import java.util.Date;
 public class Coordinates {
 
 	public int x, y;
-	public short tagId;
+	public short deviceId;
 	public Date date;
 
 	/**
@@ -17,14 +17,14 @@ public class Coordinates {
 	 *
 	 * @param x point's x coordinate
 	 * @param y point's y coordinate
-	 * @param tagId short id of the tag
+	 * @param deviceId short id of the device
 	 * @param date when tag appeared under the given coordinates
 	 */
-	public Coordinates(int x, int y, short tagId, Date date)
+	public Coordinates(int x, int y, short deviceId, Date date)
 	{
 		this.x = x;
 		this.y = y;
-		this.tagId = tagId;
+		this.deviceId = deviceId;
 		this.date = date;
 	}
 }
