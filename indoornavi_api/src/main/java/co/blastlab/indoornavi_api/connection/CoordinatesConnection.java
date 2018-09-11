@@ -1,6 +1,5 @@
 package co.blastlab.indoornavi_api.connection;
 
-import android.graphics.Point;
 import android.util.Log;
 
 import java.net.HttpURLConnection;
@@ -9,33 +8,34 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.objects.INMap;
 
 public class CoordinatesConnection extends Connection {
 
 	private String payload;
 
-	public CoordinatesConnection(INMap inMap, Date date, String backendServer, Point position) {
+	public CoordinatesConnection(INMap inMap, String backendServer, Coordinates coordinates) {
 		super(inMap.apiKey, backendServer);
-		this.payload = String.format(Locale.ENGLISH, "[{\"floorId\": %d, \"point\": {\"x\": %d, \"y\": %d}, \"date\": \"%s\", \"phoneId\": %d}]", inMap.floorId, position.x, position.y, getFormattedDate(date), inMap.phoneId);
+		this.payload = String.format(Locale.ENGLISH, "[{\"floorId\": %d, \"point\": {\"x\": %d, \"y\": %d}, \"date\": \"%s\", \"phoneId\": %d}]", inMap.floorId, coordinates.x, coordinates.y, getFormattedDate(coordinates.date), coordinates.deviceId);
 	}
 
-	public CoordinatesConnection(INMap inMap, Date date, String backendServer, List<Point> positionArray) {
+	public CoordinatesConnection(INMap inMap, String backendServer, List<Coordinates> coordinatesList) {
 		super(inMap.apiKey, backendServer);
 
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("[");
-		for(Point position : positionArray) {
-			stringBuilder.append(String.format(Locale.ENGLISH, "{\"floorId\": %d, \"point\": {\"x\": %d, \"y\": %d}, \"date\": \"%s\", \"phoneId\": %d}", inMap.floorId, position.x, position.y, getFormattedDate(date), inMap.phoneId));
+		for (Coordinates coordinates : coordinatesList) {
+			stringBuilder.append(String.format(Locale.ENGLISH, "{\"floorId\": %d, \"point\": {\"x\": %d, \"y\": %d}, \"date\": \"%s\", \"phoneId\": %d}", inMap.floorId, coordinates.x, coordinates.y, getFormattedDate(coordinates.date), coordinates.deviceId));
 		}
-		stringBuilder.deleteCharAt(stringBuilder.length()-1);
+		stringBuilder.deleteCharAt(stringBuilder.length() - 1);
 		stringBuilder.append("]");
 		this.payload = stringBuilder.toString();
 	}
 
 	private String getFormattedDate(Date date) {
-		SimpleDateFormat simpleDateFormat =	new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZZ");
-		return simpleDateFormat.format(new Date());
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZZ");
+		return simpleDateFormat.format(date);
 	}
 
 	@Override
@@ -52,8 +52,7 @@ public class CoordinatesConnection extends Connection {
 
 			if (responseCode == HttpURLConnection.HTTP_OK) {
 				return getResponse();
-			}
-			else {
+			} else {
 				throw new Exception("Http Connection Error: " + responseCode);
 			}
 		} catch (Exception e) {

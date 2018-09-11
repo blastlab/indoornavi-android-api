@@ -30,6 +30,7 @@ import java.util.List;
 
 import co.blastlab.indoornavi_api.INData;
 import co.blastlab.indoornavi_api.INReport;
+import co.blastlab.indoornavi_api.PhoneModule;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private INInfoWindow inInfoWindow;
 	private INReport INReport;
 
-	private int floorId = 7;
+	private int floorId = 2;
 	private String frontendServer = "http://192.168.1.29:4200";
 	private String backendServer = "http://192.168.1.29:90";
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -182,6 +183,12 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				showArea(areaEvent);
 			}
 		});
+	}
+
+	public void saveCoorginates() {
+		PhoneModule phoneModule = new PhoneModule(backendServer, inMap);
+		int phoneId = phoneModule.registerPhone("userData");
+		phoneModule.saveCoordinates(new Coordinates(36,20, (short) phoneId, new Date()));
 	}
 
 	private void showArea(AreaEvent areaEvent) {

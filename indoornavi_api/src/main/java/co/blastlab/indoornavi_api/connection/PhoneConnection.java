@@ -26,8 +26,7 @@ public class PhoneConnection extends Connection {
 
 			if (responseCode == HttpURLConnection.HTTP_OK) {
 				return getResponse();
-			}
-			else {
+			} else {
 				throw new Exception("Http Connection Error: " + responseCode);
 			}
 		} catch (Exception e) {

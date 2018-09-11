@@ -17,6 +17,6 @@ public class CoordinatesUtil {
 	 */
 	public static String coordsToString(Coordinates coords) {
 
-		return String.format(Locale.US, "{x: %d, y: %d, tagId: %d, date: new Date(%d)}", coords.x, coords.y, coords.tagId, coords.date.getTime());
+		return String.format(Locale.US, "{x: %d, y: %d, tagId: %d, date: new Date(%d)}", coords.x, coords.y, coords.deviceId, coords.date.getTime());
 	}
 }

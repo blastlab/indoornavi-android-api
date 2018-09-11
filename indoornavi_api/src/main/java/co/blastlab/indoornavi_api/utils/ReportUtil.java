@@ -129,7 +129,7 @@ public class ReportUtil {
 			String line;
 			for(Coordinates coordinate : coordinates)
 			{
-				line = coordinate.x + "," + coordinate.y + "," + coordinate.tagId + "," + coordinate.date.toString() + "\n";
+				line = coordinate.x + "," + coordinate.y + "," + coordinate.deviceId + "," + coordinate.date.toString() + "\n";
 				CSV_Output.write(line);
 			}
 			CSV_Output.close();
