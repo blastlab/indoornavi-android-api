@@ -1,7 +1,6 @@
 package co.blastlab.indoornavi_api.objects;
 
 import android.graphics.Point;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import java.util.Locale;
@@ -9,7 +8,6 @@ import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
-import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -30,7 +28,7 @@ public class INMarker extends INObject {
 	 */
 	private INMarker(INMap inMap) {
 		super(inMap);
-		this.objectInstance = String.format(Locale.US, "marker%d",this.hashCode());
+		this.objectInstance = String.format(Locale.US, "marker%d", this.hashCode());
 
 		String javaScriptString = String.format("var %s = new INMarker(navi);", this.objectInstance);
 		evaluate(javaScriptString, null);
@@ -66,8 +64,7 @@ public class INMarker extends INObject {
 	 * Place marker on the map with all given settings. There is necessity to use point() method before draw() method to indicate where marker should be located.
 	 * Using this method is indispensable to draw marker with set configuration on the map.
 	 */
-	public void draw()
-	{
+	public void draw() {
 		String javaScriptString = String.format("%s.draw();", objectInstance);
 		evaluate(javaScriptString, null);
 	}
@@ -77,9 +74,8 @@ public class INMarker extends INObject {
 	 *
 	 * @param point {@link Point} Position will be clipped to the point in the bottom center of marker icon.
 	 */
-	public void setPosition(Point point)
-	{
-		if(point != null) {
+	public void setPosition(Point point) {
+		if (point != null) {
 			this.point = point;
 			String javaScriptString = String.format("%s.setPosition(%s);", objectInstance, PointsUtil.pointToString(point));
 			evaluate(javaScriptString, null);
@@ -99,10 +95,9 @@ public class INMarker extends INObject {
 	 * Sets marker label.
 	 *
 	 * @param label string that will be used as a marker label. If label method isn't used then no label is going to be displayed.
-	 * To reset label to a new string call this method again passing new label as a string and call draw() method again.
+	 *              To reset label to a new string call this method again passing new label as a string and call draw() method again.
 	 */
-	public void setLabel(String label)
-	{
+	public void setLabel(String label) {
 		this.label = label;
 		String javaScriptString = String.format("%s.setLabel('%s');", objectInstance, label);
 		evaluate(javaScriptString, null);
@@ -111,16 +106,14 @@ public class INMarker extends INObject {
 	/**
 	 * @return label placed on the marker.
 	 */
-	public String getLabel()
-	{
+	public String getLabel() {
 		return this.label;
 	}
 
 	/**
 	 * Remove marker label. To remove label it is indispensable to call draw() method again.
 	 */
-	public void removeLabel()
-	{
+	public void removeLabel() {
 		String javaScriptString = String.format("%s.removeLabel();", objectInstance);
 		evaluate(javaScriptString, null);
 	}
@@ -131,24 +124,22 @@ public class INMarker extends INObject {
 	 * @param inInfoWindow - info window object.
 	 */
 	public void addInfoWindow(INInfoWindow inInfoWindow) {
-		if(inInfoWindow != null) {
+		if (inInfoWindow != null) {
 			String javaScriptString = String.format(Locale.US, "%s.open(%s);", inInfoWindow.objectInstance, objectInstance);
 			evaluate(javaScriptString, null);
-		}
-		else {
-			Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): InfoWindow not created");
+		} else {
+			Log.e("Null pointer Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): InfoWindow not created");
 		}
 	}
 
 	/**
 	 * Set marker icon. To apply this method it's necessary to call draw() after.
 	 *
-	 * @param path String url path to your icon;
+	 * @param icon String url path to your icon;
 	 */
-	public void setIcon(String path)
-	{
+	public void setIcon(String icon) {
 		this.icon = icon;
-		String javaScriptString = String.format("%s.setIcon('%s');", objectInstance, path);
+		String javaScriptString = String.format("%s.setIcon('%s');", objectInstance, icon);
 		evaluate(javaScriptString, null);
 	}
 
@@ -159,46 +150,54 @@ public class INMarker extends INObject {
 		return this.icon;
 	}
 
-	public static class INMarkerBuilder  {
+	/**
+	 * Erase object and its instance from frontend server, but do not destroys object class instance in your app.
+	 */
+	public void erase() {
+		super.erase();
+		this.inMap = null;
+		this.point = null;
+		this.label = null;
+		this.icon = null;
+		this.callbackId = 0;
+	}
+
+	public static class INMarkerBuilder {
 
 		private INMarker inMarker;
 
-		public INMarkerBuilder(INMap inMap){
+		public INMarkerBuilder(INMap inMap) {
 			inMarker = new INMarker(inMap);
 		}
 
-		public INMarkerBuilder setPosition(Point point)
-		{
+		public INMarkerBuilder setPosition(Point point) {
 			inMarker.setPosition(point);
 			return this;
 		}
 
-		public INMarkerBuilder setLabel(String label)
-		{
+		public INMarkerBuilder setLabel(String label) {
 			inMarker.setLabel(label);
 			return this;
 		}
 
-		public INMarkerBuilder setIcon(String icon)
-		{
+		public INMarkerBuilder setIcon(String icon) {
 			inMarker.setIcon(icon);
 			return this;
 		}
 
 		public INMarker build() {
-			try{
+			try {
 				CountDownLatch latch = new CountDownLatch(1);
 				inMarker.ready(data -> latch.countDown());
 
 				latch.await();
 
-				if(!inMarker.isTimeout) {
+				if (!inMarker.isTimeout) {
 					inMarker.draw();
 					return inMarker;
 				}
-			}
-			catch (Exception e) {
-				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			} catch (Exception e) {
+				Log.e("Create object exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 			}
 			return null;
 		}

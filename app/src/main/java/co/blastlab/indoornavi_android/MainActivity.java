@@ -209,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				.setOpacity(0.3)
 				.build();
 		} else {
-			inArea.remove();
+			inArea.erase();
 		}
 	}
 

@@ -5,12 +5,10 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.FloatRange;
 import android.util.Log;
 
-import org.json.JSONObject;
-
 import java.util.Locale;
-import java.util.concurrent.CountDownLatch;;import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
+import java.util.concurrent.CountDownLatch;
+
 import co.blastlab.indoornavi_api.model.Border;
-import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 public class INCircle extends INObject {
 
@@ -18,7 +16,7 @@ public class INCircle extends INObject {
 	private Point position;
 	private int radius;
 	private @ColorInt int color;
-	private @FloatRange(from=0.0, to=1.0)double opacity;
+	private @FloatRange(from = 0.0, to = 1.0) double opacity;
 	private Border border;
 
 	/**
@@ -38,8 +36,7 @@ public class INCircle extends INObject {
 	 * Place circle on the map with all given settings. There is necessity to use setPosition() method before draw() method to indicate where area should to be located.
 	 * Using of this method is indispensable to draw circle with set configuration in the IndoorNavi Map.
 	 */
-	public void draw()
-	{
+	public void draw() {
 		String javaScriptString = String.format("%s.draw();", objectInstance);
 		evaluate(javaScriptString, null);
 	}
@@ -49,8 +46,7 @@ public class INCircle extends INObject {
 	 *
 	 * @param position position where the center of the circle will be located.
 	 */
-	public void setPosition(Point position)
-	{
+	public void setPosition(Point position) {
 		if (position != null) {
 			this.position = position;
 			String javaScriptString = String.format(Locale.ENGLISH, "%s.setPosition(new Point(%d, %d));", objectInstance, position.x, position.y);
@@ -72,8 +68,7 @@ public class INCircle extends INObject {
 	 *
 	 * @param radius radius of the circle
 	 */
-	public void setRadius(int radius)
-	{
+	public void setRadius(int radius) {
 		this.radius = radius;
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.setRadius(%d);", objectInstance, radius);
 		evaluate(javaScriptString, null);
@@ -91,8 +86,7 @@ public class INCircle extends INObject {
 	 *
 	 * @param color that specifies the color.
 	 */
-	public void setColor(@ColorInt int color)
-	{
+	public void setColor(@ColorInt int color) {
 		this.color = color;
 		String javaScriptString = String.format("%s.setColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
 		evaluate(javaScriptString, null);
@@ -110,8 +104,7 @@ public class INCircle extends INObject {
 	 *
 	 * @param opacity Float between 1.0 and 0. Set it to 1.0 for no opacity, 0 for maximum opacity.
 	 */
-	public void setOpacity(@FloatRange(from=0.0, to=1.0)double opacity)
-	{
+	public void setOpacity(@FloatRange(from = 0.0, to = 1.0) double opacity) {
 		this.opacity = opacity;
 		String javaScriptString = String.format("%s.setOpacity(%s);", objectInstance, String.format(Locale.US, "%f", opacity));
 		evaluate(javaScriptString, null);
@@ -120,7 +113,7 @@ public class INCircle extends INObject {
 	/**
 	 * @return opacity of the circle. Return Float value.
 	 */
-	public @FloatRange(from=0.0, to=1.0)double getOpacity() {
+	@FloatRange(from = 0.0, to = 1.0) public  double getOpacity() {
 		return this.opacity;
 	}
 
@@ -129,8 +122,7 @@ public class INCircle extends INObject {
 	 *
 	 * @param border Border object, define border parameters of the circle.
 	 */
-	public void setBorder(Border border)
-	{
+	public void setBorder(Border border) {
 		this.border = border;
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.setBorder(new Border(%d, '%s'));", objectInstance, border.width, String.format("#%06X", (0xFFFFFF & border.color)));
 		evaluate(javaScriptString, null);
@@ -143,58 +135,66 @@ public class INCircle extends INObject {
 		return this.border;
 	}
 
-	public static class INCircleBuilder  {
+
+	/**
+	 * Erase object and its instance from frontend server, but do not destroys object class instance in your app.
+	 */
+	public void erase() {
+		super.erase();
+		this.inMap = null;
+		this.position = null;
+		this.border = null;
+		this.radius = 0;
+		this.color = 0;
+		this.opacity = 0;
+	}
+
+	public static class INCircleBuilder {
 
 		private INCircle inCircle;
 
-		public INCircleBuilder(INMap inMap){
+		public INCircleBuilder(INMap inMap) {
 			inCircle = new INCircle(inMap);
 		}
 
-		public INCircle.INCircleBuilder setPosition(Point position)
-		{
+		public INCircle.INCircleBuilder setPosition(Point position) {
 			inCircle.setPosition(position);
 			return this;
 		}
 
-		public INCircle.INCircleBuilder setRadius(int radius)
-		{
+		public INCircle.INCircleBuilder setRadius(int radius) {
 			inCircle.setRadius(radius);
 			return this;
 		}
 
-		public INCircle.INCircleBuilder setColor(@ColorInt int color)
-		{
+		public INCircle.INCircleBuilder setColor(@ColorInt int color) {
 			inCircle.setColor(color);
 			return this;
 		}
 
-		public INCircle.INCircleBuilder setOpacity(@FloatRange(from=0.0, to=1.0)double opacity)
-		{
+		public INCircle.INCircleBuilder setOpacity(@FloatRange(from = 0.0, to = 1.0) double opacity) {
 			inCircle.setOpacity(opacity);
 			return this;
 		}
 
-		public INCircle.INCircleBuilder setBorder(Border border)
-		{
+		public INCircle.INCircleBuilder setBorder(Border border) {
 			inCircle.setBorder(border);
 			return this;
 		}
 
 		public INCircle build() {
-			try{
+			try {
 				CountDownLatch latch = new CountDownLatch(1);
 				inCircle.ready(data -> latch.countDown());
 
 				latch.await();
 
-				if(!inCircle.isTimeout) {
+				if (!inCircle.isTimeout) {
 					inCircle.draw();
 					return inCircle;
 				}
-			}
-			catch (Exception e) {
-				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			} catch (Exception e) {
+				Log.e("Create object exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 			}
 			return null;
 		}

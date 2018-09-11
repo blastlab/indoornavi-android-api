@@ -1,7 +1,6 @@
 package co.blastlab.indoornavi_api.objects;
 
 import android.graphics.Point;
-import android.os.AsyncTask;
 import android.support.annotation.ColorInt;
 import android.util.Log;
 
@@ -9,7 +8,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
-import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -40,8 +38,7 @@ public class INPolyline extends INObject {
 	 * There is necessity to use points() method before draw() method to indicate where polyline should be located.
 	 * Using this method is indispensable to draw polyline with set configuration in the WebView.
 	 */
-	public void draw()
-	{
+	public void draw() {
 		String javaScriptString = String.format("%s.draw();", objectInstance);
 		evaluate(javaScriptString, null);
 	}
@@ -52,9 +49,8 @@ public class INPolyline extends INObject {
 	 *
 	 * @param points List of points
 	 */
-	public void setPoints(List<Point> points)
-	{
-		if(points != null) {
+	public void setPoints(List<Point> points) {
+		if (points != null) {
 			this.points = points;
 			String javaScriptPoints = String.format("var points = %s;", PointsUtil.pointsToString(points));
 			evaluate(javaScriptPoints, null);
@@ -68,8 +64,7 @@ public class INPolyline extends INObject {
 	/**
 	 * @return coordinates of the polyline as a list of {@link Point} object.
 	 */
-	public List<Point> getPoints()
-	{
+	public List<Point> getPoints() {
 		return this.points;
 	}
 
@@ -78,8 +73,7 @@ public class INPolyline extends INObject {
 	 *
 	 * @param color String that specifies the color. Supports color in hex format #AABBCC and rgb format rgb(255,255,255).
 	 */
-	public void setColor(@ColorInt int color)
-	{
+	public void setColor(@ColorInt int color) {
 		this.color = color;
 		String javaScriptString = String.format("%s.setColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
 		evaluate(javaScriptString, null);
@@ -92,22 +86,30 @@ public class INPolyline extends INObject {
 		return this.color;
 	}
 
-	public static class INPolylineBuilder  {
+	/**
+	 * Erase object and its instance from frontend server, but do not destroys object class instance in your app.
+	 */
+	public void erase() {
+		super.erase();
+		this.inMap = null;
+		this.points = null;
+		this.color = 0;
+	}
+
+	public static class INPolylineBuilder {
 
 		private INPolyline inPolyline;
 
-		public INPolylineBuilder(INMap inMap){
+		public INPolylineBuilder(INMap inMap) {
 			inPolyline = new INPolyline(inMap);
 		}
 
-		public INPolylineBuilder setPoints(List<Point> points)
-		{
+		public INPolylineBuilder setPoints(List<Point> points) {
 			inPolyline.setPoints(points);
 			return this;
 		}
 
-		public INPolylineBuilder setColor(@ColorInt int color)
-		{
+		public INPolylineBuilder setColor(@ColorInt int color) {
 			inPolyline.setColor(color);
 			return this;
 		}
@@ -119,14 +121,13 @@ public class INPolyline extends INObject {
 
 				latch.await();
 
-				if(!inPolyline.isTimeout) {
+				if (!inPolyline.isTimeout) {
 
 					inPolyline.draw();
 					return inPolyline;
 				}
-			}
-			catch (Exception e) {
-				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			} catch (Exception e) {
+				Log.e("Create object exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 			}
 			return null;
 		}
