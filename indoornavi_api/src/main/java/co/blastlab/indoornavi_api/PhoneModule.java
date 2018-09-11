@@ -16,7 +16,7 @@ public class PhoneModule {
 
 	/**
 	 * @param backendServer backend server address
-	 * @param inMap INMap object instance
+	 * @param inMap         INMap object instance
 	 */
 	public PhoneModule(String backendServer, INMap inMap) {
 		this.backendServer = backendServer;
@@ -29,16 +29,11 @@ public class PhoneModule {
 	 * @param userData User data, is used to identify user in database.
 	 * @return Integer represent id assigned to specific user data
 	 */
-	public Integer registerPhone(String userData) {
-		try {
-			PhoneConnection phoneConnection = new PhoneConnection(this.inMap.apiKey, this.backendServer);
-			String id = phoneConnection.execute(userData).get();
-			if (id != null) {
-
-				return new JSONObject(id).getInt("id");
-			}
-		} catch (Exception e) {
-			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+	public short registerPhone(String userData) throws Exception {
+		PhoneConnection phoneConnection = new PhoneConnection(this.inMap.apiKey, this.backendServer);
+		String id = phoneConnection.execute(userData).get();
+		if (id != null) {
+			return (short) new JSONObject(id).getInt("id");
 		}
 		return -1;
 	}
@@ -47,16 +42,12 @@ public class PhoneModule {
 	 * @param coordinates Coordinates saved in database.
 	 * @return Response data.
 	 */
-	public String saveCoordinates(Coordinates coordinates) {
-		try {
-			CoordinatesConnection dataConnection = new CoordinatesConnection(this.inMap, backendServer, coordinates);
-			String data = dataConnection.execute().get();
-			if (data != null) {
-				return data;
-			}
-		} catch (Exception e) {
-			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+	public Boolean saveCoordinates(Coordinates coordinates) throws Exception {
+		CoordinatesConnection dataConnection = new CoordinatesConnection(this.inMap, backendServer, coordinates);
+		String data = dataConnection.execute().get();
+		if (data != null) {
+			return true;
 		}
-		return null;
+		return false;
 	}
 }

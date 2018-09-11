@@ -185,10 +185,14 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		});
 	}
 
-	public void saveCoorginates() {
-		PhoneModule phoneModule = new PhoneModule(backendServer, inMap);
-		int phoneId = phoneModule.registerPhone("userData");
-		phoneModule.saveCoordinates(new Coordinates(36,20, (short) phoneId, new Date()));
+	public void saveCoordinates() {
+		try {
+			PhoneModule phoneModule = new PhoneModule(backendServer, inMap);
+			short phoneId = phoneModule.registerPhone("userData");
+			phoneModule.saveCoordinates(new Coordinates(36, 20, phoneId, new Date()));
+		} catch (Exception e) {
+			Log.e("IndoorNavi", "Exception");
+		}
 	}
 
 	private void showArea(AreaEvent areaEvent) {
