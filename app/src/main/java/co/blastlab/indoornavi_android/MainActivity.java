@@ -1,11 +1,18 @@
 package co.blastlab.indoornavi_android;
 
 import android.Manifest;
-import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
 import android.os.Vibrator;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -23,6 +30,7 @@ import android.view.WindowManager;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,11 +39,11 @@ import java.util.List;
 import co.blastlab.indoornavi_api.INData;
 import co.blastlab.indoornavi_api.INReport;
 import co.blastlab.indoornavi_api.PhoneModule;
+import co.blastlab.indoornavi_api.algorithm.model.Position;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
-import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.model.Border;
 import co.blastlab.indoornavi_api.model.Coordinates;
@@ -45,8 +53,8 @@ import co.blastlab.indoornavi_api.objects.INInfoWindow;
 import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.objects.INMarker;
 import co.blastlab.indoornavi_api.objects.INPolyline;
+import co.blastlab.indoornavi_api.service.BluetoothScanService;
 import co.blastlab.indoornavi_api.utils.MapUtil;
-import co.blastlab.indoornavi_api.utils.PointsUtil;
 import co.blastlab.indoornavi_api.utils.ReportUtil;
 
 public class MainActivity extends AppCompatActivity implements OnINMapReadyCallback {
@@ -58,15 +66,21 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private INInfoWindow inInfoWindow;
 	private INReport INReport;
 	private INCircle inCircle;
+	private BluetoothScanService bluetoothScanService;
+
 
 	private int floorId = 2;
 	private String frontendServer = "http://192.168.1.29:4200";
 	private String backendServer = "http://192.168.1.29:90";
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
-	private static final int REQUEST_INTERNET = 1;
-	private static String[] PERMISSIONS = {
+	private static final int REQUEST_INTERNET= 1;
+	private static final int REQUEST_ENABLE_BT = 1;
+	private static final int REQUEST_ENABLE_LOCATION = 1;
+	private static String[] PERMISSIONS= {
 		Manifest.permission.INTERNET,
-		Manifest.permission.WRITE_EXTERNAL_STORAGE
+		Manifest.permission.ACCESS_COARSE_LOCATION,
+		Manifest.permission.WRITE_EXTERNAL_STORAGE,
+		Manifest.permission.BLUETOOTH,
 	};
 
 	List<Point> points_office_1 = new ArrayList<>();
@@ -80,13 +94,29 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	List<ExpandedMenuModel> listDataHeader;
 	HashMap<ExpandedMenuModel, List<String>> listDataChild;
 
+	private MyHandler mHandler;
+	private final ServiceConnection bluetoothConnection = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName arg0, IBinder arg1) {
+			Log.d("Indoor","Service connected");
+			bluetoothScanService = ((BluetoothScanService.BluetoothBinder) arg1).getService();
+			bluetoothScanService.setHandler(mHandler);
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			bluetoothScanService = null;
+		}
+	};
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-		verifyInternetPermissions(this);
+		verifyInternetPermissions();
+		mHandler = new MyHandler(this);
 
 		inMap = (INMap) findViewById(R.id.webview);
 		mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -133,19 +163,34 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		points_office_3.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(15, 560)));
 	}
 
-	public static void verifyStoragePermissions(Activity activity) {
-		int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+	public void verifyStoragePermissions() {
+		int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
 		if (permission != PackageManager.PERMISSION_GRANTED) {
-			ActivityCompat.requestPermissions(activity, PERMISSIONS, REQUEST_EXTERNAL_STORAGE);
+			ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_EXTERNAL_STORAGE);
 		}
 	}
 
-	public static void verifyInternetPermissions(Activity activity) {
-		int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.INTERNET);
+	public void
+	verifyInternetPermissions() {
+		int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET);
 
 		if (permission != PackageManager.PERMISSION_GRANTED) {
-			ActivityCompat.requestPermissions(activity, PERMISSIONS, REQUEST_INTERNET);
+			ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_INTERNET);
+		}
+	}
+
+	public void verifyBluetoothPermissions() {
+		int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH);
+
+		if (permission != PackageManager.PERMISSION_GRANTED) {
+			ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_ENABLE_BT);
+		}
+
+		int localizationPermission = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+
+		if (localizationPermission != PackageManager.PERMISSION_GRANTED) {
+			ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_ENABLE_LOCATION);
 		}
 	}
 
@@ -330,7 +375,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void createReport(int index) {
-		verifyStoragePermissions(this);
+		verifyStoragePermissions();
 
 		INReport = new INReport(inMap, backendServer, "TestAdmin");
 
@@ -387,6 +432,19 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		);
 	}
 
+	public void getLocalization(int index) {
+
+		verifyBluetoothPermissions();
+		switch(index) {
+			case 0:
+				bluetoothScanService.startLocalization();
+				break;
+			case 1:
+				bluetoothScanService.stopLocalization();
+				break;
+		}
+	}
+
 	public void setNavigationViewListener() {
 		expandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
 			@Override
@@ -405,6 +463,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 						break;
 					case 3:
 						createReport(itemIndex);
+						break;
+					case 4:
+						getLocalization(itemIndex);
 						break;
 				}
 				expandableListView.collapseGroup(groupIndex);
@@ -443,6 +504,11 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		item4.setIconImg(R.drawable.report);
 		listDataHeader.add(item4);
 
+		ExpandedMenuModel item5 = new ExpandedMenuModel();
+		item5.setIconName(getString(R.string.localization));
+		item5.setIconImg(R.drawable.localization);
+		listDataHeader.add(item5);
+
 		List<String> heading1 = new ArrayList<String>();
 		heading1.add("Office 1");
 		heading1.add("Office 2");
@@ -453,10 +519,15 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		heading2.add("Coordinates");
 		heading2.add("Paths");
 
+		List<String> heading3 = new ArrayList<String>();
+		heading3.add(getString(R.string.start_localization));
+		heading3.add(getString(R.string.stop_localization));
+
 		listDataChild.put(listDataHeader.get(0), heading1);
 		listDataChild.put(listDataHeader.get(1), heading1);
 		listDataChild.put(listDataHeader.get(2), heading1);
 		listDataChild.put(listDataHeader.get(3), heading2);
+		listDataChild.put(listDataHeader.get(4), heading3);
 
 	}
 
@@ -481,5 +552,68 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			mDrawerLayout.closeDrawers();
 			return true;
 		});
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		startService(BluetoothScanService.class, bluetoothConnection);
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		unbindService(bluetoothConnection);
+	}
+
+	private void startService(Class<?> service, ServiceConnection serviceConnection) {
+		if (!BluetoothScanService.SERVICE_CONNECTED) {
+			Intent bindingIntent = new Intent(this, service);
+			bindService(bindingIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+		}
+	}
+
+	private static class MyHandler extends Handler {
+		private final WeakReference<MainActivity> mActivity;
+
+		public MyHandler(MainActivity activity) {
+			mActivity = new WeakReference<>(activity);
+		}
+
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+				case BluetoothScanService.ACTION_BLUETOOTH_READY:
+					Log.d(BluetoothScanService.TAG, "Bluetooth Ready");
+					break;
+				case BluetoothScanService.ACTION_BLUETOOTH_NOT_SUPPORTED:
+					Log.d(BluetoothScanService.TAG, "Bluetooth not supported");
+					break;
+				case BluetoothScanService.ACTION_BLUETOOTH_NOT_ENABLED:
+					Log.d(BluetoothScanService.TAG,"Bluetooth not enable");
+					mActivity.get().enableBluetooth();
+					break;
+				case BluetoothScanService.ACTION_BLUETOOTH_PERMISSION_NOT_GRANTED:
+					Log.d(BluetoothScanService.TAG,  "Bluetooth Permission not granted");
+					break;
+				case BluetoothScanService.ACTION_LOCATION_PERMISSION_NOT_GRANTED:
+					Log.d(BluetoothScanService.TAG,  "Location Permission not granted");
+					break;
+				case BluetoothScanService.ACTION_POSITION:
+					Position position = (Position) msg.obj;
+					Log.e(BluetoothScanService.TAG,  "Position: x:" + position.x + ", y: " + position.y);
+					break;
+			}
+		}
+	}
+
+	private void enableBluetooth() {
+		final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+		BluetoothAdapter mBluetoothAdapter = bluetoothManager.getAdapter();
+
+		if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
+			Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+		}
 	}
 }

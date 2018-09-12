@@ -39,7 +39,8 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 	public int getChildrenCount(int groupPosition) {
 		int childCount = 0;
 		if (this.mListDataHeader.get(groupPosition) != null) {
-			childCount = this.mListDataChild.get(this.mListDataHeader.get(groupPosition)).size();
+			List<String> childData = this.mListDataChild.get(this.mListDataHeader.get(groupPosition));
+			childCount = childData != null? childData.size() : 0;
 		}
 		return childCount;
 	}
