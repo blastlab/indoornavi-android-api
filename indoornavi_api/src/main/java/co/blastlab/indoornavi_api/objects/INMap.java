@@ -41,27 +41,27 @@ public class INMap extends WebView {
 
 	private Context context;
 
-	public String targetHost;
+	private String targetHost;
 	private String apiKey;
-
 	private int height, weight;
 	private int floorId;
-	public Scale scale;
+	private Scale scale;
 
 	public static final String AREA = "AREA";
-	public static final String COORDINATES  = "COORDINATES";
+	public static final String COORDINATES = "COORDINATES";
 
 	@Retention(RetentionPolicy.SOURCE)
-	@StringDef({AREA,COORDINATES})
-	public @interface EventListener {}
+	@StringDef({AREA, COORDINATES})
+	public @interface EventListener {
+	}
 
 	/**
 	 * Constructs a new WebView with layout parameters.
 	 *
-	 * @param context a Context object used to access application assets
+	 * @param context      a Context object used to access application assets
 	 * @param attributeSet an AttributeSet passed to our parent
 	 */
-	public INMap(Context context, AttributeSet attributeSet){
+	public INMap(Context context, AttributeSet attributeSet) {
 		super(context, attributeSet);
 		this.context = context;
 
@@ -73,11 +73,10 @@ public class INMap extends WebView {
 	/**
 	 * Load map of the floor with specific id.
 	 *
-	 * @param floorId - Id of specific floor.
+	 * @param floorId               - Id of specific floor.
 	 * @param onObjectReadyCallback interface - trigger when object is successfully create.
 	 */
-	private void ready(int floorId, OnObjectReadyCallback onObjectReadyCallback)
-	{
+	private void ready(int floorId, OnObjectReadyCallback onObjectReadyCallback) {
 		int promiseId = onObjectReadyCallback.hashCode();
 		Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
 
@@ -88,15 +87,14 @@ public class INMap extends WebView {
 	/**
 	 * Load map of the floor with specific id.
 	 *
-	 * @param floorId - Id of specific floor.
+	 * @param floorId               - Id of specific floor.
 	 * @param onObjectReadyCallback interface - trigger when map is successfully loaded.
 	 */
-	public void load(int floorId, OnObjectReadyCallback onObjectReadyCallback)
-	{
+	public void load(int floorId, OnObjectReadyCallback onObjectReadyCallback) {
 		this.floorId = floorId;
 		this.ready(floorId, (object) -> {
-			getMapDimensions();
 			waitUntilMapReady(onObjectReadyCallback);
+			getMapDimensions();
 		});
 	}
 
@@ -124,7 +122,7 @@ public class INMap extends WebView {
 		handler.post(() -> {
 			inMap.evaluateJavascript(javaScriptString, data -> {
 				inMap.scale = MapUtil.stringToScale(data);
-				for(OnObjectReadyCallback readyCallback : Controller.promiseMapReady) {
+				for (OnObjectReadyCallback readyCallback : Controller.promiseMapReady) {
 					readyCallback.onReady(null);
 				}
 				Controller.promiseMapReady.clear();
@@ -132,18 +130,35 @@ public class INMap extends WebView {
 		});
 	}
 
+	/**
+	 * @return Scale set to map object.
+	 */
+	public Scale getMapScale() {
+		return this.scale;
+	}
+
+	public String getTargetHost() {
+		return this.targetHost;
+	}
+
+	public String getApiKey() {
+		return apiKey;
+	}
+
+	public int getFloorId() {
+		return this.floorId;
+	}
+
 	public void waitUntilMapReady(OnObjectReadyCallback onObjectReadyCallback) {
-		if(this.scale != null) {
+		if (this.scale != null) {
 			onObjectReadyCallback.onReady(null);
-		}
-		else {
+		} else {
 			Controller.promiseMapReady.add(onObjectReadyCallback);
 		}
 	}
 
 	@SuppressLint("SetJavaScriptEnabled")
-	private void init()
-	{
+	private void init() {
 		this.setWebViewClient(new IndoorWebViewClient());
 		this.setWebChromeClient(new IndoorWebChromeClient());
 
@@ -163,12 +178,11 @@ public class INMap extends WebView {
 	 * Create INMap object.
 	 *
 	 * @param targetHost address to the frontend server
-	 * @param apiKey the API key created on server
-	 * @param height height of the iframe in pixels
-	 * @param weight weight of the iframe in pixels
+	 * @param apiKey     the API key created on server
+	 * @param height     height of the iframe in pixels
+	 * @param weight     weight of the iframe in pixels
 	 */
-	public void createMap(String targetHost, String apiKey, int weight, int height)
-	{
+	public void createMap(String targetHost, String apiKey, int weight, int height) {
 		this.targetHost = targetHost;
 		this.apiKey = apiKey;
 		this.weight = weight;
@@ -180,7 +194,7 @@ public class INMap extends WebView {
 	/**
 	 * Register a callback to be invoked when event occurs.
 	 *
-	 * @param event type of event listener
+	 * @param event           type of event listener
 	 * @param onEventListener interface - invoked when event occurs.
 	 */
 	public void addEventListener(@EventListener String event, OnEventListener onEventListener) {
@@ -214,26 +228,23 @@ public class INMap extends WebView {
 	private void loadWebViewFromAssets() {
 		String str = "";
 		try {
-			InputStream is =context.getAssets().open("index.html");
+			InputStream is = context.getAssets().open("index.html");
 			StringBuilder builder = new StringBuilder();
 
 			byte[] buffer = new byte[1024];
-			while(is.read(buffer) != -1) {
+			while (is.read(buffer) != -1) {
 				builder.append(new String(buffer));
 			}
 			is.close();
-			 str = builder.toString();
-		}
-		catch (Exception e)
-		{
+			str = builder.toString();
+		} catch (Exception e) {
 			Log.e("Load assets exception :", e.toString());
 		}
-		this.loadDataWithBaseURL("file:///android_asset/", str, "text/html", "UTF-8",null);
+		this.loadDataWithBaseURL("file:///android_asset/", str, "text/html", "UTF-8", null);
 	}
 
-	private void interfaceInit()
-	{
-		inObjectInterface  = new INObjectInterface();
+	private void interfaceInit() {
+		inObjectInterface = new INObjectInterface();
 		this.addJavascriptInterface(inObjectInterface, "inObjectInterface");
 
 		inMarkerInterface = new INMarkerInterface();

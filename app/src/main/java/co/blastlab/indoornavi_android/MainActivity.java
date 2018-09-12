@@ -35,9 +35,12 @@ import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
+import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.model.AreaEvent;
+import co.blastlab.indoornavi_api.model.Border;
 import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.objects.INArea;
+import co.blastlab.indoornavi_api.objects.INCircle;
 import co.blastlab.indoornavi_api.objects.INInfoWindow;
 import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.objects.INMarker;
@@ -54,20 +57,21 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private INMarker inMarker1;
 	private INInfoWindow inInfoWindow;
 	private INReport INReport;
+	private INCircle inCircle;
 
 	private int floorId = 2;
 	private String frontendServer = "http://192.168.1.29:4200";
 	private String backendServer = "http://192.168.1.29:90";
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
-	private static final int REQUEST_INTERNET= 1;
-	private static String[] PERMISSIONS= {
+	private static final int REQUEST_INTERNET = 1;
+	private static String[] PERMISSIONS = {
 		Manifest.permission.INTERNET,
 		Manifest.permission.WRITE_EXTERNAL_STORAGE
 	};
 
-	List<Point> points_office_1  = new ArrayList<>();
-	List<Point> points_office_2  = new ArrayList<>();
-	List<Point> points_office_3  = new ArrayList<>();
+	List<Point> points_office_1 = new ArrayList<>();
+	List<Point> points_office_2 = new ArrayList<>();
+	List<Point> points_office_3 = new ArrayList<>();
 
 	DrawerLayout mDrawerLayout;
 	Vibrator vibrator;
@@ -103,30 +107,30 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void createPointsArrayForOffice1() {
-		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(1347, 479)));
-		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(1347, 27)));
-		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(1088,27)));
-		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(1088,292)));
-		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(1082,292)));
-		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(1082,417)));
-		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(1187,417)));
-		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(1187,479)));
+		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1347, 479)));
+		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1347, 27)));
+		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1088, 27)));
+		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1088, 292)));
+		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1082, 292)));
+		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1082, 417)));
+		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1187, 417)));
+		points_office_1.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1187, 479)));
 	}
 
 	public void createPointsArrayForOffice2() {
-		points_office_2.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(1070, 349)));
-		points_office_2.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(1070, 290)));
-		points_office_2.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(1082,290)));
-		points_office_2.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(1082,29)));
-		points_office_2.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(818,30)));
-		points_office_2.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(818,349)));
+		points_office_2.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1070, 349)));
+		points_office_2.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1070, 290)));
+		points_office_2.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1082, 290)));
+		points_office_2.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1082, 29)));
+		points_office_2.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(818, 30)));
+		points_office_2.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(818, 349)));
 	}
 
 	public void createPointsArrayForOffice3() {
-		points_office_3.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(288, 560)));
-		points_office_3.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(288, 835)));
-		points_office_3.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(15,835)));
-		points_office_3.add(MapUtil.pixelsToRealDimensions(inMap.scale, new Point(15,560)));
+		points_office_3.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(288, 560)));
+		points_office_3.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(288, 835)));
+		points_office_3.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(15, 835)));
+		points_office_3.add(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(15, 560)));
 	}
 
 	public static void verifyStoragePermissions(Activity activity) {
@@ -149,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-		inMap.createMap(frontendServer, "TestAdmin", metrics.widthPixels-250, metrics.heightPixels-200);
+		inMap.createMap(frontendServer, "TestAdmin", metrics.widthPixels - 250, metrics.heightPixels - 200);
 		inMap.load(floorId, new OnObjectReadyCallback() {
 			@Override
 			public void onReady(Object o) {
@@ -161,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			public void onEvent(Point point) {
 				vibrator.vibrate(500);
 				new INMarker.INMarkerBuilder(inMap)
-					.point(MapUtil.pixelsToRealDimensions(inMap.scale, point))
+					.setPosition(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), point))
 					.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
 					.build();
 			}
@@ -197,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	private void showArea(AreaEvent areaEvent) {
 
-		if(areaEvent.mode.equals("ON_ENTER")) {
+		if (areaEvent.mode.equals("ON_ENTER")) {
 			int index;
 			switch (areaEvent.areaName) {
 				case "Office 1":
@@ -211,40 +215,46 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 					break;
 			}
 			inArea = new INArea.INAreaBuilder(inMap)
-				.points(getPointsSetByIndex(index))
-				.setFillColor(Color.GREEN)
+				.setPoints(getPointsSetByIndex(index))
+				.setColor(Color.GREEN)
 				.setOpacity(0.3)
 				.build();
 		} else {
-			inArea.remove();
+			inArea.erase();
 		}
-
-
 	}
 
-	public void drawPoly(int index)
-	{
+	public void drawPoly(int index) {
 		inPolyline = new INPolyline.INPolylineBuilder(inMap)
-			.points(getPointsSetByIndex(index))
-			.setLineColor(Color.RED)
+			.setPoints(getPointsSetByIndex(index))
+			.setColor(Color.RED)
 			.build();
 
-		if(inPolyline!= null) {
+		if (inPolyline != null) {
 			inPolyline.getID(id -> {
 				Log.i("Indoor", "onReceiveValue: " + id);
 			});
-			inPolyline.getPoints(points -> Log.i("Indoor", "onReceiveValue: " + PointsUtil.pointsToString(points)));
 		}
 	}
 
-	public void drawArea(int index){
+	public void drawCircle() {
+		inCircle = new INCircle.INCircleBuilder(inMap)
+			.setPosition(new Point(400, 400))
+			.setRadius(30)
+			.setOpacity(0.3)
+			.setColor(Color.RED)
+			.setBorder(new Border(30, Color.GREEN))
+			.build();
+	}
+
+	public void drawArea(int index) {
 		inArea = new INArea.INAreaBuilder(inMap)
-			.points(getPointsSetByIndex(index))
-			.setFillColor(Color.GREEN)
+			.setPoints(getPointsSetByIndex(index))
+			.setColor(Color.GREEN)
 			.setOpacity(0.3)
 			.build();
 
-		if(inArea!= null) {
+		if (inArea != null) {
 			inArea.isWithin(new Coordinates(200, 800, (short) 109999, new Date()), bool -> Log.i("Indoor", "Received value: " + bool));
 		}
 	}
@@ -254,21 +264,21 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			case 0:
 				return points_office_1;
 			case 1:
-				return  points_office_2;
+				return points_office_2;
 			case 2:
 				return points_office_3;
 		}
 		return points_office_1;
 	}
 
-	public void drawMarker(int index){
+	public void drawMarker(int index) {
 		inMarker1 = new INMarker.INMarkerBuilder(inMap)
-			.point(getMarkerPoint(index))
+			.setPosition(getMarkerPoint(index))
 			.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
 			.setLabel(getMarkerLabel(index))
 			.build();
 
-		if(inMarker1!= null) {
+		if (inMarker1 != null) {
 			drawInfoWindow();
 
 			inMarker1.addEventListener(new OnMarkerClickListener() {
@@ -281,7 +291,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public String getMarkerLabel(int index) {
-		switch(index) {
+		switch (index) {
 			case 0:
 				return "Office 1";
 			case 1:
@@ -293,28 +303,27 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public Point getMarkerPoint(int index) {
-		switch(index) {
+		switch (index) {
 			case 0:
-				return MapUtil.pixelsToRealDimensions(inMap.scale,new Point(1200, 227));
+				return MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1200, 227));
 			case 1:
-				return MapUtil.pixelsToRealDimensions(inMap.scale,new Point(946, 190));
+				return MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(946, 190));
 			case 2:
-				return MapUtil.pixelsToRealDimensions(inMap.scale,new Point(150, 705));
+				return MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(150, 705));
 		}
 		return new Point(600, 600);
 	}
 
-	public void drawInfoWindow(){
+	public void drawInfoWindow() {
 		inInfoWindow = new INInfoWindow.INInfoWindowBuilder(inMap)
-			.height(150)
-			.width(150)
-			.setInnerHTML("<h3>Lorem ipsum dolor sit amet</h3>")
-			.setPosition(INInfoWindow.TOP)
+			.setHeight(150)
+			.setWidth(150)
+			.setContent("<h3>Lorem ipsum dolor sit amet</h3>")
+			.setPositionAt(INInfoWindow.Position.TOP)
 			.build();
 	}
 
-	public void show_toast()
-	{
+	public void show_toast() {
 		Toast.makeText(this, "This is my toast",
 			Toast.LENGTH_LONG).show();
 		inMarker1.addInfoWindow(inInfoWindow);
@@ -325,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 		INReport = new INReport(inMap, backendServer, "TestAdmin");
 
-		switch(index) {
+		switch (index) {
 			case 0:
 				createAreaEventsReport(INReport);
 				break;
@@ -339,15 +348,14 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void createAreaEventsReport(INReport inReport) {
-		INReport.getAreaEvents(floorId, new Date(1428105600) ,new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {
+		INReport.getAreaEvents(floorId, new Date(1428105600), new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {
 			@Override
 			public void onReady(List<AreaEvent> areaEvents) {
 				String msg;
-				if(areaEvents!= null) {
+				if (areaEvents != null) {
 					ReportUtil.areaEventToCSV(areaEvents);
 					msg = "Report created!";
-				}
-				else {
+				} else {
 					msg = "No area events available";
 				}
 				Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
@@ -360,11 +368,10 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			@Override
 			public void onReady(List<Coordinates> coordinates) {
 				String msg;
-				if(coordinates!= null) {
+				if (coordinates != null) {
 					ReportUtil.coordinatesToCSV(coordinates);
 					msg = "Report created!";
-				}
-				else {
+				} else {
 					msg = "No coordinates available";
 				}
 				Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
@@ -373,7 +380,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void getPaths() {
-		INData inData = new INData(inMap,backendServer, "TestAdmin" );
+		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		inData.getPaths(floorId, paths -> {
 				Log.i("Indoor", "Received path: " + paths);
 			}
@@ -385,9 +392,10 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			@Override
 			public boolean onChildClick(ExpandableListView expandableListView, View view, int groupIndex, int itemIndex, long l) {
 				mDrawerLayout.closeDrawers();
-				switch(groupIndex) {
+				switch (groupIndex) {
 					case 0:
 						drawPoly(itemIndex);
+						//drawCircle();
 						break;
 					case 1:
 						drawArea(itemIndex);
@@ -468,7 +476,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	private void setupDrawerContent(NavigationView navigationView) {
-		navigationView.setNavigationItemSelectedListener(menuItem ->  {
+		navigationView.setNavigationItemSelectedListener(menuItem -> {
 			menuItem.setChecked(true);
 			mDrawerLayout.closeDrawers();
 			return true;

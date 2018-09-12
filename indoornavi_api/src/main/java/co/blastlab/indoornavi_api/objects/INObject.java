@@ -1,20 +1,15 @@
 package co.blastlab.indoornavi_api.objects;
 
-import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.webkit.ValueCallback;
 
-import java.util.List;
 import java.util.Locale;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
-import co.blastlab.indoornavi_api.model.Coordinates;
-import co.blastlab.indoornavi_api.utils.CoordinatesUtil;
-import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
  * Class INObject is the root of the IndoorNavi objects hierarchy. Every IN object has INObject as a superclass (except INMap).
@@ -30,7 +25,7 @@ public class INObject {
 	 *
 	 * @param inMap instance INMap object.
 	 */
-	INObject(INMap inMap){
+	INObject(INMap inMap) {
 		this.inMap = inMap;
 	}
 
@@ -40,8 +35,7 @@ public class INObject {
 	 *
 	 * @param onObjectReadyCallback interface - trigger when object is successfully create.
 	 */
-	public void ready(OnObjectReadyCallback onObjectReadyCallback)
-	{
+	public void ready(OnObjectReadyCallback onObjectReadyCallback) {
 		int promiseId = onObjectReadyCallback.hashCode();
 		Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
 
@@ -56,14 +50,13 @@ public class INObject {
 			public void run() {
 				try {
 					Thread.sleep(3000);
-					if(Controller.promiseCallbackMap.indexOfKey(promiseId) > -1) {
-						Log.e("Timeout "," server "+  inMap.targetHost + " not responding");
+					if (Controller.promiseCallbackMap.indexOfKey(promiseId) > -1) {
+						Log.e("Timeout ", " server " + inMap.getTargetHost() + " not responding");
 						isTimeout = true;
 						Controller.promiseCallbackMap.get(promiseId).onReady(null);
 						Controller.promiseCallbackMap.remove(promiseId);
 					}
-				}
-				catch (InterruptedException e) {
+				} catch (InterruptedException e) {
 					Log.e("Indoor", "thread exception");
 				}
 			}
@@ -74,38 +67,15 @@ public class INObject {
 	/**
 	 * Returns the id of the object.
 	 *
-	 * @param onReceiveValueCallback interface - invoked when object id is available.
+	 * @param onReceiveValueCallback interface - invoked when object id is available. Return Long value.
 	 */
-	public void getID( final OnReceiveValueCallback<Long> onReceiveValueCallback)
-	{
+	public void getID(final OnReceiveValueCallback<Long> onReceiveValueCallback) {
 		String javaScriptString = String.format("%s.getID();", objectInstance);
 		evaluate(javaScriptString, stringID -> {
-			if(!stringID.equals("null")) {
+			if (!stringID.equals("null")) {
 				onReceiveValueCallback.onReceiveValue(Long.parseLong(stringID.substring(0, stringID.length() - 2)));
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
-				onReceiveValueCallback.onReceiveValue(null);
-			}
-		});
-	}
-
-	/**
-	 * Receives coordinates of the given object.
-	 *
-	 * @param onReceiveValueCallback interface - invoked when list of points is available.
-	 */
-	public void getPoints(final OnReceiveValueCallback<List<Point>> onReceiveValueCallback)
-	{
-		String javaScriptString = String.format("%s.getPoints();", objectInstance);
-		evaluate(javaScriptString, stringPoints -> {
-			if(!stringPoints.equals("null")) {
-				List<Point> points;
-				points = PointsUtil.stringToPoints(stringPoints);
-				onReceiveValueCallback.onReceiveValue(points);
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): points not set yet! ");
+			} else {
+				Log.e("Null pointer Exception", "(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): object isn't created yet!");
 				onReceiveValueCallback.onReceiveValue(null);
 			}
 		});
@@ -114,38 +84,15 @@ public class INObject {
 	/**
 	 * Removes object and its instance from frontend server, but do not destroys object class instance in your app.
 	 */
-	public void remove()
-	{
+	protected void erase() {
 		String javaScriptString = String.format("%s.remove();", objectInstance);
 		evaluate(javaScriptString, null);
 	}
 
-	/**
-	 * Checks if point of given coordinates is inside of the object.
-	 *
-	 * @param coordinates checking coordinates
-	 * @param valueCallback interface - invoked when boolean value is available.
-	 */
-	public void isWithin(Coordinates coordinates, final ValueCallback<Boolean> valueCallback)
-	{
-		String javaScriptString = String.format("%s.isWithin(%s);", objectInstance, CoordinatesUtil.coordsToString(coordinates));
-		evaluate(javaScriptString, stringIsWithin -> {
-			if(!stringIsWithin.equals("null")) {
-				valueCallback.onReceiveValue(Boolean.valueOf(stringIsWithin));
-			}
-			else {
-				Log.e("Null pointer Exception","(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): The value can't be determined! ");
-				valueCallback.onReceiveValue(null);
-			}
-		});
-	}
-
-	protected void evaluate(String javaScriptString, ValueCallback<String> valueCallback)
-	{
-		if(Looper.myLooper() == Looper.getMainLooper()) {
+	protected void evaluate(String javaScriptString, ValueCallback<String> valueCallback) {
+		if (Looper.myLooper() == Looper.getMainLooper()) {
 			inMap.evaluateJavascript(javaScriptString, valueCallback);
-		}
-		else {
+		} else {
 			Handler handler = new Handler(Looper.getMainLooper());
 			handler.post(() -> {
 				inMap.evaluateJavascript(javaScriptString, valueCallback);
