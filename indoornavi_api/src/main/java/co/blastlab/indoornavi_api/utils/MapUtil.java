@@ -26,11 +26,10 @@ public class MapUtil {
 			int xDifferenceInPix = scale.start.x - scale.stop.x;
 			int yDifferenceInPix = scale.start.y - scale.stop.y;
 
-			double scaleLengthInPixels = Math.sqrt(xDifferenceInPix*xDifferenceInPix + yDifferenceInPix*yDifferenceInPix);
+			double scaleLengthInPixels = Math.sqrt(xDifferenceInPix * xDifferenceInPix + yDifferenceInPix * yDifferenceInPix);
 			double centimetersPerPixel = scale.realDistance / scaleLengthInPixels;
-			return new Point((int) (Math.round((centimetersPerPixel * point.x))), (int) Math.floor(centimetersPerPixel*point.y));
-		}
-		catch (Exception e) {
+			return new Point((int) (Math.round((centimetersPerPixel * point.x))), (int) Math.floor(centimetersPerPixel * point.y));
+		} catch (Exception e) {
 			Log.e("Parse unit Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 		}
 		return null;
@@ -49,11 +48,10 @@ public class MapUtil {
 			int xDifferenceInPix = scale.start.x - scale.stop.x;
 			int yDifferenceInPix = scale.start.y - scale.stop.y;
 
-			double scaleLengthInPixels = Math.sqrt( xDifferenceInPix*xDifferenceInPix + yDifferenceInPix*yDifferenceInPix );
+			double scaleLengthInPixels = Math.sqrt(xDifferenceInPix * xDifferenceInPix + yDifferenceInPix * yDifferenceInPix);
 			double pixelsPerCentimeter = scaleLengthInPixels / scale.realDistance;
-			return new Point((int) Math.round(pixelsPerCentimeter*point.x), (int) Math.round(pixelsPerCentimeter*point.y));
-		}
-		catch (Exception e) {
+			return new Point((int) Math.round(pixelsPerCentimeter * point.x), (int) Math.round(pixelsPerCentimeter * point.y));
+		} catch (Exception e) {
 			Log.e("Parse unit Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 		}
 		return null;
@@ -68,7 +66,7 @@ public class MapUtil {
 	public static Scale stringToScale(String scaleString) {
 		try {
 			JSONObject jsonObject = new JSONObject(scaleString);
-			if(jsonObject.has("scale")) {
+			if (jsonObject.has("scale")) {
 				jsonObject = jsonObject.getJSONObject("scale");
 			}
 			Scale.Measure measure = jsonObject.getString("measure").equals("METERS") ? Scale.Measure.METERS : Scale.Measure.CENTIMETERS;
@@ -76,8 +74,7 @@ public class MapUtil {
 			Point stop = PointsUtil.stringToPoint(jsonObject.getString("stop"));
 			Point start = PointsUtil.stringToPoint(jsonObject.getString("start"));
 			return new Scale(measure, realDistance, start, stop);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			Log.e("Scale parse Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 		}
 		return null;

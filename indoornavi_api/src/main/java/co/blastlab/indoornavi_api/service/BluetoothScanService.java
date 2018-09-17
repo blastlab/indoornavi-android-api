@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Handler;
@@ -46,7 +47,8 @@ public class BluetoothScanService extends Service {
 	public static final int ACTION_BLUETOOTH_NOT_ENABLED = 2;
 	public static final int ACTION_BLUETOOTH_PERMISSION_NOT_GRANTED = 3;
 	public static final int ACTION_LOCATION_PERMISSION_NOT_GRANTED = 4;
-	public static final int ACTION_POSITION= 5;
+	public static final int ACTION_LOCATION_NOT_ENABLED = 5;
+	public static final int ACTION_POSITION = 6;
 	public static boolean SERVICE_CONNECTED = false;
 
 	private BluetoothManager mBluetoothManager;
@@ -80,14 +82,32 @@ public class BluetoothScanService extends Service {
 					BluetoothAdapter.ERROR);
 				switch (state) {
 					case BluetoothAdapter.STATE_OFF:
-						Log.d(TAG, "Bluetooth Receiver State OFF");
-						Log.d(TAG, "Stopping Service");
+						Log.i(TAG, "Bluetooth Receiver State OFF");
+						Log.i(TAG, "Stopping Service");
 						BluetoothScanService.this.stopSelf();
 						break;
 					case BluetoothAdapter.STATE_ON:
-						if(localization)
+						if (localization)
 							startLocalization();
-						Log.d(TAG, "Bluetooth Receiver State ON");
+						Log.i(TAG, "Bluetooth Receiver State ON");
+						break;
+				}
+			}
+
+			if (action != null && action.equals(LocationManager.KEY_PROVIDER_ENABLED)) {
+
+				final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
+					BluetoothAdapter.ERROR);
+				switch (state) {
+					case BluetoothAdapter.STATE_OFF:
+						Log.i(TAG, "Bluetooth Receiver State OFF");
+						Log.i(TAG, "Stopping Service");
+						BluetoothScanService.this.stopSelf();
+						break;
+					case BluetoothAdapter.STATE_ON:
+						if (localization)
+							startLocalization();
+						Log.i(TAG, "Bluetooth Receiver State ON");
 						break;
 				}
 			}
@@ -96,12 +116,27 @@ public class BluetoothScanService extends Service {
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		BluetoothScanService.SERVICE_CONNECTED = true;
+		Log.e(TAG, "Bind");
+		Log.i(TAG, "Binding Service");
+		if (localization) {
+			startScanning();
+		}
 		return binder;
 	}
 
 	@Override
+	public boolean onUnbind(Intent intent) {
+		Log.e(TAG, "unBind");
+		Log.i(TAG, "unbinding Service");
+		if (localization) {
+			stopScanning();
+		}
+		return BluetoothScanService.SERVICE_CONNECTED = true;
+	}
+
+	@Override
 	public void onCreate() {
+		Log.e(TAG, "create");
 		super.onCreate();
 		this.context = this;
 		registerBluetoothReceiver();
@@ -109,19 +144,19 @@ public class BluetoothScanService extends Service {
 
 	@Override
 	public void onDestroy() {
-		Log.d(TAG, "onDestroy");
+		Log.e(TAG, "onDestroy");
+		Log.i(TAG, "Stopping Service");
 		stopScanning();
 		unregisterBluetoothReceiver();
 		BluetoothScanService.SERVICE_CONNECTED = false;
+
+		clearAll();
 
 		super.onDestroy();
 	}
 
 	public void setHandler(Handler mHandler) {
 		this.mHandler = mHandler;
-		checkSupport();
-		checkBluetoothPermission();
-		checkBluetoothEnable();
 		addDefaultConf();
 	}
 
@@ -132,7 +167,7 @@ public class BluetoothScanService extends Service {
 	}
 
 	private void registerBluetoothReceiver() {
-		Log.d(TAG, "Registering Bluetooth Receiver");
+		Log.i(TAG, "Registering Bluetooth Receiver");
 		IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
 
 		this.registerReceiver(mBluetoothReceiver, intentFilter);
@@ -141,9 +176,9 @@ public class BluetoothScanService extends Service {
 	private void unregisterBluetoothReceiver() {
 		try {
 			this.unregisterReceiver(mBluetoothReceiver);
-			Log.d(TAG, "Bluetooth Receiver Unregistered Successfully");
+			Log.i(TAG, "Bluetooth Receiver Unregistered Successfully");
 		} catch (Exception e) {
-			Log.d(TAG,"Bluetooth Receiver Already Unregistered. Exception : " + e.getLocalizedMessage());
+			Log.i(TAG, "Bluetooth Receiver Already Unregistered. Exception : " + e.getLocalizedMessage());
 		}
 	}
 
@@ -155,14 +190,21 @@ public class BluetoothScanService extends Service {
 	}
 
 	private void checkBluetoothEnable() {
-		if(btScanner != null && mHandler != null) {
+		if (btScanner == null && mHandler != null) {
 			mHandler.obtainMessage(ACTION_BLUETOOTH_NOT_ENABLED, null).sendToTarget();
+		}
+	}
+
+	private void checkLocalizationEnable() {
+		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		if (mHandler != null && locationManager != null && !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+			mHandler.obtainMessage(ACTION_LOCATION_NOT_ENABLED, null).sendToTarget();
 		}
 	}
 
 	private void checkBluetoothPermission() {
 
-		if(mHandler != null) {
+		if (mHandler != null) {
 			int localizationPermission = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
 
 			if (localizationPermission != PackageManager.PERMISSION_GRANTED) {
@@ -179,19 +221,29 @@ public class BluetoothScanService extends Service {
 
 	public void startLocalization() {
 
-		init();
-		startScanning();
-		localization = true;
+		if (!localization) {
+			localization = true;
+			init();
+			startScanning();
+		}
 	}
 
 	public void stopLocalization() {
 
-		stopScanning();
-		localization = false;
+		if (localization) {
+			stopScanning();
+			localization = false;
+		}
 	}
 
-	private void init(){
-		if(btScanner == null) {
+	private void init() {
+
+		checkSupport();
+		checkBluetoothPermission();
+		checkBluetoothEnable();
+		checkLocalizationEnable();
+
+		if (btScanner == null) {
 			mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 			mBluetoothAdapter = mBluetoothManager.getAdapter();
 
@@ -208,11 +260,11 @@ public class BluetoothScanService extends Service {
 
 	private void startScanning() {
 
-		if(btScanner != null) {
+		if (btScanner != null) {
 			AsyncTask.execute(new Runnable() {
 				@Override
 				public void run() {
-					Log.d(TAG,"Start scanning");
+					Log.i(TAG, "Start scanning");
 					btScanner.startScan(getScanFilters(), settings, mLeScanCallback);
 				}
 			});
@@ -220,11 +272,11 @@ public class BluetoothScanService extends Service {
 	}
 
 	private void stopScanning() {
-		if(btScanner != null) {
+		if (btScanner != null) {
 			AsyncTask.execute(new Runnable() {
 				@Override
 				public void run() {
-					Log.d(TAG,"Stopping scanning");
+					Log.i(TAG, "Stopping scanning");
 					btScanner.stopScan(mLeScanCallback);
 				}
 			});
@@ -245,7 +297,7 @@ public class BluetoothScanService extends Service {
 
 			int id = getAnchorIdfromScanResult(result);
 
-			if(anchorConfiguration.indexOfKey(id) >= 0) {
+			if (anchorConfiguration.indexOfKey(id) >= 0) {
 				if (anchorMatrix.indexOfKey(id) < 0) {
 					anchorMatrix.append(id, getAnchor(id));
 					anchorMatrix.get(id).rssiRef = getAnchorTxPowerfromScanResult(result);
@@ -263,19 +315,19 @@ public class BluetoothScanService extends Service {
 		final Handler handler = new Handler();
 		handler.postDelayed(() -> {
 			Position position = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
-				if(position != null) {
-					position.timestamp = new Date().getTime();
-					positionsArray.add(position);
-					sendPositionToactivity(position);
-					executePeriodicTask();
-				} else {
-					isFistPosition = true;
-				}
+			if (position != null) {
+				position.timestamp = new Date();
+				positionsArray.add(position);
+				sendPositionToactivity(position);
+				executePeriodicTask();
+			} else {
+				isFistPosition = true;
+			}
 		}, 3000);
 	}
 
 	private void sendPositionToactivity(Position position) {
-		if(mHandler != null) {
+		if (mHandler != null) {
 			mHandler.obtainMessage(ACTION_POSITION, position).sendToTarget();
 		}
 	}
@@ -290,7 +342,7 @@ public class BluetoothScanService extends Service {
 					try {
 						getPosition();
 					} catch (Exception e) {
-						Log.e("Localization exception", "Position computing failed");
+						Log.e("Localization exception", "Position computing failed: " + e);
 					}
 				});
 			}
@@ -300,9 +352,9 @@ public class BluetoothScanService extends Service {
 
 	private void getPosition() {
 		Position point = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
-		if(point != null) {
+		if (point != null) {
 			Position newPosition = algorithm.getIntersectionCircleLine(getLastKnownPosition(), point);
-			newPosition.timestamp = new Date().getTime();
+			newPosition.timestamp = new Date();
 			positionsArray.add(newPosition);
 			sendPositionToactivity(newPosition);
 		}
@@ -319,7 +371,7 @@ public class BluetoothScanService extends Service {
 	}
 
 	private Position getLastKnownPosition() {
-		return positionsArray.isEmpty() ? null : positionsArray.get(positionsArray.size()-1);
+		return positionsArray.isEmpty() ? null : positionsArray.get(positionsArray.size() - 1);
 	}
 
 	private Anchor getAnchor(int id) {
@@ -336,9 +388,20 @@ public class BluetoothScanService extends Service {
 
 
 	private void addDefaultConf() {
-		anchorConfiguration.append(52865, new Anchor(52865, new Position(7.49, 7.35, 1.80)));
-		anchorConfiguration.append(51855, new Anchor(51855, new Position(0.74, 0.30, 1.80)));
-		anchorConfiguration.append(33413, new Anchor(33413, new Position(12.60, 0.05, 1.80)));
-		anchorConfiguration.append(54694, new Anchor(54694, new Position(11.20, 7.45, 1.80)));
+		anchorConfiguration.append(65014, new Anchor(650014, new Position(32.12, 2.46, 3.00)));
+		anchorConfiguration.append(65008, new Anchor(65008, new Position(36.81, 1.40, 3.00)));
+		anchorConfiguration.append(65021, new Anchor(65021, new Position(32.20, 11.61, 3.00)));
+		anchorConfiguration.append(65007, new Anchor(65007, new Position(37.49, 12.27, 3.00)));
+		anchorConfiguration.append(65012, new Anchor(65012, new Position(24.45, 1.97, 3.00)));
+		anchorConfiguration.append(65018, new Anchor(65018, new Position(29.91, 1.94, 3.00)));
+		anchorConfiguration.append(65016, new Anchor(65016, new Position(24.60, 8.69, 3.00)));
+		anchorConfiguration.append(65019, new Anchor(65019, new Position(29.91, 9.09, 3.00)));
+		anchorConfiguration.append(65015, new Anchor(65015, new Position(34.61, 14.59, 3.00)));
+		anchorConfiguration.append(65011, new Anchor(65011, new Position(24.34, 14.41, 3.00)));
+		anchorConfiguration.append(65017, new Anchor(65017, new Position(16.82, 14.44, 3.00)));
+		anchorConfiguration.append(65020, new Anchor(65020, new Position(1.17, 17.42, 3.00)));
+		anchorConfiguration.append(65003, new Anchor(65003, new Position(7.60, 16.44, 3.00)));
+		anchorConfiguration.append(65006, new Anchor(65006, new Position(1.26, 22.88, 3.00)));
+		anchorConfiguration.append(65009, new Anchor(65009, new Position(7.00, 23.22, 3.00)));
 	}
 }

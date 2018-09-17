@@ -1,6 +1,4 @@
-package co.blastlab.ble_applications.utils;
-
-
+package co.blastlab.indoornavi_api.algorithm.utils;
 
 public class Matrix {
 	private final int M;             // number of rows

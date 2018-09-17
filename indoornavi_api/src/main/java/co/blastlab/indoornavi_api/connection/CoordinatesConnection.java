@@ -16,17 +16,17 @@ public class CoordinatesConnection extends Connection {
 	private String payload;
 
 	public CoordinatesConnection(INMap inMap, String backendServer, Coordinates coordinates) {
-		super(inMap.apiKey, backendServer);
-		this.payload = String.format(Locale.ENGLISH, "[{\"floorId\": %d, \"point\": {\"x\": %d, \"y\": %d}, \"date\": \"%s\", \"phoneId\": %d}]", inMap.floorId, coordinates.x, coordinates.y, getFormattedDate(coordinates.date), coordinates.deviceId);
+		super(inMap.getApiKey(), backendServer);
+		this.payload = String.format(Locale.ENGLISH, "[{\"floorId\": %d, \"point\": {\"x\": %d, \"y\": %d, \"z\": %d}, \"date\": \"%s\", \"phoneId\": %d}]", inMap.getFloorId(), coordinates.x, coordinates.y, coordinates.z, getFormattedDate(coordinates.date), coordinates.deviceId);
 	}
 
 	public CoordinatesConnection(INMap inMap, String backendServer, List<Coordinates> coordinatesList) {
-		super(inMap.apiKey, backendServer);
+		super(inMap.getApiKey(), backendServer);
 
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("[");
 		for (Coordinates coordinates : coordinatesList) {
-			stringBuilder.append(String.format(Locale.ENGLISH, "{\"floorId\": %d, \"point\": {\"x\": %d, \"y\": %d}, \"date\": \"%s\", \"phoneId\": %d}", inMap.floorId, coordinates.x, coordinates.y, getFormattedDate(coordinates.date), coordinates.deviceId));
+			stringBuilder.append(String.format(Locale.ENGLISH, "{\"floorId\": %d, \"point\": {\"x\": %d, \"y\": %d, \"z\": %d}, \"date\": \"%s\", \"phoneId\": %d}", inMap.getFloorId(), coordinates.x, coordinates.y, coordinates.z, getFormattedDate(coordinates.date), coordinates.deviceId));
 		}
 		stringBuilder.deleteCharAt(stringBuilder.length() - 1);
 		stringBuilder.append("]");
@@ -56,7 +56,7 @@ public class CoordinatesConnection extends Connection {
 				throw new Exception("Http Connection Error: " + responseCode);
 			}
 		} catch (Exception e) {
-			Log.e("Response exception", e.getMessage());
+			Log.e("Response exception", e.toString());
 		}
 		return null;
 	}

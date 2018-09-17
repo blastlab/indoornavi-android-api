@@ -30,7 +30,7 @@ public class PhoneModule {
 	 * @return Integer represent id assigned to specific user data
 	 */
 	public short registerPhone(String userData) throws Exception {
-		PhoneConnection phoneConnection = new PhoneConnection(this.inMap.apiKey, this.backendServer);
+		PhoneConnection phoneConnection = new PhoneConnection(inMap.getApiKey(), this.backendServer);
 		String id = phoneConnection.execute(userData).get();
 		if (id != null) {
 			return (short) new JSONObject(id).getInt("id");

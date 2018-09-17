@@ -10,10 +10,12 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.location.LocationManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Vibrator;
+import android.provider.Settings;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
@@ -69,14 +71,14 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private BluetoothScanService bluetoothScanService;
 
 
-	private int floorId = 2;
-	private String frontendServer = "http://192.168.1.29:4200";
-	private String backendServer = "http://192.168.1.29:90";
+	private int floorId = 1;
+	private String frontendServer = "http://172.16.170.20:4200";
+	private String backendServer = "http://172.16.170.20:90";
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
-	private static final int REQUEST_INTERNET= 1;
+	private static final int REQUEST_INTERNET = 1;
 	private static final int REQUEST_ENABLE_BT = 1;
 	private static final int REQUEST_ENABLE_LOCATION = 1;
-	private static String[] PERMISSIONS= {
+	private static String[] PERMISSIONS = {
 		Manifest.permission.INTERNET,
 		Manifest.permission.ACCESS_COARSE_LOCATION,
 		Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -94,11 +96,14 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	List<ExpandedMenuModel> listDataHeader;
 	HashMap<ExpandedMenuModel, List<String>> listDataChild;
 
+	short phoneID = -1;
+
 	private MyHandler mHandler;
 	private final ServiceConnection bluetoothConnection = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName arg0, IBinder arg1) {
-			Log.d("Indoor","Service connected");
+			Log.e("Indoor", "Service connected");
+			BluetoothScanService.SERVICE_CONNECTED = true;
 			bluetoothScanService = ((BluetoothScanService.BluetoothBinder) arg1).getService();
 			bluetoothScanService.setHandler(mHandler);
 		}
@@ -134,6 +139,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		expandableList.setAdapter(mMenuAdapter);
 
 		setNavigationViewListener();
+
+		startService(BluetoothScanService.class, bluetoothConnection);
 	}
 
 	public void createPointsArrayForOffice1() {
@@ -234,11 +241,31 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		});
 	}
 
-	public void saveCoordinates() {
+	public void saveCoordinates(Position position) {
 		try {
 			PhoneModule phoneModule = new PhoneModule(backendServer, inMap);
-			short phoneId = phoneModule.registerPhone("userData");
-			phoneModule.saveCoordinates(new Coordinates(36, 20, phoneId, new Date()));
+
+			if (this.phoneID == -1) {
+				String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+				Log.e("IndoorNavi", "Id: " + androidId);
+				this.phoneID = phoneModule.registerPhone("Android" + androidId);
+			}
+			phoneModule.saveCoordinates(new Coordinates((int) Math.round(position.x * 100), (int) Math.round(position.y * 100), (int) Math.round(position.z * 100), this.phoneID, position.timestamp));
+		} catch (Exception e) {
+			Log.e("IndoorNavi", "Exception");
+		}
+	}
+
+	public void sendCoords() {
+		try {
+			PhoneModule phoneModule = new PhoneModule(backendServer, inMap);
+
+			if (this.phoneID == -1) {
+				String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+				Log.e("IndoorNavi", "Id: " + androidId);
+				this.phoneID = phoneModule.registerPhone("Android" + androidId);
+			}
+			phoneModule.saveCoordinates(new Coordinates(23, 23, 23, this.phoneID, new Date()));
 		} catch (Exception e) {
 			Log.e("IndoorNavi", "Exception");
 		}
@@ -282,14 +309,19 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		}
 	}
 
-	public void drawCircle() {
-		inCircle = new INCircle.INCircleBuilder(inMap)
-			.setPosition(new Point(400, 400))
-			.setRadius(30)
-			.setOpacity(0.3)
-			.setColor(Color.RED)
-			.setBorder(new Border(30, Color.GREEN))
-			.build();
+	public void drawCircle(Point position) {
+		if (inCircle == null) {
+			inCircle = new INCircle.INCircleBuilder(inMap)
+				.setPosition(position)
+				.setRadius(30)
+				.setOpacity(0.3)
+				.setColor(Color.RED)
+				.setBorder(new Border(30, Color.GREEN))
+				.build();
+		} else {
+			inCircle.setPosition(position);
+			inCircle.draw();
+		}
 	}
 
 	public void drawArea(int index) {
@@ -300,7 +332,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			.build();
 
 		if (inArea != null) {
-			inArea.isWithin(new Coordinates(200, 800, (short) 109999, new Date()), bool -> Log.i("Indoor", "Received value: " + bool));
+			inArea.isWithin(new Coordinates(200, 800, 0, (short) 109999, new Date()), bool -> Log.i("Indoor", "Received value: " + bool));
 		}
 	}
 
@@ -435,7 +467,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	public void getLocalization(int index) {
 
 		verifyBluetoothPermissions();
-		switch(index) {
+		switch (index) {
 			case 0:
 				bluetoothScanService.startLocalization();
 				break;
@@ -452,8 +484,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				mDrawerLayout.closeDrawers();
 				switch (groupIndex) {
 					case 0:
-						drawPoly(itemIndex);
-						//drawCircle();
+						sendCoords();
+						//drawPoly(itemIndex);
 						break;
 					case 1:
 						drawArea(itemIndex);
@@ -555,21 +587,20 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	@Override
-	public void onResume() {
-		super.onResume();
-		startService(BluetoothScanService.class, bluetoothConnection);
-	}
-
-	@Override
-	public void onPause() {
-		super.onPause();
-		unbindService(bluetoothConnection);
+	public void onDestroy() {
+		super.onDestroy();
+		Log.e("Indoor", "OnDestroy");
+		if(BluetoothScanService.SERVICE_CONNECTED) {
+			unbindService(bluetoothConnection);
+			BluetoothScanService.SERVICE_CONNECTED = false;
+		}
 	}
 
 	private void startService(Class<?> service, ServiceConnection serviceConnection) {
 		if (!BluetoothScanService.SERVICE_CONNECTED) {
-			Intent bindingIntent = new Intent(this, service);
-			bindService(bindingIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+			Log.e("Indoor", "Start Service");
+			Intent bindingIntent = new Intent(getApplicationContext(), service);
+			getApplicationContext().bindService(bindingIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 		}
 	}
 
@@ -584,24 +615,30 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 				case BluetoothScanService.ACTION_BLUETOOTH_READY:
-					Log.d(BluetoothScanService.TAG, "Bluetooth Ready");
+					Log.e(BluetoothScanService.TAG, "Bluetooth Ready");
 					break;
 				case BluetoothScanService.ACTION_BLUETOOTH_NOT_SUPPORTED:
-					Log.d(BluetoothScanService.TAG, "Bluetooth not supported");
+					Log.e(BluetoothScanService.TAG, "Bluetooth not supported");
 					break;
 				case BluetoothScanService.ACTION_BLUETOOTH_NOT_ENABLED:
-					Log.d(BluetoothScanService.TAG,"Bluetooth not enable");
+					Log.e(BluetoothScanService.TAG, "Bluetooth not enable");
 					mActivity.get().enableBluetooth();
 					break;
+				case BluetoothScanService.ACTION_LOCATION_NOT_ENABLED:
+					Log.e(BluetoothScanService.TAG, "Location not enable");
+					//mActivity.get().enableLocation();
+					break;
 				case BluetoothScanService.ACTION_BLUETOOTH_PERMISSION_NOT_GRANTED:
-					Log.d(BluetoothScanService.TAG,  "Bluetooth Permission not granted");
+					Log.e(BluetoothScanService.TAG, "Bluetooth Permission not granted");
 					break;
 				case BluetoothScanService.ACTION_LOCATION_PERMISSION_NOT_GRANTED:
-					Log.d(BluetoothScanService.TAG,  "Location Permission not granted");
+					Log.e(BluetoothScanService.TAG, "Location Permission not granted");
 					break;
 				case BluetoothScanService.ACTION_POSITION:
 					Position position = (Position) msg.obj;
-					Log.e(BluetoothScanService.TAG,  "Position: x:" + position.x + ", y: " + position.y);
+					Log.e(BluetoothScanService.TAG, "Position: x:" + position.x + ", y: " + position.y);
+					mActivity.get().drawCircle(new Point((int) Math.round(position.x * 100), (int) Math.round(position.y * 100)));
+					mActivity.get().saveCoordinates(position);
 					break;
 			}
 		}
@@ -616,4 +653,12 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
 		}
 	}
+//
+//	private void enableLocation() {
+//		LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+//		if (locationManager != null && !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+//			Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+//			startActivityForResult(enableBtIntent, REQUEST_ENABLE_LOCATION);
+//		}
+//	}
 }

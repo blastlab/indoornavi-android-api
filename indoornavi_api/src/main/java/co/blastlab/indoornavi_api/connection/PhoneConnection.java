@@ -30,7 +30,7 @@ public class PhoneConnection extends Connection {
 				throw new Exception("Http Connection Error: " + responseCode);
 			}
 		} catch (Exception e) {
-			Log.e("Response exception", e.getMessage());
+			Log.e("Response exception", e.toString());
 		}
 		return null;
 	}
