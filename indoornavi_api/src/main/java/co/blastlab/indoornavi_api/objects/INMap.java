@@ -13,16 +13,20 @@ import android.webkit.WebView;
 import java.io.InputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.List;
 import java.util.Locale;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
+import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
+import co.blastlab.indoornavi_api.interfaces.ComplexInterface;
 import co.blastlab.indoornavi_api.interfaces.DataInterface;
 import co.blastlab.indoornavi_api.interfaces.EventListenerInterface;
 import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
 import co.blastlab.indoornavi_api.interfaces.ReportInterface;
+import co.blastlab.indoornavi_api.model.Complex;
 import co.blastlab.indoornavi_api.model.Scale;
 import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.web_view.IndoorWebChromeClient;
@@ -38,6 +42,7 @@ public class INMap extends WebView {
 	ReportInterface reportInterface;
 	EventListenerInterface eventInterface;
 	DataInterface dataInterface;
+	ComplexInterface complexInterface;
 
 	private Context context;
 
@@ -127,6 +132,25 @@ public class INMap extends WebView {
 				}
 				Controller.promiseMapReady.clear();
 			});
+		});
+	}
+
+	/**
+	 * Returns the list of complexes with all building and floors.
+	 *
+	 * @param onReceiveValueCallback interface - invoked when list of complex is available. Return {@List<Complex>} or null if unsuccessful.
+	 */
+	public void getComplex(final OnReceiveValueCallback<List<Complex>> onReceiveValueCallback) {
+		final INMap inMap = this;
+
+		int callbackId = onReceiveValueCallback.hashCode();
+		Controller.ReceiveValueMap.put(callbackId, onReceiveValueCallback);
+
+		String javaScriptString = String.format(Locale.US, "navi.getComplexes(complexes => complexInterface.onComplexes(%d, JSON.stringify(complexes)));", callbackId);
+
+		Handler handler = new Handler(Looper.getMainLooper());
+		handler.post(() -> {
+			inMap.evaluateJavascript(javaScriptString, null);
 		});
 	}
 
@@ -258,5 +282,8 @@ public class INMap extends WebView {
 
 		dataInterface = new DataInterface();
 		this.addJavascriptInterface(dataInterface, "dataInterface");
+
+		complexInterface = new ComplexInterface();
+		this.addJavascriptInterface(complexInterface, "complexInterface");
 	}
 }

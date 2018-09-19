@@ -1270,12 +1270,12 @@ class INMap {
      * Get list of complex, buildings and floors.
      * @returns {Promise} promise that will be resolved when complex list is retrieved.
      */
-    getComplexTree() {
+    getComplexes(callback) {
         const self = this;
         return new Promise(resolve => {
-            Communication.listenOnce(`getComplexTree`, resolve);
+            Communication.listenOnce(`getComplexes`, callback, resolve);
             Communication.send(self.iFrame, self.targetHost, {
-                command: 'getComplexTree'
+                command: 'getComplexes'
             });
         });
     }
@@ -1361,10 +1361,10 @@ class INData {
      */
     constructor(targetHost, apiKey) {
         const authHeader = 'Token ' + apiKey;
-        this.targetHost = targetHost;
-        this.baseUrl = '/rest/v1/';
-        this.http = new Http();
-        this.http.setAuthorization(authHeader);
+        this._targetHost = targetHost;
+        this._baseUrl = '/rest/v1/';
+        this._http = new Http();
+        this._http.setAuthorization(authHeader);
     }
 
     /**
@@ -1374,7 +1374,7 @@ class INData {
      */
     getPaths(floorId) {
         return new Promise((function(resolve) {
-            this.http.doGet(`${this.targetHost}${this.baseUrl}paths/${floorId}`, function(data) {
+            this._http.doGet(`${this._targetHost}${this._baseUrl}paths/${floorId}`, function(data) {
                 resolve(JSON.parse(data));
             });
         }).bind(this));
