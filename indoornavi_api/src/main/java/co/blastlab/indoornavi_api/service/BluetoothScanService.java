@@ -93,30 +93,11 @@ public class BluetoothScanService extends Service {
 						break;
 				}
 			}
-
-			if (action != null && action.equals(LocationManager.KEY_PROVIDER_ENABLED)) {
-
-				final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
-					BluetoothAdapter.ERROR);
-				switch (state) {
-					case BluetoothAdapter.STATE_OFF:
-						Log.i(TAG, "Bluetooth Receiver State OFF");
-						Log.i(TAG, "Stopping Service");
-						BluetoothScanService.this.stopSelf();
-						break;
-					case BluetoothAdapter.STATE_ON:
-						if (localization)
-							startLocalization();
-						Log.i(TAG, "Bluetooth Receiver State ON");
-						break;
-				}
-			}
 		}
 	};
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		Log.e(TAG, "Bind");
 		Log.i(TAG, "Binding Service");
 		if (localization) {
 			startScanning();
@@ -126,7 +107,6 @@ public class BluetoothScanService extends Service {
 
 	@Override
 	public boolean onUnbind(Intent intent) {
-		Log.e(TAG, "unBind");
 		Log.i(TAG, "unbinding Service");
 		if (localization) {
 			stopScanning();
@@ -136,23 +116,21 @@ public class BluetoothScanService extends Service {
 
 	@Override
 	public void onCreate() {
-		Log.e(TAG, "create");
 		super.onCreate();
 		this.context = this;
+		BluetoothScanService.SERVICE_CONNECTED = true;
 		registerBluetoothReceiver();
 	}
 
 	@Override
 	public void onDestroy() {
-		Log.e(TAG, "onDestroy");
+		super.onDestroy();
 		Log.i(TAG, "Stopping Service");
+		BluetoothScanService.SERVICE_CONNECTED = false;
 		stopScanning();
 		unregisterBluetoothReceiver();
-		BluetoothScanService.SERVICE_CONNECTED = false;
 
 		clearAll();
-
-		super.onDestroy();
 	}
 
 	public void setHandler(Handler mHandler) {
@@ -190,7 +168,11 @@ public class BluetoothScanService extends Service {
 	}
 
 	private void checkBluetoothEnable() {
-		if (btScanner == null && mHandler != null) {
+
+		final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+		BluetoothAdapter mBluetoothAdapter = bluetoothManager.getAdapter();
+
+		if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled() && mHandler != null) {
 			mHandler.obtainMessage(ACTION_BLUETOOTH_NOT_ENABLED, null).sendToTarget();
 		}
 	}
