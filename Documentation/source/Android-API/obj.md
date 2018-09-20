@@ -1,6 +1,7 @@
 # __Map Objects__
 
 To create an object you have to use object builder pattern.
+All properties has native getters. 
 
 ## __INPolyline__
 
@@ -9,8 +10,8 @@ Points should be given in real-world dimensions. Additionally, you can specify t
 
 ```java
 INPolyline inPolyline = new INPolyline.INPolylineBuilder(inMap)
-    .points(points)
-    .setLineColor(Color.LTGRAY)
+    .setPoints(points)
+    .setColor(Color.LTGRAY)
     .build();
 ```
 
@@ -25,10 +26,16 @@ Points should be given in real-world dimensions. Additionally, you can change co
 
 ```java
 INArea inArea = new INArea.INAreaBuilder(inMap)
-    .points(points)
-    .setFillColor(Color.GREEN)
+    .setPoints(points)
+    .setColor(Color.GREEN)
     .setOpacity(0.3)
     .build();
+```
+
+Additionaly you can check if given coordinates are located inside area.
+
+```java
+inArea.isWithin(new Coordinates(200, 800, (short)109999, new Date()), bool -> Log.i("Indoor", "Is within: " + bool));
 ```
 
 <br>
@@ -42,7 +49,7 @@ Additionally, you can a add click event on the marker and proper actions.
 
 ```java
 INMarker inMarker = new INMarker.INMarkerBuilder(inMap)
-    .point(new Point(600, 600))
+    .setPosition(new Point(600, 600))
     .setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
     .setLabel("This is label")
     .build();
@@ -67,10 +74,10 @@ Content can be simple HTML code, it gives you a possibility to design your own u
 
 ```java
 INInfoWindow inInfoWindow = new INInfoWindow.INInfoWindowBuilder(inMap)
-    .height(100)
-    .width(100)
-    .setInnerHTML("<h2>Lorem ipsum dolor sit amet</h2>")
-    .setPosition(INInfoWindow.TOP)
+    .setHeight(100)
+    .setWidth(100)
+    .setContent("<h2>Lorem ipsum dolor sit amet</h2>")
+    .setPositionAt(INInfoWindow.Position.TOP)
     .build();
 ```
 
@@ -83,6 +90,24 @@ inMarker.addInfoWindow(inInfoWindow);
 ![image](screenshots/marker.png)
 <br>
 
+## INCircle
+
+An INCircle object represents a circle which can map a specific location. 
+It has the ability to change the color and radius of the circle and customize the border set on the circle.
+
+```java
+INCircle inCircle = new INCircle.INCircleBuilder(inMap)
+	.setPosition(new Point(600, 600))
+	.setRadius(8)
+	.setOpacity(0.3)
+	.setColor(Color.RED)
+	.setBorder(new Border(30, Color.GREEN))
+	.build();
+```
+<br>
+![image](screenshots/circle.png)
+<br>
+
 ## __Objects properties__
 You can retrieve some information about an object, like:
 
@@ -91,14 +116,9 @@ Returns ID of the given object. ID identify object on the backend server.
 ```java
 inPolyline.getID(id -> { Log.i("MyTag", "ID: " + id); });
 ```
-#### Points
-Returns points or point of the given object.
+#### remove
+All objects can be removed from frontend server.
+Calling this method will clear the data of this object.
 ```java
-inPolyline.getPoints(points -> Log.i("MyTag", "Points: " +  PointsUtil.pointsToString(points)));
-```
-
-#### isWithin
-Checks if given Coordinates are inside of the object (functionality refers to the area).  
-```java
-inArea.isWithin(new Coordinates(200, 800, (short)109999, new Date()), bool -> Log.i("Indoor", "Received value: " + bool));
+inArea.remove();
 ```
