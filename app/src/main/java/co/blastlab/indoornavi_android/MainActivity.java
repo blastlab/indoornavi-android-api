@@ -46,8 +46,10 @@ import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
+import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.model.Border;
+import co.blastlab.indoornavi_api.model.Complex;
 import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.objects.INArea;
 import co.blastlab.indoornavi_api.objects.INCircle;
@@ -71,9 +73,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private BluetoothScanService bluetoothScanService;
 
 
-	private int floorId = 1;
-	private String frontendServer = "http://172.16.170.20:4200";
-	private String backendServer = "http://172.16.170.20:90";
+	private int floorId = 2;
+	private String frontendServer = "http://192.168.1.29:4200";
+	private String backendServer = "http://192.168.1.29:90";
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
 	private static final int REQUEST_INTERNET = 1;
 	private static final int REQUEST_ENABLE_BT = 1;
@@ -456,6 +458,15 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		});
 	}
 
+	public void getComplexes() {
+		inMap.getComplex(new OnReceiveValueCallback<List<Complex>>() {
+			@Override
+			public void onReceiveValue(List<Complex> complexes) {
+				Log.e("Indoor", "Complex: " + complexes.get(0).name);
+			}
+		});
+	}
+
 	public void getPaths() {
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		inData.getPaths(floorId, paths -> {
@@ -484,8 +495,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				mDrawerLayout.closeDrawers();
 				switch (groupIndex) {
 					case 0:
-						sendCoords();
-						//drawPoly(itemIndex);
+						drawPoly(itemIndex);
 						break;
 					case 1:
 						drawArea(itemIndex);
@@ -508,6 +518,15 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			@Override
 			public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
 				return false;
+			}
+		});
+	}
+
+	public void getPointPulledToPath() {
+		inMap.pullToPath(new Position(600, 600, 1, new Date()), 1, new OnReceiveValueCallback<Point>() {
+			@Override
+			public void onReceiveValue(Point point) {
+				Log.e("indoor", "point: " + point);
 			}
 		});
 	}
