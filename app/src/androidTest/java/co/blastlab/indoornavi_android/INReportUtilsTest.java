@@ -52,9 +52,9 @@ public class INReportUtilsTest {
 
 		List<Coordinates> coords = new ArrayList<>();
 		try{
-			coords.add(new Coordinates(200,800,(short)10999, dt.parse("2017-04-03T22:00:00.000")));
-			coords.add(new Coordinates(100,700,(short)10999, dt.parse("2017-04-03T22:00:00.000")));
-			coords.add(new Coordinates(500,500,(short)10999, dt.parse("2017-04-03T22:00:00.000")));
+			coords.add(new Coordinates(200,800, 200, (short)10999, dt.parse("2017-04-03T22:00:00.000")));
+			coords.add(new Coordinates(100,700,200, (short)10999, dt.parse("2017-04-03T22:00:00.000")));
+			coords.add(new Coordinates(500,500, 200, (short)10999, dt.parse("2017-04-03T22:00:00.000")));
 		}
 		catch (Exception e) {
 			throw new AssertionError("Parse error, cloud not parse 2017-04-03T22:00:00.000 to Date() format");

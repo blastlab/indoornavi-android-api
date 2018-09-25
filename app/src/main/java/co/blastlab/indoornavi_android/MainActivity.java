@@ -475,6 +475,14 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		);
 	}
 
+	public void getAreas() {
+		INData inData = new INData(inMap, backendServer, "TestAdmin");
+		inData.getAreas(areas -> {
+				Log.i("Indoor", "Received areas: " + areas);
+			}
+		);
+	}
+
 	public void getLocalization(int index) {
 
 		verifyBluetoothPermissions();

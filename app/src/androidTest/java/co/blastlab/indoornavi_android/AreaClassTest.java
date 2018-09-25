@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import co.blastlab.indoornavi_api.INData;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.objects.INArea;
@@ -65,12 +66,13 @@ public class AreaClassTest {
 			Thread thread = new Thread(new Runnable() {
 				public void run() {
 					inArea = new INArea.INAreaBuilder(inMap)
-						.setFillColor(Color.LTGRAY)
-						.points(points)
+						.setColor(Color.LTGRAY)
+						.setPoints(points)
 						.setOpacity(0.3)
 						.build();
 
 					Assert.assertNotNull(inArea);
+
 
 					inArea.getID(new OnReceiveValueCallback<Long>() {
 						@Override
@@ -79,14 +81,7 @@ public class AreaClassTest {
 						}
 					});
 
-					inArea.getPoints(new OnReceiveValueCallback<List<Point>>() {
-						@Override
-						public void onReceiveValue(List<Point> points) {
-							Assert.assertNotNull(points);
-						}
-					});
-
-					inArea.isWithin(new Coordinates(1200, 500, (short) 10999, new Date()), new ValueCallback<Boolean>() {
+					inArea.isWithin(new Coordinates(1200, 500, 500, (short) 10999, new Date()), new ValueCallback<Boolean>() {
 						@Override
 						public void onReceiveValue(Boolean value) {
 							Assert.assertTrue(value);

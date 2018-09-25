@@ -49,41 +49,6 @@ public class CircleClassTest {
 			.setColor(Color.RED)
 			.setBorder(new Border(30, Color.GREEN))
 			.build();
-
-		inCircle.getBorder(new OnReceiveValueCallback<Border>() {
-			@Override
-			public void onReceiveValue(Border border) {
-				Log.i("Indoor", "onReceiveValue: " + border.color + border.width);
-			}
-		});
-
-		inCircle.getColor(new OnReceiveValueCallback<Integer>() {
-			@Override
-			public void onReceiveValue(Integer color) {
-				Log.i("Indoor", "onReceiveValue: " + color);
-			}
-		});
-
-		inCircle.getOpacity(new OnReceiveValueCallback<String>() {
-			@Override
-			public void onReceiveValue(String s) {
-				Log.i("Indoor", "onReceiveValue: " + s);
-			}
-		});
-
-		inCircle.getPosition(new OnReceiveValueCallback<Point>() {
-			@Override
-			public void onReceiveValue(Point point) {
-				Log.i("Indoor", "onReceiveValue: " + PointsUtil.pointToString(point));
-			}
-		});
-
-		inCircle.getRadius(new OnReceiveValueCallback<Integer>() {
-			@Override
-			public void onReceiveValue(Integer integer) {
-				Log.i("Indoor", "onReceiveValue: " + integer);
-			}
-		});
 	}
 
 }

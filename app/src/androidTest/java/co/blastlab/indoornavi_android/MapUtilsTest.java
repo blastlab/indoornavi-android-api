@@ -32,45 +32,46 @@ public class MapUtilsTest {
 		return activity;
 	}
 
-	@Test
-	public void ScaleTest() {
+	public Scale setScale() {
 		inMap = getActivity().findViewById(R.id.webview);
 
-		inMap.waitUntilMapReady( data -> {
+		return MapUtil.stringToScale("{measure: \"CENTYIMETERS\", realDistance: 100, start: {x: 0, y: 0}, stop: {x: 0, y: 250}}");
+	}
 
-			inMap.scale = MapUtil.stringToScale("{measure: \"CENTYIMETERS\", realDistance: 100, start: {x: 0, y: 0}, stop: {x: 0, y: 250}}");
-			Assert.assertNotNull(inMap.scale);
-			Assert.assertEquals(inMap.scale.measure, Scale.Measure.CENTIMETERS);
-			Assert.assertEquals(inMap.scale.realDistance, 100);
-			Assert.assertEquals(inMap.scale.start.x, 0);
-			Assert.assertEquals(inMap.scale.start.y, 0);
-			Assert.assertEquals(inMap.scale.stop.x, 0);
-			Assert.assertEquals(inMap.scale.stop.y, 250);
-		});
+	@Test
+	public void ScaleTest() {
+		Scale scale = setScale();
 
+		Assert.assertNotNull(scale);
+		Assert.assertEquals(scale.measure, Scale.Measure.CENTIMETERS);
+		Assert.assertEquals(scale.realDistance, 100);
+		Assert.assertEquals(scale.start.x, 0);
+		Assert.assertEquals(scale.start.y, 0);
+		Assert.assertEquals(scale.stop.x, 0);
+		Assert.assertEquals(scale.stop.y, 250);
 	}
 
 	@Test
 	public void pixelsToRealDimensionsTest() {
-		ScaleTest();
+		Scale scale = setScale();
 
 		Point point = new Point(10, 10);
 
 		inMap.waitUntilMapReady( data -> {
-			Assert.assertEquals(MapUtil.pixelsToRealDimensions(inMap.scale, point).x, 4);
-			Assert.assertEquals(MapUtil.pixelsToRealDimensions(inMap.scale, point).y, 4);
+			Assert.assertEquals(MapUtil.pixelsToRealDimensions(scale, point).x, 4);
+			Assert.assertEquals(MapUtil.pixelsToRealDimensions(scale, point).y, 4);
 		});
 	}
 
 	@Test
 	public void realDimensionsToPixelsTest() {
-		ScaleTest();
+		Scale scale = setScale();
 
 		Point point = new Point(10, 10);
 
 		inMap.waitUntilMapReady( data -> {
-			Assert.assertEquals(MapUtil.realDimensionsToPixels(inMap.scale, point).x, 25);
-			Assert.assertEquals(MapUtil.realDimensionsToPixels(inMap.scale, point).x, 25);
+			Assert.assertEquals(MapUtil.realDimensionsToPixels(scale, point).x, 25);
+			Assert.assertEquals(MapUtil.realDimensionsToPixels(scale, point).x, 25);
 		});
 	}
 }
