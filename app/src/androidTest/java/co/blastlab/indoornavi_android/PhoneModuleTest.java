@@ -42,8 +42,8 @@ public class PhoneModuleTest {
 
 		inMap = getActivity().findViewById(R.id.webview);
 		Assert.assertNotNull(inMap);
-		inMap.apiKey = "TestAdmin";
-		inMap.floorId = 2;
+		inMap.createMap( "http://192.168.1.29:4200", "TestAdmin", 200, 200);
+		inMap.load(2);
 		phoneModule = new PhoneModule(backendServer, inMap);
 
 	}
@@ -62,7 +62,7 @@ public class PhoneModuleTest {
 
 		INMapCreate();
 		phoneId = phoneModule.registerPhone("userData");
-		String data = phoneModule.saveCoordinates(new Coordinates(36,20, (short) phoneId, new Date()));
-		Assert.assertNotNull(data);
+		Boolean success = phoneModule.saveCoordinates(new Coordinates(36,20, 20,  (short) phoneId, new Date()));
+		Assert.assertNotNull(success);
 	}
 }

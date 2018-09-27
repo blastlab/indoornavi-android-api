@@ -50,7 +50,7 @@ public class INReport {
 			int promiseId = onObjectReadyCallback.hashCode();
 			Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
 
-			String javaScriptString = String.format(Locale.US, "%s.getAreaEvents(%d, new Date(%d), new Date(%d)).then(res => reportInterface.areaEvents(%d, JSON.stringify(res)));", objectInstance, floorId, from.getTime(), to.getTime(), promiseId);
+			String javaScriptString = String.format(Locale.US, "%s.getAreaEvents(%d, new Date(%d), new Date(%d)).then(res => inReportInterface.areaEvents(%d, JSON.stringify(res)));", objectInstance, floorId, from.getTime(), to.getTime(), promiseId);
 
 			webView.evaluateJavascript(javaScriptString, null);
 		}
@@ -73,7 +73,7 @@ public class INReport {
 			int promiseId = onObjectReadyCallback.hashCode();
 			Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
 
-			String javaScriptString = String.format(Locale.US, "%s.getCoordinates(%d, new Date(%d), new Date(%d)).then(res => reportInterface.coordinates(%d, JSON.stringify(res)));", objectInstance, floorId, from.getTime(), to.getTime(), promiseId);
+			String javaScriptString = String.format(Locale.US, "%s.getCoordinates(%d, new Date(%d), new Date(%d)).then(res => inReportInterface.coordinates(%d, JSON.stringify(res)));", objectInstance, floorId, from.getTime(), to.getTime(), promiseId);
 			webView.evaluateJavascript(javaScriptString, null);
 		}
 		else {

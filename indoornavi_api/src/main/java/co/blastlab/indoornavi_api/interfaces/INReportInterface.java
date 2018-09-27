@@ -9,7 +9,7 @@ import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.utils.ReportUtil;
 
-public class ReportInterface {
+public class INReportInterface {
 
 	@JavascriptInterface
 	public void areaEvents(int promiseId, String areaEvents) {

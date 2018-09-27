@@ -9,6 +9,7 @@ import android.support.annotation.StringDef;
 import android.util.AttributeSet;
 import android.util.Log;
 
+import android.webkit.ValueCallback;
 import android.webkit.WebView;
 
 import java.io.InputStream;
@@ -22,12 +23,12 @@ import co.blastlab.indoornavi_api.algorithm.model.Position;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
-import co.blastlab.indoornavi_api.interfaces.ComplexInterface;
-import co.blastlab.indoornavi_api.interfaces.DataInterface;
+import co.blastlab.indoornavi_api.interfaces.INDataInterface;
 import co.blastlab.indoornavi_api.interfaces.EventListenerInterface;
+import co.blastlab.indoornavi_api.interfaces.INMapInterface;
 import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
-import co.blastlab.indoornavi_api.interfaces.ReportInterface;
+import co.blastlab.indoornavi_api.interfaces.INReportInterface;
 import co.blastlab.indoornavi_api.model.Complex;
 import co.blastlab.indoornavi_api.model.Scale;
 import co.blastlab.indoornavi_api.utils.MapUtil;
@@ -41,10 +42,10 @@ public class INMap extends WebView {
 
 	INObjectInterface inObjectInterface;
 	INMarkerInterface inMarkerInterface;
-	ReportInterface reportInterface;
+	INReportInterface INReportInterface;
 	EventListenerInterface eventInterface;
-	DataInterface dataInterface;
-	ComplexInterface complexInterface;
+	INDataInterface INDataInterface;
+	INMapInterface inMapInterface;
 
 	private Context context;
 
@@ -88,7 +89,7 @@ public class INMap extends WebView {
 		Controller.promiseCallbackMap.put(promiseId, onObjectReadyCallback);
 
 		String javaScriptString = String.format(Locale.US, "navi.load(%d).then(() => inObjectInterface.ready(%d));", floorId, promiseId);
-		this.evaluateJavascript(javaScriptString, null);
+		this.evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -106,6 +107,18 @@ public class INMap extends WebView {
 	}
 
 	/**
+	 * Load map of the floor with specific id.
+	 *
+	 * @param floorId - Id of specific floor.
+	 */
+	public void load(int floorId) {
+		this.floorId = floorId;
+		this.ready(floorId, (object) -> {
+			getMapDimensions();
+		});
+	}
+
+	/**
 	 * Add listener to react when the long click event occurs.
 	 *
 	 * @param onEventListener interface - trigger when the event occurs.
@@ -117,7 +130,7 @@ public class INMap extends WebView {
 			Controller.eventListenerMap.put(eventId, onEventListener);
 
 			String javaScriptString = String.format(Locale.US, "navi.addMapLongClickListener(res => eventInterface.onClickEvent(%s, JSON.stringify(res)));", eventId);
-			this.evaluateJavascript(javaScriptString, null);
+			this.evaluate(javaScriptString, null);
 		});
 	}
 
@@ -125,15 +138,12 @@ public class INMap extends WebView {
 
 		final INMap inMap = this;
 		String javaScriptString = "navi.parameters;";
-		Handler handler = new Handler(Looper.getMainLooper());
-		handler.post(() -> {
-			inMap.evaluateJavascript(javaScriptString, data -> {
-				inMap.scale = MapUtil.stringToScale(data);
-				for (OnObjectReadyCallback readyCallback : Controller.promiseMapReady) {
-					readyCallback.onReady(null);
-				}
-				Controller.promiseMapReady.clear();
-			});
+		inMap.evaluate(javaScriptString, data -> {
+			inMap.scale = MapUtil.stringToScale(data);
+			for (OnObjectReadyCallback readyCallback : Controller.promiseMapReady) {
+				readyCallback.onReady(null);
+			}
+			Controller.promiseMapReady.clear();
 		});
 	}
 
@@ -148,18 +158,14 @@ public class INMap extends WebView {
 		int callbackId = onReceiveValueCallback.hashCode();
 		Controller.ReceiveValueMap.put(callbackId, onReceiveValueCallback);
 
-		String javaScriptString = String.format(Locale.US, "navi.getComplexes(complexes => complexInterface.onComplexes(%d, JSON.stringify(complexes)));", callbackId);
-
-		Handler handler = new Handler(Looper.getMainLooper());
-		handler.post(() -> {
-			inMap.evaluateJavascript(javaScriptString, null);
-		});
+		String javaScriptString = String.format(Locale.US, "navi.getComplexes(complexes => inMapInterface.onComplexes(%d, JSON.stringify(complexes)));", callbackId);
+		inMap.evaluate(javaScriptString, null);
 	}
 
 	/**
 	 * Get closest coordinates on floor path for given point
 	 *
-	 * @param position point coordinates in real dimensions
+	 * @param position               point coordinates in real dimensions
 	 * @param onReceiveValueCallback interface - invoked when calculated point is available. Return {@link Point} or null if unsuccessful.
 	 */
 	public void pullToPath(Position position, int accuracy, final OnReceiveValueCallback<Point> onReceiveValueCallback) {
@@ -168,12 +174,8 @@ public class INMap extends WebView {
 		int callbackId = onReceiveValueCallback.hashCode();
 		Controller.ReceiveValueMap.put(callbackId, onReceiveValueCallback);
 
-		String javaScriptString = String.format(Locale.US, "navi.pullToPath({x: %d, y: %d}, %d).then(pulledPoint => dataInterface.pulledPoint(%d, JSON.stringify(pulledPoint)));", Math.round(position.x), Math.round(position.y), accuracy, callbackId);
-
-		Handler handler = new Handler(Looper.getMainLooper());
-		handler.post(() -> {
-			inMap.evaluateJavascript(javaScriptString, null);
-		});
+		String javaScriptString = String.format(Locale.US, "navi.pullToPath({x: %d, y: %d}, %d).then(pulledPoint => inMapInterface.pulledPoint(%d, JSON.stringify(pulledPoint)));", Math.round(position.x), Math.round(position.y), accuracy, callbackId);
+		inMap.evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -250,7 +252,7 @@ public class INMap extends WebView {
 			Controller.eventListenerMap.put(eventId, onEventListener);
 
 			String javaScriptString = String.format(Locale.US, "navi.addEventListener(Event.LISTENER.%s, res => eventInterface.onEvent(%d, \"%s\", JSON.stringify(res)));", event, eventId, event);
-			this.evaluateJavascript(javaScriptString, null);
+			this.evaluate(javaScriptString, null);
 		});
 	}
 
@@ -262,13 +264,13 @@ public class INMap extends WebView {
 	public void toggleTagVisibility(short tagId) {
 		waitUntilMapReady((object) -> {
 			String javaScriptString = String.format(Locale.US, "navi.toggleTagVisibility(%d);", tagId);
-			this.evaluateJavascript(javaScriptString, null);
+			this.evaluate(javaScriptString, null);
 		});
 	}
 
 	private void JS_InMapCreate() {
 		String javaScriptString = String.format(Locale.US, "var navi = new INMap(\"%s\",\"%s\",\"map\",{width:%d,height:%d});", targetHost, apiKey, weight, height);
-		this.evaluateJavascript(javaScriptString, null);
+		this.evaluate(javaScriptString, null);
 	}
 
 	private void loadWebViewFromAssets() {
@@ -296,16 +298,28 @@ public class INMap extends WebView {
 		inMarkerInterface = new INMarkerInterface();
 		this.addJavascriptInterface(inMarkerInterface, "inMarkerInterface");
 
-		reportInterface = new ReportInterface();
-		this.addJavascriptInterface(reportInterface, "reportInterface");
+		INReportInterface = new INReportInterface();
+		this.addJavascriptInterface(INReportInterface, "inReportInterface");
 
 		eventInterface = new EventListenerInterface();
 		this.addJavascriptInterface(eventInterface, "eventInterface");
 
-		dataInterface = new DataInterface();
-		this.addJavascriptInterface(dataInterface, "dataInterface");
+		INDataInterface = new INDataInterface();
+		this.addJavascriptInterface(INDataInterface, "inDataInterface");
 
-		complexInterface = new ComplexInterface();
-		this.addJavascriptInterface(complexInterface, "complexInterface");
+		inMapInterface = new INMapInterface();
+		this.addJavascriptInterface(inMapInterface, "inMapInterface");
+	}
+
+	private void evaluate(String javaScriptString, ValueCallback<String> valueCallback) {
+		if (Looper.myLooper() == Looper.getMainLooper()) {
+			this.evaluateJavascript(javaScriptString, valueCallback);
+		} else {
+			Handler handler = new Handler(Looper.getMainLooper());
+			handler.post(() -> {
+				this.evaluateJavascript(javaScriptString, valueCallback);
+			});
+
+		}
 	}
 }

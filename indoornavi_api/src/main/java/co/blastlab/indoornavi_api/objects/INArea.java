@@ -21,15 +21,18 @@ public class INArea extends INObject {
 
 	private INMap inMap;
 	private List<Point> points;
-	private @ColorInt int color;
-	private @FloatRange(from = 0.0, to = 1.0) double opacity;
+	private @ColorInt
+	int color;
+	private @FloatRange(from = 0.0, to = 1.0)
+	double opacity;
+	private String name;
 
 	/**
 	 * INArea constructor
 	 *
 	 * @param inMap INMap object instance
 	 */
-	private INArea(INMap inMap) {
+	protected INArea(INMap inMap) {
 		super(inMap);
 		this.inMap = inMap;
 		this.objectInstance = String.format("area%s", this.hashCode());
@@ -84,7 +87,8 @@ public class INArea extends INObject {
 	/**
 	 * @return color value represent as an Integer.
 	 */
-	public @ColorInt int getColor() {
+	public @ColorInt
+	int getColor() {
 		return this.color;
 	}
 
@@ -102,8 +106,13 @@ public class INArea extends INObject {
 	/**
 	 * @return opacity of the area, represented as a Float value in range 0.0 - 1.0.
 	 */
-	public @FloatRange(from = 0.0, to = 1.0) double getOpacity() {
+	public @FloatRange(from = 0.0, to = 1.0)
+	double getOpacity() {
 		return this.opacity;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	/**
@@ -122,6 +131,10 @@ public class INArea extends INObject {
 				valueCallback.onReceiveValue(null);
 			}
 		});
+	}
+
+	public static INArea createDefault(INMap inMap) {
+		return new INArea(inMap);
 	}
 
 	/**
@@ -156,6 +169,11 @@ public class INArea extends INObject {
 
 		public INAreaBuilder setOpacity(@FloatRange(from = 0.0, to = 1.0) double opacity) {
 			inArea.setOpacity(opacity);
+			return this;
+		}
+
+		public INAreaBuilder setName(String name) {
+			inArea.setName(name);
 			return this;
 		}
 

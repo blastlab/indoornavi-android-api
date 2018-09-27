@@ -370,7 +370,7 @@ public class BluetoothScanService extends Service {
 
 
 	private void addDefaultConf() {
-		anchorConfiguration.append(65014, new Anchor(650014, new Position(32.12, 2.46, 3.00)));
+		anchorConfiguration.append(65014, new Anchor(65014, new Position(32.12, 2.46, 3.00)));
 		anchorConfiguration.append(65008, new Anchor(65008, new Position(36.81, 1.40, 3.00)));
 		anchorConfiguration.append(65021, new Anchor(65021, new Position(32.20, 11.61, 3.00)));
 		anchorConfiguration.append(65007, new Anchor(65007, new Position(37.49, 12.27, 3.00)));

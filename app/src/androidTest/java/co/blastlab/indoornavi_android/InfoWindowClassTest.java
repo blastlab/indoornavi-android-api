@@ -43,7 +43,6 @@ public class InfoWindowClassTest {
 	@Test
 	public void INInfoWindowCreateTest()
 	{
-		final Object syncObject = new Object();
 		inMap = getActivity().findViewById(R.id.webview);
 
 		point = new Point(480, 480);
@@ -53,10 +52,10 @@ public class InfoWindowClassTest {
 			Thread thread = new Thread(new Runnable() {
 				public void run() {
 					inInfoWindow = new INInfoWindow.INInfoWindowBuilder(inMap)
-						.height(40)
-						.width(40)
-						.setInnerHTML("<h2>Lorem ipsum dolor sit amet</h2>")
-						.setPosition(INInfoWindow.TOP)
+						.setHeight(40)
+						.setWidth(40)
+						.setContent("<h2>Lorem ipsum dolor sit amet</h2>")
+						.setPositionAt(INInfoWindow.Position.LEFT)
 						.build();
 
 					Assert.assertNotNull(inInfoWindow);
@@ -68,35 +67,9 @@ public class InfoWindowClassTest {
 						}
 					});
 
-					inInfoWindow.getPoints(new OnReceiveValueCallback<List<Point>>() {
-						@Override
-						public void onReceiveValue(List<Point> points) {
-							Assert.assertNull(points);
-						}
-					});
-
-					inInfoWindow.isWithin(new Coordinates(200, 400, (short) 10999, new Date()), new ValueCallback<Boolean>() {
-						@Override
-						public void onReceiveValue(Boolean value) {
-							Assert.assertNull(value);
-
-							synchronized (syncObject) {
-								syncObject.notify();
-							}
-						}
-					});
-
 				}
 			});
 			thread.start();
 		});
-
-		try {
-			synchronized (syncObject) {
-				syncObject.wait();
-			}
-		} catch (Exception e) {
-			Log.e("Indoornavi test", "Test fail!");
-		}
 	}
 }
