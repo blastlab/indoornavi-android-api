@@ -26,6 +26,7 @@ import co.blastlab.indoornavi_api.interfaces.ComplexInterface;
 import co.blastlab.indoornavi_api.interfaces.DataInterface;
 import co.blastlab.indoornavi_api.interfaces.EventListenerInterface;
 import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
+import co.blastlab.indoornavi_api.interfaces.INNavigationInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
 import co.blastlab.indoornavi_api.interfaces.ReportInterface;
 import co.blastlab.indoornavi_api.model.Complex;
@@ -45,6 +46,7 @@ public class INMap extends WebView {
 	EventListenerInterface eventInterface;
 	DataInterface dataInterface;
 	ComplexInterface complexInterface;
+	INNavigationInterface inNavigationInterface;
 
 	private Context context;
 
@@ -307,5 +309,8 @@ public class INMap extends WebView {
 
 		complexInterface = new ComplexInterface();
 		this.addJavascriptInterface(complexInterface, "complexInterface");
+
+		inNavigationInterface = new INNavigationInterface();
+		this.addJavascriptInterface(inNavigationInterface, "inNavigationInterface");
 	}
 }

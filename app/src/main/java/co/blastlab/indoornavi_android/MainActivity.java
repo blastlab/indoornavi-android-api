@@ -39,12 +39,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import co.blastlab.indoornavi_api.INData;
+import co.blastlab.indoornavi_api.INNavigation;
 import co.blastlab.indoornavi_api.INReport;
 import co.blastlab.indoornavi_api.PhoneModule;
 import co.blastlab.indoornavi_api.algorithm.model.Position;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
+import co.blastlab.indoornavi_api.callback.OnNavigationMessageReceive;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.model.AreaEvent;
@@ -527,6 +529,16 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			@Override
 			public void onReceiveValue(Point point) {
 				Log.e("indoor", "point: " + point);
+			}
+		});
+	}
+
+	private void setNavigation() {
+		INNavigation inNavigation =  new INNavigation(this, this.inMap);
+		inNavigation.startNavigation(new Point(600, 600), new Point(2, 2), 2, new OnNavigationMessageReceive<String>() {
+			@Override
+			public void onMessageReceive(String message) {
+				Log.e("indoor", "message: " + message);
 			}
 		});
 	}
