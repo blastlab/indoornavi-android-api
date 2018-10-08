@@ -5,6 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Point;
+import android.os.Handler;
+import android.os.Looper;
+import android.webkit.ValueCallback;
 
 import java.util.Locale;
 
@@ -45,7 +48,7 @@ public class INNavigation {
 		this.inMap = inMap;
 
 		String javaScriptString = String.format("var %s = new INNavigation(navi);", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	public void startNavigation(Point startPoint, Point destinationPoint, int accuracy, OnNavigationMessageReceive<String> onNavigationMessageReceive) {
@@ -60,13 +63,13 @@ public class INNavigation {
 		Controller.navigationMessageMap.put(eventId, onNavigationMessageReceive);
 
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.start({x: %d, y: %d}, {x: %d, y: %d}, %d, action => inNavigationInterface.onMessageReceive(%d, JSON.stringify(action)));", objectInstance, startPoint.x, startPoint.y, destinationPoint.x, destinationPoint.y, accuracy, eventId);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	private void updateActualLocation(Point position) {
 		lastPosition = position;
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.updatePosition({x: %d, y: %d});", objectInstance, position.x, position.y);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	public void stopNavigation() {
@@ -74,7 +77,7 @@ public class INNavigation {
 		Controller.navigationMessageMap.remove(onNavigationMessageReceive.hashCode());
 
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.stop();", objectInstance);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	public void restertNavigation() {
@@ -95,5 +98,17 @@ public class INNavigation {
 			ex.printStackTrace();
 		}
 
+	}
+
+	private void evaluate(String javaScriptString, ValueCallback<String> valueCallback) {
+		if (Looper.myLooper() == Looper.getMainLooper()) {
+			inMap.evaluateJavascript(javaScriptString, valueCallback);
+		} else {
+			Handler handler = new Handler(Looper.getMainLooper());
+			handler.post(() -> {
+				inMap.evaluateJavascript(javaScriptString, valueCallback);
+			});
+
+		}
 	}
 }

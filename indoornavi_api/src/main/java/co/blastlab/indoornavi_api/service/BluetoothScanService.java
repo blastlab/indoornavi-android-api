@@ -304,7 +304,7 @@ public class BluetoothScanService extends Service {
 			if (position != null) {
 				position.timestamp = new Date();
 				positionsArray.add(position);
-				sendPositionToactivity(position);
+				sendPositionToActivity(position);
 				executePeriodicTask();
 			} else {
 				isFistPosition = true;
@@ -312,7 +312,7 @@ public class BluetoothScanService extends Service {
 		}, 3000);
 	}
 
-	private void sendPositionToactivity(Position position) {
+	private void sendPositionToActivity(Position position) {
 		if (mHandler != null) {
 			mHandler.obtainMessage(ACTION_POSITION, position).sendToTarget();
 			sendBroadcastPosition(position);
@@ -343,7 +343,7 @@ public class BluetoothScanService extends Service {
 			Position newPosition = algorithm.getIntersectionCircleLine(getLastKnownPosition(), point);
 			newPosition.timestamp = new Date();
 			positionsArray.add(newPosition);
-			sendPositionToactivity(newPosition);
+			sendPositionToActivity(newPosition);
 		}
 	}
 
