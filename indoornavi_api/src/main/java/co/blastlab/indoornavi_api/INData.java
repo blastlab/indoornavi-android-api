@@ -44,15 +44,14 @@ public class INData {
 	/**
 	 * Retrieve list of paths.
 	 *
-	 * @param floorId                - id of the floor you want to get paths from
 	 * @param onReceiveValueCallback - callback interface invoke when {@link Path} list is ready
 	 */
-	public void getPaths(int floorId, OnReceiveValueCallback<List<Path>> onReceiveValueCallback) {
+	public void getPaths(OnReceiveValueCallback<List<Path>> onReceiveValueCallback) {
 
 		int promiseId = onReceiveValueCallback.hashCode();
 		Controller.ReceiveValueMap.put(promiseId, onReceiveValueCallback);
 
-		String javaScriptString = String.format(Locale.US, "%s.getPaths(%d).then(res => inDataInterface.pathsData(%d, JSON.stringify(res)));", objectInstance, floorId, promiseId);
+		String javaScriptString = String.format(Locale.US, "%s.getPaths(%d).then(res => inDataInterface.pathsData(%d, JSON.stringify(res)));", objectInstance, this.inMap.getFloorId(), promiseId);
 		inMap.evaluateJavascript(javaScriptString, null);
 	}
 

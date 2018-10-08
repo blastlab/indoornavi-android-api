@@ -1165,11 +1165,10 @@ class INMap {
      * @param {string} containerId of DOM element which will be used to create iframe with map
      * @param {object} config {width: number, height: number} of the iframe in pixels
      */
-    constructor(targetHost, apiKey, containerId, config) {
+    constructor(targetHost, apiKey, containerId) {
         this.targetHost = targetHost;
         this.apiKey = apiKey;
         this.containerId = containerId;
-        this.config = config;
         this.parameters = null;
         this.iFrame = null;
     }

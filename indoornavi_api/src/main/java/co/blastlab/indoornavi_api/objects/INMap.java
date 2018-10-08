@@ -233,14 +233,10 @@ public class INMap extends WebView {
 	 *
 	 * @param targetHost address to the frontend server
 	 * @param apiKey     the API key created on server
-	 * @param height     height of the iframe in pixels
-	 * @param weight     weight of the iframe in pixels
 	 */
-	public void createMap(String targetHost, String apiKey, int weight, int height) {
+	public void createMap(String targetHost, String apiKey) {
 		this.targetHost = targetHost;
 		this.apiKey = apiKey;
-		this.weight = weight;
-		this.height = height;
 
 		JS_InMapCreate();
 	}
@@ -275,7 +271,7 @@ public class INMap extends WebView {
 	}
 
 	private void JS_InMapCreate() {
-		String javaScriptString = String.format(Locale.US, "var navi = new INMap(\"%s\",\"%s\",\"map\",{width:%d,height:%d});", targetHost, apiKey, weight, height);
+		String javaScriptString = String.format(Locale.US, "var navi = new INMap(\"%s\",\"%s\",\"map\");", targetHost, apiKey);
 		this.evaluate(javaScriptString, null);
 	}
 

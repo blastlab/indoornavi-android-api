@@ -207,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-		inMap.createMap(frontendServer, "TestAdmin", metrics.widthPixels - 250, metrics.heightPixels - 200);
+		inMap.createMap(frontendServer, "TestAdmin");
 		inMap.load(floorId, new OnObjectReadyCallback() {
 			@Override
 			public void onReady(Object o) {
@@ -427,7 +427,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void createAreaEventsReport(INReport inReport) {
-		INReport.getAreaEvents(floorId, new Date(1428105600), new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {
+		INReport.getAreaEvents(new Date(1428105600), new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {
 			@Override
 			public void onReady(List<AreaEvent> areaEvents) {
 				String msg;
@@ -443,7 +443,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void createCoordinatesReport(INReport inReport) {
-		inReport.getCoordinates(floorId, new Date(1428105600), new Date(), new OnObjectReadyCallback<List<Coordinates>>() {
+		inReport.getCoordinates(new Date(1428105600), new Date(), new OnObjectReadyCallback<List<Coordinates>>() {
 			@Override
 			public void onReady(List<Coordinates> coordinates) {
 				String msg;
@@ -469,7 +469,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void getPaths() {
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
-		inData.getPaths(floorId, paths -> {
+		inData.getPaths(paths -> {
 				Log.i("Indoor", "Received path: " + paths);
 			}
 		);
