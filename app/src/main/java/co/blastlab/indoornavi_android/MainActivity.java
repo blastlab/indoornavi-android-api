@@ -74,8 +74,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 
 	private int floorId = 2;
-	private String frontendServer = "http://192.168.1.29:4200";
-	private String backendServer = "http://192.168.1.29:90";
+	private String frontendServer = "http://172.16.170.50:4200";
+	private String backendServer = "http://172.16.170.50:90";
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
 	private static final int REQUEST_INTERNET = 1;
 	private static final int REQUEST_ENABLE_BT = 1;
@@ -653,7 +653,6 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 					break;
 				case BluetoothScanService.ACTION_LOCATION_NOT_ENABLED:
 					Log.e(BluetoothScanService.TAG, "Location not enable");
-					//mActivity.get().enableLocation();
 					break;
 				case BluetoothScanService.ACTION_BLUETOOTH_PERMISSION_NOT_GRANTED:
 					Log.e(BluetoothScanService.TAG, "Bluetooth Permission not granted");

@@ -1306,8 +1306,7 @@ class INMap {
     _setIFrame(mapId) {
         if (!this.iFrame) {
             const iFrame = document.createElement('iframe');
-            iFrame.style.width = `${!!this.config.width ? this.config.width : 640}px`;
-            iFrame.style.height = `${!!this.config.height ? this.config.height : 480}px`;
+            iFrame.className = 'map-iframe';
             DOM.getById(this.containerId).appendChild(iFrame);
             this.iFrame = iFrame;
         } else {

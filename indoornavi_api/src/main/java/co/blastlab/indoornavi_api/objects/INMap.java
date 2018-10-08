@@ -10,6 +10,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 
 import android.webkit.ValueCallback;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import java.io.InputStream;
@@ -210,16 +211,21 @@ public class INMap extends WebView {
 		this.setWebViewClient(new IndoorWebViewClient());
 		this.setWebChromeClient(new IndoorWebChromeClient());
 
+		this.getSettings().setAppCacheMaxSize(500 * 1024 * 1024 ); // 50MB
+		this.getSettings().setAppCachePath( this.context.getCacheDir().getAbsolutePath() );
+		this.getSettings().setAllowFileAccess( true );
+		this.getSettings().setAppCacheEnabled( true );
+		this.getSettings().setJavaScriptEnabled( true );
+
+		this.getSettings().setCacheMode( WebSettings.LOAD_CACHE_ELSE_NETWORK );
+
 		this.getSettings().setJavaScriptEnabled(true);
 		this.getSettings().setDomStorageEnabled(true);
 		this.getSettings().setUseWideViewPort(true);
 		this.getSettings().setLoadWithOverviewMode(true);
-		this.getSettings().setUseWideViewPort(true);
 
-		this.getSettings().setAllowFileAccess(false);
-		this.getSettings().setAllowFileAccessFromFileURLs(false);
 		this.getSettings().setAllowUniversalAccessFromFileURLs(true);
-		this.getSettings().setAllowContentAccess(false);
+		this.getSettings().setAllowContentAccess(true);
 	}
 
 	/**
