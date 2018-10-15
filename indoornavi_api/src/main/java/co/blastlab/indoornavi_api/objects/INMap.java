@@ -52,7 +52,6 @@ public class INMap extends WebView {
 
 	private String targetHost;
 	private String apiKey;
-	private int height, weight;
 	private int floorId;
 	private Scale scale;
 
@@ -211,13 +210,13 @@ public class INMap extends WebView {
 		this.setWebViewClient(new IndoorWebViewClient());
 		this.setWebChromeClient(new IndoorWebChromeClient());
 
-		this.getSettings().setAppCacheMaxSize(500 * 1024 * 1024 ); // 50MB
-		this.getSettings().setAppCachePath( this.context.getCacheDir().getAbsolutePath() );
+		this.getSettings().setAppCacheMaxSize(500 * 1024 * 1024 ); // 500 MB
+		this.getSettings().setAppCachePath(this.context.getFilesDir().getAbsolutePath());
 		this.getSettings().setAllowFileAccess( true );
 		this.getSettings().setAppCacheEnabled( true );
 		this.getSettings().setJavaScriptEnabled( true );
 
-		this.getSettings().setCacheMode( WebSettings.LOAD_CACHE_ELSE_NETWORK );
+		this.getSettings().setCacheMode( WebSettings.LOAD_DEFAULT);
 
 		this.getSettings().setJavaScriptEnabled(true);
 		this.getSettings().setDomStorageEnabled(true);

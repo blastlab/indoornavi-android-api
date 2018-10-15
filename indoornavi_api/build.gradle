@@ -38,11 +38,10 @@ configurations {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:27.+'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation ('com.android.support:support-annotations:27.+') {
         transitive true
     }
-    javadocDeps "com.android.support:support-annotations:27.+"
     testImplementation 'junit:junit:4.12'
 
 }
