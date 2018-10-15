@@ -496,6 +496,19 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		}
 	}
 
+
+	private void listAll() {
+		try {
+			String[] list = getFilesDir().list();
+			Log.e("Files", "Size: " + list.length);
+			for (int i = 0; i < list.length; i++) {
+				Log.e("Files", "FileName:" + list[i]);
+			}
+		} catch (Exception e) {
+
+		}
+	}
+
 	public void setNavigationViewListener() {
 		expandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
 			@Override
@@ -503,7 +516,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				mDrawerLayout.closeDrawers();
 				switch (groupIndex) {
 					case 0:
-						drawPoly(itemIndex);
+						listAll();
+						//drawPoly(itemIndex);
 						break;
 					case 1:
 						drawArea(itemIndex);
