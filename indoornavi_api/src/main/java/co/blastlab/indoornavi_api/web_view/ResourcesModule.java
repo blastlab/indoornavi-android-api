@@ -1,39 +1,24 @@
 package co.blastlab.indoornavi_api.web_view;
 
-import android.content.Context;
 import android.os.AsyncTask;
-
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.util.Map;
+import android.util.Log;
 
 public class ResourcesModule extends AsyncTask<String, String, String> {
 
-	private Context context;
-	private Map<String,String> headers;
-	String requestHashCode;
+	HttpDownloadResource httpDownloadResource;
 
-	private HttpURLConnection httpConnection;
-
-	public ResourcesModule(Context context, Map<String,String> headers, String requestHashCode) {
-		this.context = context;
-		this.headers = headers;
-		this.requestHashCode = requestHashCode;
+	public ResourcesModule(HttpDownloadResource httpDownloadResource) {
+		this.httpDownloadResource = httpDownloadResource;
 	}
 
 	@Override
 	protected String doInBackground(String... param) {
-
-		String fileURL = param[0];
-		String saveDir = this.context.getFilesDir().getAbsolutePath();
-
 		try {
-			HttpDownloadUtility.downloadFile(fileURL, headers, saveDir, requestHashCode);
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
+			this.httpDownloadResource.downloadFile();
 
+		} catch (Exception e) {
+			Log.e("ResourcesModule", httpDownloadResource.fileURL + " " + e.toString());
+		}
 		return null;
 	}
-
 }
