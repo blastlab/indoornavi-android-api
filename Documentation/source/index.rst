@@ -33,6 +33,7 @@ API was created to trace and control tag movements.
 	Android-API/map
 	Android-API/obj
 	Android-API/inter
+	Android-API/data
 	Android-API/algo
 
 .. toctree::
