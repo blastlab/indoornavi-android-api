@@ -11,9 +11,12 @@ class Communication {
         }, false);
     }
 
-    static listenOnce(eventName, callback, resolve) {
+    static listenOnce(eventName, callback, resolve, tempId) {
         function handler(event) {
-            if (event.data.hasOwnProperty('type') && event.data.type === eventName && !!event.data['mapObjectId']) {
+            if (event.data.hasOwnProperty('type') &&
+                event.data.type === eventName &&
+                event.data.tempId === tempId
+            ) {
                 window.removeEventListener('message', handler, false);
                 callback(event.data);
                 resolve();
@@ -107,6 +110,29 @@ class MapUtils {
 			throw new Error('Unable to calculate coordinates. Missing information about map scale!');
 		}
 	}
+
+	static pointIsWithinGivenArea(point, areaPoints) {
+        let inside = false;
+        let intersect = false;
+        let xi, yi, xj, yj = null;
+
+        if (areaPoints === null) {
+            throw new Error('points of the object are null');
+        }
+        for (let i = 0, j = areaPoints.length - 1; i < areaPoints.length; j = i++) {
+            xi = areaPoints[i].x;
+            yi = areaPoints[i].y;
+
+            xj = areaPoints[j].x;
+            yj = areaPoints[j].y;
+
+            intersect = ((yi > point.y) !== (yj > point.y)) && (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi);
+            if (intersect) {
+                inside = !inside;
+            }
+        }
+        return inside;
+	}
 }
 
 class Validation {
@@ -182,6 +208,20 @@ class Validation {
             throw new Error(errorMessage);
         }
     }
+
+    static isPoint(point, errorMessage) {
+        if (point.x === null || point.y === null || point.x === undefined || point.y === undefined) {
+            throw new Error(errorMessage);
+        }
+        Validation.isInteger(point.x, errorMessage);
+        Validation.isInteger(point.y, errorMessage);
+    }
+
+    static isFunction(callback, errorMessage) {
+        if (typeof callback !== "function") {
+            throw new Error(errorMessage)
+        }
+    }
 }
 
 /**
@@ -228,12 +268,12 @@ class AreaPayload {
      * Area payload
      *  @param {number} id unique given area id number
      *  @param {string} name not unique given area name
-     *  @param {array} pointsList as array of {@link Point}
+     *  @param {array} points as array of {@link Point}
      */
-    constructor(id, name, pointsList) {
+    constructor(id, name, points) {
         this.id = id;
         this.name = name;
-        this.points = pointsList
+        this.points = points
     }
 }
 
@@ -407,9 +447,9 @@ class INMapObject {
 
         function setObject(data) {
             if(data.hasOwnProperty('mapObjectId')) {
-                self._id = data.mapObjectId;
+                this._id = data.mapObjectId;
             } else {
-                throw new Error(`Object ${self._type} doesn't contain id. It may not be created correctly.`);
+                throw new Error(`Object ${this._type} doesn't contain id. It may not be created correctly.`);
             }
         }
 
@@ -420,12 +460,14 @@ class INMapObject {
             })
         }
         return new Promise(resolve => {
+                const tempId = Math.round(Math.random() * 10000);
                 // create listener for event that will fire only once
-                Communication.listenOnce(`createObject-${this._type}`, setObject.bind(self), resolve);
+                Communication.listenOnce(`createObject-${self._type}`, setObject.bind(self), resolve, tempId);
                 // then send message
                 Communication.send(self._navi.iFrame, self._navi.targetHost, {
                     command: 'createObject',
-                    object: this._type
+                    object: self._type,
+                    tempId: tempId
                 });
             }
         );
@@ -555,28 +597,7 @@ class INArea extends INMapObject {
      * area.ready().then(() => area.isWithin({x: 100, y: 50}); );
      */
     isWithin(point) {
-        // Semi-infinite ray horizontally (increasing x, fixed y) out from the test point, and count how many edges it crosses.
-        // At each crossing, the ray switches between inside and outside. This is called the Jordan curve theorem.
-        let inside = false;
-        let intersect = false;
-        let xi, yi, xj, yj = null;
-
-        if (this._points === null) {
-            throw new Error('points of the object are null');
-        }
-        for (let i = 0, j = this._points.length - 1; i < this._points.length; j = i++) {
-            xi = this._points[i].x;
-            yi = this._points[i].y;
-
-            xj = this._points[j].x;
-            yj = this._points[j].y;
-
-            intersect = ((yi > point.y) !== (yj > point.y)) && (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi);
-            if (intersect) {
-                inside = !inside;
-            }
-        }
-        return inside;
+        return MapUtils.pointIsWithinGivenArea(point, this._points);
     }
 
     /**
@@ -1077,6 +1098,7 @@ class INPolyline extends INMapObject {
         super(navi);
         this._type = 'POLYLINE';
         this._color = '#111';
+        this._lineType = 'solid';
     }
 
     /**
@@ -1203,11 +1225,14 @@ class INMap {
      * navi.getMapDimensions(data => doSomethingWithMapDimensions(data.height, data.width, data.scale));
      */
     getMapDimensions(callback) {
+        Validation.isFunction(callback);
         this._setIFrame();
         return new Promise(resolve => {
-                Communication.listenOnce(`getMapDimensions`, callback, resolve);
+                const tempId = Math.round(Math.random() * 10000);
+                Communication.listenOnce(`getMapDimensions`, callback, resolve, tempId);
                 Communication.send(this.iFrame, this.targetHost, {
                     command: 'getMapDimensions',
+                    tempId: tempId
                 });
             }
         );
@@ -1220,6 +1245,7 @@ class INMap {
      * navi.addMapLongClickListener(data => doSomethingOnLongClick(data.position.x, data.position.y));
      */
     addMapLongClickListener(callback) {
+        Validation.isFunction(callback);
         this._checkIsReady();
         this._setIFrame();
         Communication.send(this.iFrame, this.targetHost, {
@@ -1253,6 +1279,7 @@ class INMap {
      * navi.addEventListener(Event.LISTENER.COORDINATES, data => doSomethingWithCoordinates(data.coordinates.point));
      */
     addEventListener(event, callback) {
+        Validation.isFunction(callback);
         this._checkIsReady();
         this._setIFrame();
         Communication.send(this.iFrame, this.targetHost, {
@@ -1287,6 +1314,7 @@ class INMap {
      * @returns {Promise} promise that will be resolved when complex list is retrieved.
      */
     getComplexes(callback) {
+        Validation.isFunction(callback);
         const self = this;
         return new Promise(resolve => {
             Communication.listenOnce(`getComplexes`, callback, resolve);
@@ -1404,15 +1432,163 @@ class INData {
         return new Promise((function(resolve) {
             this._http.doGet(`${this._targetHost}${this._baseUrl}areas/${floorId}`, function(data) {
                 const payloads = JSON.parse(data);
-                const areaPoints = payloads.map(payload => {
+                const areas = payloads.map(payload => {
                     return {
                         id: payload.name,
                         name: payload.name,
                         points: payload.points
                     }
                 });
-                resolve(areaPoints);
+                resolve(areas);
             });
         }).bind(this));
+    }
+}
+
+/**
+ * Class representing a Navigation,
+ * creates the InNavigator service
+ * Navigation calculates path, draws path and updates path length according to given location
+ */
+class INNavigation {
+    /**
+     * @constructor
+     * @param {INMap} navi - constructor needs an instance of {@link INMap} object injected
+     */
+    constructor(navi) {
+        this._navi = navi;
+        this._navi._checkIsReady();
+        this._navi._setIFrame();
+    }
+
+    /**
+     * Calculates shortest path for given beginning coordinates and destination coordinates
+     * @param {Point} location - object {@link Point} representing starting location from which navigation is going to begin.
+     * @param {Point} destination - object {@link Point} representing destination to which navigation is going to calculate and draw path.
+     * @param {number} margin - number representing margin for which navigation will pull point to the nearest path
+     * @return {INNavigation} self to let you chain methods
+     * @example
+     * const navigation = new INNavigation(navi);
+     * navigation.start({x: 100, y: 100}, {x: 800, y: 800}, 10);
+     */
+    start(location, destination, margin) {
+        Validation.isPoint(location, 'Given argument is not a Point');
+        Validation.isPoint(destination, 'Given argument is not a Point');
+        Validation.isInteger(margin, 'Pull width value is not an integer');
+        this._sendToIFrame('start', {
+            location: location,
+            destination: destination,
+            accuracy: margin
+        });
+        return this;
+    }
+
+    /**
+     * Updates actual location on navigation path
+     * @param {Point} position - object {@link Point} representing updated location
+     * @return {INNavigation} self to let you chain methods
+     * @example
+     * const navigation = new INNavigation(navi);
+     * navigation.start({x: 100, y: 100}, {x: 800, y: 800}, 10)
+     * navigation.update({x: 120, y: 120})
+     */
+    updatePosition(position) {
+        Validation.isPoint(position, 'Position value is not an integer');
+        this._sendToIFrame('update', {
+            position: position
+        });
+        return this;
+    }
+
+    /**
+     * Stop navigation process on demand.
+     * @example
+     * navigation.stop();
+     */
+    stop() {
+        this._sendToIFrame('stop', {});
+        return this;
+    }
+
+    _sendToIFrame(action, payload) {
+        Communication.send(this._navi.iFrame, this._navi.targetHost, {
+            command: 'navigation',
+            args: {
+                object: Object.assign({
+                    action: action
+                }, payload)
+            }
+        });
+    }
+}
+
+/**
+ * Class representing a BLE,
+ * creates the INBle object to handle Bluetooth related events
+ */
+
+class INBle {
+    /**
+     * @constructor
+     * @param {number} floor - floor to which Bluetooth events are related
+     * @param {string} targetHost - address to the IndoorNavi backend server
+     * @param {string} apiKey - the API key created on IndoorNavi server (must be assigned to your domain)
+     */
+    constructor(floor, targetHost, apiKey) {
+        Validation.isInteger(floor, 'Floor number must be integer');
+        Validation.isString(targetHost, 'Target host parameter should be type of string');
+        Validation.isString(apiKey, 'apiKey parameter should be type of string');
+        this._dataProvider = new INData(targetHost, apiKey);
+        this._floor = floor;
+    }
+
+    /**
+     * Sets callback function to react for position update event
+     * @param {function} callback - function that will be executed when new area event is triggered, callback takes {@link AreaPayload} as argument
+     * @return {Promise} promise that will be resolved when {@link AreaPayload} list is retrieved
+     * @example
+     * const ble = new INBle(4);
+     * ble.updatePosition((areaPayload) => console.log(areaPayload)).then(() => console.log('areas fetched'));
+     */
+    addCallbackFunction(callback) {
+        Validation.isFunction(callback);
+        return new Promise(resolve => {
+            this._dataProvider.getAreas(this._floor).then(areas => {
+                this._areas = areas;
+                this._callback = callback;
+                resolve();
+            });
+        });
+
+    }
+
+    /**
+     * Updates Bluetooth position for area events check, if position is inside area callback function passed to addCallbackFunction() method is triggered
+     * @param {Point} position from bluetooth module
+     * @example
+     * const ble = new INBle(4);
+     * ble.updatePosition((areaPayload) => console.log(areaPayload)).then(ble.updatePosition({x: 1, y: 1}));
+     */
+    updatePosition(position) {
+        Validation.isPoint(position, 'Updated position is not a Point');
+        if (!!this._areas && this._areas.length > 0) {
+            const areaIndex = this._areas.findIndex(area => {
+                return MapUtils.pointIsWithinGivenArea(position, area.points);
+            });
+            if (areaIndex > 0) {
+                this._callback(this._areas[areaIndex]);
+            }
+        }
+    }
+
+    /**
+     * Returns areas that are checked for Bluetooth events
+     * @return {AreaPayload[]} areas if areas are fetched else null
+     * */
+    getAreas() {
+        if (!!this._areas) {
+            return this._areas;
+        }
+        return null;
     }
 }

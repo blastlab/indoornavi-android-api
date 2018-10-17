@@ -210,7 +210,7 @@ public class INMap extends WebView {
 		this.setWebViewClient(new IndoorWebViewClient());
 		this.setWebChromeClient(new IndoorWebChromeClient());
 
-		this.getSettings().setAppCacheMaxSize(500 * 1024 * 1024 ); // 500 MB
+		this.getSettings().setAppCacheMaxSize(500 * 1024 * 1024); // 500 MB
 		this.getSettings().setAppCachePath(this.context.getFilesDir().getAbsolutePath());
 		this.getSettings().setAllowFileAccess( true );
 		this.getSettings().setAppCacheEnabled( true );

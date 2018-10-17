@@ -1,6 +1,7 @@
 package co.blastlab.indoornavi_api;
 
 import android.graphics.Color;
+import android.graphics.Point;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -9,14 +10,15 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
-import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
+
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
-import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.model.Path;
 import co.blastlab.indoornavi_api.objects.INArea;
 import co.blastlab.indoornavi_api.objects.INMap;
-import co.blastlab.indoornavi_api.objects.INObject;
+
+import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 public class INData {
@@ -78,6 +80,7 @@ public class INData {
 
 	private List<INArea> getAreasFromJSON(String jsonString) {
 		List<INArea> areas = new ArrayList<>();
+		List<Point> points = new ArrayList<>();
 
 		try {
 			JSONArray jsonAreasList = new JSONArray(jsonString);
@@ -87,10 +90,24 @@ public class INData {
 
 				JSONObject area = jsonAreasList.getJSONObject(i);
 				inArea.setName(area.getString("name"));
-				inArea.setPoints(PointsUtil.stringToPoints(area.getString("points")));
+
+				for(Point point : PointsUtil.stringToPoints(area.getString("points"))) {
+					points.add(MapUtil.pixelsToRealDimensions(this.inMap.getMapScale(), point));
+				}
+
+				inArea.setPoints(points);
 				inArea.setOpacity(0.3);
 				inArea.setColor(Color.GREEN);
-				areas.add(inArea);
+				try {
+					CountDownLatch latch = new CountDownLatch(1);
+					inArea.ready(data -> latch.countDown());
+
+					latch.await();
+					areas.add(inArea);
+
+				} catch (Exception e) {
+					Log.e("Create object exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+				}
 			}
 			return areas;
 		} catch (Exception e) {

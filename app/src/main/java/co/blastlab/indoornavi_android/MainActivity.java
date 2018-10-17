@@ -479,6 +479,15 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		inData.getAreas(areas -> {
 				Log.i("Indoor", "Received areas: " + areas);
+				for(INArea inArea: areas) {
+					inArea.getID(new OnReceiveValueCallback<Long>() {
+						@Override
+						public void onReceiveValue(Long aLong) {
+							Log.i("Indoor", " areas id: " + aLong);
+						}
+					});
+					inArea.draw();
+				}
 			}
 		);
 	}
@@ -504,6 +513,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				switch (groupIndex) {
 					case 0:
 						drawPoly(itemIndex);
+						getAreas();
 						break;
 					case 1:
 						drawArea(itemIndex);
