@@ -100,6 +100,7 @@ public class INMap extends WebView {
 	 */
 	public void load(int floorId, OnObjectReadyCallback onObjectReadyCallback) {
 		this.floorId = floorId;
+		setTimeout();
 		this.ready(floorId, (object) -> {
 			waitUntilMapReady(onObjectReadyCallback);
 			getMapDimensions();
@@ -113,6 +114,7 @@ public class INMap extends WebView {
 	 */
 	public void load(int floorId) {
 		this.floorId = floorId;
+		setTimeout();
 		this.ready(floorId, (object) -> {
 			getMapDimensions();
 		});
@@ -140,11 +142,34 @@ public class INMap extends WebView {
 		String javaScriptString = "navi.parameters;";
 		inMap.evaluate(javaScriptString, data -> {
 			inMap.scale = MapUtil.stringToScale(data);
-			for (OnObjectReadyCallback readyCallback : Controller.promiseMapReady) {
-				readyCallback.onReady(null);
-			}
-			Controller.promiseMapReady.clear();
+			clearReadyPromiseMap();
 		});
+	}
+
+	private void setTimeout() {
+		final INMap inMap = this;
+		Thread thread = new Thread() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(20000);
+					if (Controller.promiseMapReady.size() > 0) {
+						Log.e("Timeout ", " server " + inMap.getTargetHost() + " not responding");
+						clearReadyPromiseMap();
+					}
+				} catch (InterruptedException e) {
+					Log.e("Indoor", "thread exception");
+				}
+			}
+		};
+		thread.start();
+	}
+
+	private void clearReadyPromiseMap() {
+		for (OnObjectReadyCallback readyCallback : Controller.promiseMapReady) {
+			readyCallback.onReady(null);
+		}
+		Controller.promiseMapReady.clear();
 	}
 
 	/**
@@ -212,11 +237,11 @@ public class INMap extends WebView {
 
 		this.getSettings().setAppCacheMaxSize(500 * 1024 * 1024); // 500 MB
 		this.getSettings().setAppCachePath(this.context.getFilesDir().getAbsolutePath());
-		this.getSettings().setAllowFileAccess( true );
-		this.getSettings().setAppCacheEnabled( true );
-		this.getSettings().setJavaScriptEnabled( true );
+		this.getSettings().setAllowFileAccess(true);
+		this.getSettings().setAppCacheEnabled(true);
+		this.getSettings().setJavaScriptEnabled(true);
 
-		this.getSettings().setCacheMode( WebSettings.LOAD_DEFAULT);
+		this.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
 
 		this.getSettings().setJavaScriptEnabled(true);
 		this.getSettings().setDomStorageEnabled(true);
