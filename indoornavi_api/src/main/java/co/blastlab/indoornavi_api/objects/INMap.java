@@ -10,6 +10,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 
 import android.webkit.ValueCallback;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import java.io.InputStream;
@@ -51,7 +52,6 @@ public class INMap extends WebView {
 
 	private String targetHost;
 	private String apiKey;
-	private int height, weight;
 	private int floorId;
 	private Scale scale;
 
@@ -210,16 +210,21 @@ public class INMap extends WebView {
 		this.setWebViewClient(new IndoorWebViewClient());
 		this.setWebChromeClient(new IndoorWebChromeClient());
 
+		this.getSettings().setAppCacheMaxSize(500 * 1024 * 1024 ); // 500 MB
+		this.getSettings().setAppCachePath(this.context.getFilesDir().getAbsolutePath());
+		this.getSettings().setAllowFileAccess( true );
+		this.getSettings().setAppCacheEnabled( true );
+		this.getSettings().setJavaScriptEnabled( true );
+
+		this.getSettings().setCacheMode( WebSettings.LOAD_DEFAULT);
+
 		this.getSettings().setJavaScriptEnabled(true);
 		this.getSettings().setDomStorageEnabled(true);
 		this.getSettings().setUseWideViewPort(true);
 		this.getSettings().setLoadWithOverviewMode(true);
-		this.getSettings().setUseWideViewPort(true);
 
-		this.getSettings().setAllowFileAccess(false);
-		this.getSettings().setAllowFileAccessFromFileURLs(false);
 		this.getSettings().setAllowUniversalAccessFromFileURLs(true);
-		this.getSettings().setAllowContentAccess(false);
+		this.getSettings().setAllowContentAccess(true);
 	}
 
 	/**
@@ -227,14 +232,10 @@ public class INMap extends WebView {
 	 *
 	 * @param targetHost address to the frontend server
 	 * @param apiKey     the API key created on server
-	 * @param height     height of the iframe in pixels
-	 * @param weight     weight of the iframe in pixels
 	 */
-	public void createMap(String targetHost, String apiKey, int weight, int height) {
+	public void createMap(String targetHost, String apiKey) {
 		this.targetHost = targetHost;
 		this.apiKey = apiKey;
-		this.weight = weight;
-		this.height = height;
 
 		JS_InMapCreate();
 	}
@@ -269,7 +270,7 @@ public class INMap extends WebView {
 	}
 
 	private void JS_InMapCreate() {
-		String javaScriptString = String.format(Locale.US, "var navi = new INMap(\"%s\",\"%s\",\"map\",{width:%d,height:%d});", targetHost, apiKey, weight, height);
+		String javaScriptString = String.format(Locale.US, "var navi = new INMap(\"%s\",\"%s\",\"map\");", targetHost, apiKey);
 		this.evaluate(javaScriptString, null);
 	}
 

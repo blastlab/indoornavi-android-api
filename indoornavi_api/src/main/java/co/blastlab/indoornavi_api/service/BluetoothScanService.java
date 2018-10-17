@@ -75,6 +75,7 @@ public class BluetoothScanService extends Service {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			final String action = intent.getAction();
+			Log.e("Indoor action", action);
 
 			if (action != null && action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
 
@@ -83,13 +84,17 @@ public class BluetoothScanService extends Service {
 				switch (state) {
 					case BluetoothAdapter.STATE_OFF:
 						Log.i(TAG, "Bluetooth Receiver State OFF");
-						Log.i(TAG, "Stopping Service");
-						BluetoothScanService.this.stopSelf();
+						if (mHandler != null) {
+							mHandler.obtainMessage(ACTION_BLUETOOTH_NOT_ENABLED, null).sendToTarget();
+						}
 						break;
 					case BluetoothAdapter.STATE_ON:
 						if (localization)
 							startLocalization();
 						Log.i(TAG, "Bluetooth Receiver State ON");
+						if (mHandler != null) {
+							mHandler.obtainMessage(ACTION_BLUETOOTH_READY, null).sendToTarget();
+						}
 						break;
 				}
 			}
@@ -203,11 +208,11 @@ public class BluetoothScanService extends Service {
 
 	public void startLocalization() {
 
-		if (!localization) {
+		if (!localization || btScanner == null) {
 			localization = true;
 			init();
-			startScanning();
 		}
+		startScanning();
 	}
 
 	public void stopLocalization() {
@@ -370,20 +375,32 @@ public class BluetoothScanService extends Service {
 
 
 	private void addDefaultConf() {
-		anchorConfiguration.append(65014, new Anchor(65014, new Position(32.12, 2.46, 3.00)));
-		anchorConfiguration.append(65008, new Anchor(65008, new Position(36.81, 1.40, 3.00)));
-		anchorConfiguration.append(65021, new Anchor(65021, new Position(32.20, 11.61, 3.00)));
-		anchorConfiguration.append(65007, new Anchor(65007, new Position(37.49, 12.27, 3.00)));
-		anchorConfiguration.append(65012, new Anchor(65012, new Position(24.45, 1.97, 3.00)));
-		anchorConfiguration.append(65018, new Anchor(65018, new Position(29.91, 1.94, 3.00)));
-		anchorConfiguration.append(65016, new Anchor(65016, new Position(24.60, 8.69, 3.00)));
-		anchorConfiguration.append(65019, new Anchor(65019, new Position(29.91, 9.09, 3.00)));
-		anchorConfiguration.append(65015, new Anchor(65015, new Position(34.61, 14.59, 3.00)));
-		anchorConfiguration.append(65011, new Anchor(65011, new Position(24.34, 14.41, 3.00)));
-		anchorConfiguration.append(65017, new Anchor(65017, new Position(16.82, 14.44, 3.00)));
-		anchorConfiguration.append(65020, new Anchor(65020, new Position(1.17, 17.42, 3.00)));
-		anchorConfiguration.append(65003, new Anchor(65003, new Position(7.60, 16.44, 3.00)));
-		anchorConfiguration.append(65006, new Anchor(65006, new Position(1.26, 22.88, 3.00)));
-		anchorConfiguration.append(65009, new Anchor(65009, new Position(7.00, 23.22, 3.00)));
+		anchorConfiguration.append(65022, new Anchor(65022, new Position(32.12, 2.46, 3.00)));
+		anchorConfiguration.append(65023, new Anchor(65023, new Position(36.81, 1.40, 3.00)));
+		anchorConfiguration.append(65024, new Anchor(65024, new Position(32.20, 11.61, 3.00)));
+		anchorConfiguration.append(65025, new Anchor(65025, new Position(37.49, 12.27, 3.00)));
+
+		anchorConfiguration.append(65026, new Anchor(65026, new Position(24.60, 8.69, 3.00)));
+		anchorConfiguration.append(65027, new Anchor(65027, new Position(24.45, 1.97, 3.00)));
+		anchorConfiguration.append(65028, new Anchor(65028, new Position(29.91, 1.97, 3.00)));
+		anchorConfiguration.append(65029, new Anchor(65029, new Position(29.91, 9.09, 3.00)));
+
+		anchorConfiguration.append(65030, new Anchor(65030, new Position(34.61, 14.59, 3.00)));
+		anchorConfiguration.append(65031, new Anchor(65031, new Position(24.34, 14.41, 3.00)));
+//		anchorConfiguration.append(65014, new Anchor(65014, new Position(32.12, 2.46, 3.00)));
+//		anchorConfiguration.append(65008, new Anchor(65008, new Position(36.81, 1.40, 3.00)));
+//		anchorConfiguration.append(65021, new Anchor(65021, new Position(32.20, 11.61, 3.00)));
+//		anchorConfiguration.append(65007, new Anchor(65007, new Position(37.49, 12.27, 3.00)));
+//		anchorConfiguration.append(65012, new Anchor(65012, new Position(24.45, 1.97, 3.00)));
+//		anchorConfiguration.append(65018, new Anchor(65018, new Position(29.91, 1.94, 3.00)));
+//		anchorConfiguration.append(65016, new Anchor(65016, new Position(24.60, 8.69, 3.00)));
+//		anchorConfiguration.append(65019, new Anchor(65019, new Position(29.91, 9.09, 3.00)));
+//		anchorConfiguration.append(65015, new Anchor(65015, new Position(34.61, 14.59, 3.00)));
+//		anchorConfiguration.append(65011, new Anchor(65011, new Position(24.34, 14.41, 3.00)));
+//		anchorConfiguration.append(65017, new Anchor(65017, new Position(16.82, 14.44, 3.00)));
+//		anchorConfiguration.append(65020, new Anchor(65020, new Position(1.17, 17.42, 3.00)));
+//		anchorConfiguration.append(65003, new Anchor(65003, new Position(7.60, 16.44, 3.00)));
+//		anchorConfiguration.append(65006, new Anchor(65006, new Position(1.26, 22.88, 3.00)));
+//		anchorConfiguration.append(65009, new Anchor(65009, new Position(7.00, 23.22, 3.00)));
 	}
 }

@@ -1165,11 +1165,10 @@ class INMap {
      * @param {string} containerId of DOM element which will be used to create iframe with map
      * @param {object} config {width: number, height: number} of the iframe in pixels
      */
-    constructor(targetHost, apiKey, containerId, config) {
+    constructor(targetHost, apiKey, containerId) {
         this.targetHost = targetHost;
         this.apiKey = apiKey;
         this.containerId = containerId;
-        this.config = config;
         this.parameters = null;
         this.iFrame = null;
     }
@@ -1306,8 +1305,7 @@ class INMap {
     _setIFrame(mapId) {
         if (!this.iFrame) {
             const iFrame = document.createElement('iframe');
-            iFrame.style.width = `${!!this.config.width ? this.config.width : 640}px`;
-            iFrame.style.height = `${!!this.config.height ? this.config.height : 480}px`;
+            iFrame.className = 'map-iframe';
             DOM.getById(this.containerId).appendChild(iFrame);
             this.iFrame = iFrame;
         } else {
