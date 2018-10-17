@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private INReport INReport;
 	private INCircle inCircle;
 	private BluetoothScanService bluetoothScanService;
+	INNavigation inNavigation;
 
 
 	private int floorId = 2;
@@ -489,6 +490,12 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			case 1:
 				bluetoothScanService.stopLocalization();
 				break;
+			case 2:
+				setNavigation();
+				break;
+			case 3:
+				stopNavigation();
+				break;
 		}
 	}
 
@@ -536,13 +543,18 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	private void setNavigation() {
-		INNavigation inNavigation =  new INNavigation(this, this.inMap);
-		inNavigation.startNavigation(new Point(600, 600), new Point(2, 2), 2, new OnNavigationMessageReceive<String>() {
+		inNavigation =  new INNavigation(this, this.inMap);
+		inNavigation.startNavigation(new Point(3395, 123), new Point(2592, 170), 2, new OnNavigationMessageReceive<String>() {
 			@Override
 			public void onMessageReceive(String message) {
+				Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
 				Log.e("indoor", "message: " + message);
 			}
 		});
+	}
+
+	private void stopNavigation() {
+		inNavigation.stopNavigation();
 	}
 
 	private void prepareListData() {
@@ -587,6 +599,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		List<String> heading3 = new ArrayList<String>();
 		heading3.add(getString(R.string.start_localization));
 		heading3.add(getString(R.string.stop_localization));
+		heading3.add(getString(R.string.start_navigation));
+		heading3.add(getString(R.string.stop_navigation));
 
 		listDataChild.put(listDataHeader.get(0), heading1);
 		listDataChild.put(listDataHeader.get(1), heading1);

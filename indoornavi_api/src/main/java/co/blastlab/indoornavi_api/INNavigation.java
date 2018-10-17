@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.content.LocalBroadcastManager;
 import android.webkit.ValueCallback;
 
 import java.util.Locale;
@@ -14,6 +15,7 @@ import java.util.Locale;
 import co.blastlab.indoornavi_api.callback.OnNavigationMessageReceive;
 import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.service.BluetoothScanService;
+import co.blastlab.indoornavi_api.utils.MapUtil;
 
 public class INNavigation {
 
@@ -52,8 +54,8 @@ public class INNavigation {
 	}
 
 	public void startNavigation(Point startPoint, Point destinationPoint, int accuracy, OnNavigationMessageReceive<String> onNavigationMessageReceive) {
-		this.startPoint = startPoint;
-		this.destinationPoint = destinationPoint;
+		this.startPoint = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), startPoint);
+		this.destinationPoint = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), destinationPoint);
 		this.accuracy = accuracy;
 		this.onNavigationMessageReceive = onNavigationMessageReceive;
 
@@ -67,20 +69,20 @@ public class INNavigation {
 	}
 
 	private void updateActualLocation(Point position) {
-		lastPosition = position;
+		lastPosition = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), position);
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.updatePosition({x: %d, y: %d});", objectInstance, position.x, position.y);
 		evaluate(javaScriptString, null);
 	}
 
 	public void stopNavigation() {
-		this.context.unregisterReceiver(serviceReceiver);
 		Controller.navigationMessageMap.remove(onNavigationMessageReceive.hashCode());
 
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.stop();", objectInstance);
 		evaluate(javaScriptString, null);
+		unregisterReceiver();
 	}
 
-	public void restertNavigation() {
+	public void restartNavigation() {
 		if(this.lastPosition == null || this.destinationPoint == null)
 		stopNavigation();
 		startNavigation(lastPosition, destinationPoint, accuracy, onNavigationMessageReceive);
@@ -91,13 +93,25 @@ public class INNavigation {
 		{
 			IntentFilter intentFilter = new IntentFilter();
 			intentFilter.addAction(BluetoothScanService.CALCULATE_POSITION);
-			this.context.registerReceiver(serviceReceiver, intentFilter);
+			LocalBroadcastManager.getInstance(this.context).registerReceiver(serviceReceiver, intentFilter);
 		}
 		catch (Exception ex)
 		{
 			ex.printStackTrace();
 		}
+	}
 
+	private void unregisterReceiver() {
+		try
+		{
+			if(serviceReceiver != null) {
+				LocalBroadcastManager.getInstance(this.context).unregisterReceiver(serviceReceiver);
+			}
+		}
+		catch (Exception ex)
+		{
+			ex.printStackTrace();
+		}
 	}
 
 	private void evaluate(String javaScriptString, ValueCallback<String> valueCallback) {
