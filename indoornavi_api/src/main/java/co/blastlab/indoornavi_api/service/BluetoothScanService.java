@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Binder;
@@ -30,7 +31,7 @@ import android.util.SparseArray;
 import java.util.ArrayList;
 import java.util.Date;
 
-import java.util.List;;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -42,6 +43,7 @@ import co.blastlab.indoornavi_api.algorithm.model.Position;
 public class BluetoothScanService extends Service {
 
 	public static final String TAG = "IndoorBluetoothService";
+	public static final String CALCULATE_POSITION = "calculated position";
 	public static final int ACTION_BLUETOOTH_READY = 0;
 	public static final int ACTION_BLUETOOTH_NOT_SUPPORTED = 1;
 	public static final int ACTION_BLUETOOTH_NOT_ENABLED = 2;
@@ -75,7 +77,6 @@ public class BluetoothScanService extends Service {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			final String action = intent.getAction();
-			Log.e("Indoor action", action);
 
 			if (action != null && action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
 
@@ -305,7 +306,7 @@ public class BluetoothScanService extends Service {
 			if (position != null) {
 				position.timestamp = new Date();
 				positionsArray.add(position);
-				sendPositionToactivity(position);
+				sendPositionToActivity(position);
 				executePeriodicTask();
 			} else {
 				isFistPosition = true;
@@ -313,9 +314,10 @@ public class BluetoothScanService extends Service {
 		}, 3000);
 	}
 
-	private void sendPositionToactivity(Position position) {
+	private void sendPositionToActivity(Position position) {
 		if (mHandler != null) {
 			mHandler.obtainMessage(ACTION_POSITION, position).sendToTarget();
+			sendBroadcastPosition(position);
 		}
 	}
 
@@ -343,7 +345,7 @@ public class BluetoothScanService extends Service {
 			Position newPosition = algorithm.getIntersectionCircleLine(getLastKnownPosition(), point);
 			newPosition.timestamp = new Date();
 			positionsArray.add(newPosition);
-			sendPositionToactivity(newPosition);
+			sendPositionToActivity(newPosition);
 		}
 	}
 
@@ -373,6 +375,17 @@ public class BluetoothScanService extends Service {
 		timer.cancel();
 	}
 
+	private void sendBroadcastPosition(Position position) {
+		try {
+			Intent broadCastIntent = new Intent();
+			broadCastIntent.setAction(CALCULATE_POSITION);
+			broadCastIntent.putExtra("position", new Point((int) Math.round(position.x * 100), (int) Math.round(position.y * 100)));
+			sendBroadcast(broadCastIntent);
+
+		} catch (Exception e) {
+			Log.e("SendBroadcast Exception", e.getMessage());
+		}
+	}
 
 	private void addDefaultConf() {
 		anchorConfiguration.append(65022, new Anchor(65022, new Position(32.12, 2.46, 3.00)));
