@@ -544,7 +544,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	private void setNavigation() {
 		inNavigation =  new INNavigation(this, this.inMap);
-		inNavigation.startNavigation(new Point(3395, 123), new Point(2592, 170), 2, new OnNavigationMessageReceive<String>() {
+		inNavigation.startNavigation(new Point(3395, 123), new Point(2592, 170), 10, new OnNavigationMessageReceive<String>() {
 			@Override
 			public void onMessageReceive(String message) {
 				Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();

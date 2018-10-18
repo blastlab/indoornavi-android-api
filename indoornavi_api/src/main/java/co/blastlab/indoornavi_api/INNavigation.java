@@ -64,13 +64,13 @@ public class INNavigation {
 		int eventId = onNavigationMessageReceive.hashCode();
 		Controller.navigationMessageMap.put(eventId, onNavigationMessageReceive);
 
-		String javaScriptString = String.format(Locale.ENGLISH, "%s.start({x: %d, y: %d}, {x: %d, y: %d}, %d, action => inNavigationInterface.onMessageReceive(%d, JSON.stringify(action)));", objectInstance, startPoint.x, startPoint.y, destinationPoint.x, destinationPoint.y, accuracy, eventId);
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.start({x: %d, y: %d}, {x: %d, y: %d}, %d, action => inNavigationInterface.onMessageReceive(%d, JSON.stringify(action)));", objectInstance, this.startPoint.x, this.startPoint.y, this.destinationPoint.x, this.destinationPoint.y, accuracy, eventId);
 		evaluate(javaScriptString, null);
 	}
 
 	private void updateActualLocation(Point position) {
 		lastPosition = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), position);
-		String javaScriptString = String.format(Locale.ENGLISH, "%s.updatePosition({x: %d, y: %d});", objectInstance, position.x, position.y);
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.updatePosition({x: %d, y: %d});", objectInstance, lastPosition.x, lastPosition.y);
 		evaluate(javaScriptString, null);
 	}
 
@@ -93,7 +93,7 @@ public class INNavigation {
 		{
 			IntentFilter intentFilter = new IntentFilter();
 			intentFilter.addAction(BluetoothScanService.CALCULATE_POSITION);
-			LocalBroadcastManager.getInstance(this.context).registerReceiver(serviceReceiver, intentFilter);
+			this.context.registerReceiver(serviceReceiver, intentFilter);
 		}
 		catch (Exception ex)
 		{
@@ -105,7 +105,7 @@ public class INNavigation {
 		try
 		{
 			if(serviceReceiver != null) {
-				LocalBroadcastManager.getInstance(this.context).unregisterReceiver(serviceReceiver);
+				this.context.unregisterReceiver(serviceReceiver);
 			}
 		}
 		catch (Exception ex)
