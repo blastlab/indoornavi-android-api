@@ -75,7 +75,7 @@ public class HttpDownloadResource {
 			outputStream.close();
 			inputStream.close();
 
-			Log.e("HttpDownloadUtility", "File  " + fileURL + " downloaded");
+			Log.i("HttpDownloadUtility", "File  " + fileURL + " downloaded");
 
 			setHeaderFile(saveDir, fileURL + requestHashCode, httpConn.getHeaderFields());
 			updateConfigFile(saveDir, fileURL + requestHashCode);

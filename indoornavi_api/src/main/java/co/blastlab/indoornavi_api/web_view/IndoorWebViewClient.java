@@ -68,12 +68,12 @@ public class IndoorWebViewClient extends WebViewClient {
 	@SuppressWarnings("deprecated")
 	@Override
 	public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-		if (url.contains("Navi.js")) {
+		if (url.contains("indoorNavi.js")) {
 			try {
 				AssetManager assets = view.getContext().getAssets();
 				Uri uri = Uri.parse(url);
 				InputStream stream = assets.open(uri.getPath(), AssetManager.ACCESS_STREAMING);
-				WebResourceResponse response = new WebResourceResponse("text/html", "UTF-8", stream);
+				WebResourceResponse response = new WebResourceResponse("application/json", "UTF-8", stream);
 				return response;
 			} catch (IOException e) {
 				Log.e("InputStream exception", e.toString());
@@ -85,15 +85,10 @@ public class IndoorWebViewClient extends WebViewClient {
 	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-		Log.e("shouldInterceptRequest", request.getUrl().toString());
-
 
 		String currentUrl = request.getUrl().toString();
 		String saveDir = view.getContext().getFilesDir().getAbsolutePath();
-
-		CRC32 crc32 = new CRC32();
-		crc32.update((HttpDownloadResource.headerMapToString(request.getRequestHeaders()) + currentUrl).getBytes());
-		String requestHashCode = "." + String.valueOf(crc32.getValue());
+		String requestHashCode = getRequestHashCode(request);
 
 		HttpDownloadResource httpDownloadResource = new HttpDownloadResource(currentUrl, saveDir, request, requestHashCode);
 
@@ -108,31 +103,9 @@ public class IndoorWebViewClient extends WebViewClient {
 				File file = new File(saveDir + File.separator + fileUrl);
 				InputStream fileInputStream = new FileInputStream(file);
 
-				String mimeType;
-				if (request.getMethod().equals("OPTIONS")) {
-					mimeType = "text/plain";
-				} else {
-					mimeType = httpDownloadResource.getMimeType(fileUrl, currentUrl);
-				}
+				Map<String, String> responseHeaders = httpDownloadResource.getHeaderFile(saveDir, currentUrl + requestHashCode);
 
-
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-					int statusCode = 200;
-					String reasonPhase = "OK";
-					String encoding = mimeType.equals("application/octet-stream") ? "" : "UTF-8";
-					//byte[] byte = mimeType.equals("application/octet-stream") ?  new FileInputStream(Base64.decode(getByteArray(fileInputStream), Base64.DEFAULT)) : fileInputStream;
-
-					Map<String, String> responseHeaders = httpDownloadResource.getHeaderFile(saveDir, currentUrl + requestHashCode);
-
-					if (responseHeaders == null) {
-						responseHeaders = new HashMap<>();
-						responseHeaders.put("Access-Control-Allow-Origin", "*");
-						responseHeaders.put("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT");
-					}
-
-					return new WebResourceResponse(mimeType, encoding, statusCode, reasonPhase, responseHeaders, fileInputStream);
-				}
-				return new WebResourceResponse(mimeType, "UTF-8", fileInputStream);
+				return new WebResourceResponse("", "UTF-8", 200, "OK", responseHeaders, fileInputStream);
 
 			} catch (IOException e) {
 				Log.e("LocalResourceException", e.toString());
@@ -144,17 +117,11 @@ public class IndoorWebViewClient extends WebViewClient {
 		return super.shouldInterceptRequest(view, request);
 	}
 
-	private byte[] getByteArray(InputStream inputStream) throws IOException {
-		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-		int nRead;
-		byte[] data = new byte[524288];
-
-		while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
-			buffer.write(data, 0, nRead);
-		}
-
-		return buffer.toByteArray();
+	private String getRequestHashCode(WebResourceRequest request) {
+		CRC32 crc32 = new CRC32();
+		crc32.update((HttpDownloadResource.headerMapToString(request.getRequestHeaders()) + request.getUrl().toString()).getBytes());
+		return "." + String.valueOf(crc32.getValue());
 	}
 
 	private String getFileName(File dir, String url, String requestHashCode) {
