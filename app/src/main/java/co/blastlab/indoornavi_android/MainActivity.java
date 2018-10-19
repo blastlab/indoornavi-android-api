@@ -208,10 +208,10 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void setBleAreaListener() {
 		INBle inBle = new INBle(inMap, backendServer, inMap.getFloorId());
-		inBle.addAreaEventListener(new OnEventListener<String>() {
+		inBle.addAreaEventListener(new OnEventListener<AreaEvent>() {
 			@Override
-			public void onEvent(String areaEvent) {
-				Log.e("Indoor", areaEvent);
+			public void onEvent(AreaEvent areaEvent) {
+				Log.e("Indoor", areaEvent.areaName + " " + areaEvent.mode);
 			}
 		});
 	}

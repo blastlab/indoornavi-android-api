@@ -10,6 +10,7 @@ import android.util.Log;
 import java.util.Locale;
 
 import co.blastlab.indoornavi_api.callback.OnEventListener;
+import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.service.BluetoothScanService;
 import co.blastlab.indoornavi_api.utils.MapUtil;
@@ -31,7 +32,7 @@ public class INBle {
 		inMap.evaluateJavascript(javaScriptString, null);
 	}
 
-	public void addAreaEventListener(OnEventListener<String> onEventListener) {
+	public void addAreaEventListener(OnEventListener<AreaEvent> onEventListener) {
 
 		int promiseId = onEventListener.hashCode();
 		Controller.eventListenerMap.put(promiseId, onEventListener);

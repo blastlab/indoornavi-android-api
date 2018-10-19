@@ -39,7 +39,7 @@ public class EventListenerInterface {
 	public void onBleAreaEvent(final int eventId, final String event) {
 		Handler handler = new Handler(Looper.getMainLooper());
 		handler.post(() ->
-			Controller.eventListenerMap.get(eventId).onEvent(event)
+			Controller.eventListenerMap.get(eventId).onEvent(EventsUtil.jsonEventToAreaEvent(event))
 		);
 	}
 }
