@@ -19,7 +19,7 @@ public class INDataInterface {
 
 	@JavascriptInterface
 	public void pathsData(int promiseId, String paths) {
-		if(!paths.equals("[]") && !paths.equals("null")) {
+		if (!paths.equals("[]") && !paths.equals("null")) {
 			List<Path> pathList = new ArrayList<>();
 			try {
 				JSONArray jsonArray = new JSONArray(paths);
@@ -28,8 +28,7 @@ public class INDataInterface {
 					pathList.add(new Path(PointsUtil.stringToPoint(jsonObject.getString("startPoint")), PointsUtil.stringToPoint(jsonObject.getString("endPoint"))));
 				}
 				Controller.ReceiveValueMap.get(promiseId).onReceiveValue(pathList);
-			}
-			catch(Exception e) {
+			} catch (Exception e) {
 				Log.e("Json parse exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 			}
 		}

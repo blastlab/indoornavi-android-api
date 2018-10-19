@@ -10,7 +10,6 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.location.LocationManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -39,12 +38,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import co.blastlab.indoornavi_api.INData;
+import co.blastlab.indoornavi_api.INNavigation;
 import co.blastlab.indoornavi_api.INReport;
 import co.blastlab.indoornavi_api.PhoneModule;
 import co.blastlab.indoornavi_api.algorithm.model.Position;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
+import co.blastlab.indoornavi_api.callback.OnNavigationMessageReceive;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.model.AreaEvent;
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private INReport INReport;
 	private INCircle inCircle;
 	private BluetoothScanService bluetoothScanService;
+	INNavigation inNavigation;
 
 
 	private int floorId = 2;
@@ -207,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-		inMap.createMap(frontendServer, "TestAdmin", metrics.widthPixels - 250, metrics.heightPixels - 200);
+		inMap.createMap(frontendServer, "TestAdmin");
 		inMap.load(floorId, new OnObjectReadyCallback() {
 			@Override
 			public void onReady(Object o) {
@@ -427,7 +429,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void createAreaEventsReport(INReport inReport) {
-		INReport.getAreaEvents(floorId, new Date(1428105600), new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {
+		INReport.getAreaEvents(new Date(1428105600), new Date(), new OnObjectReadyCallback<List<AreaEvent>>() {
 			@Override
 			public void onReady(List<AreaEvent> areaEvents) {
 				String msg;
@@ -443,7 +445,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void createCoordinatesReport(INReport inReport) {
-		inReport.getCoordinates(floorId, new Date(1428105600), new Date(), new OnObjectReadyCallback<List<Coordinates>>() {
+		inReport.getCoordinates(new Date(1428105600), new Date(), new OnObjectReadyCallback<List<Coordinates>>() {
 			@Override
 			public void onReady(List<Coordinates> coordinates) {
 				String msg;
@@ -469,7 +471,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void getPaths() {
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
-		inData.getPaths(floorId, paths -> {
+		inData.getPaths(paths -> {
 				Log.i("Indoor", "Received path: " + paths);
 			}
 		);
@@ -479,6 +481,15 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		inData.getAreas(areas -> {
 				Log.i("Indoor", "Received areas: " + areas);
+				for (INArea inArea : areas) {
+					inArea.getID(new OnReceiveValueCallback<Long>() {
+						@Override
+						public void onReceiveValue(Long aLong) {
+							Log.i("Indoor", " areas id: " + aLong);
+						}
+					});
+					inArea.draw();
+				}
 			}
 		);
 	}
@@ -493,19 +504,12 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			case 1:
 				bluetoothScanService.stopLocalization();
 				break;
-		}
-	}
-
-
-	private void listAll() {
-		try {
-			String[] list = getFilesDir().list();
-			Log.e("Files", "Size: " + list.length);
-			for (int i = 0; i < list.length; i++) {
-				Log.e("Files", "FileName:" + list[i]);
-			}
-		} catch (Exception e) {
-
+			case 2:
+				setNavigation();
+				break;
+			case 3:
+				stopNavigation();
+				break;
 		}
 	}
 
@@ -516,8 +520,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				mDrawerLayout.closeDrawers();
 				switch (groupIndex) {
 					case 0:
-						listAll();
-						//drawPoly(itemIndex);
+						drawPoly(itemIndex);
 						break;
 					case 1:
 						drawArea(itemIndex);
@@ -551,6 +554,21 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				Log.e("indoor", "point: " + point);
 			}
 		});
+	}
+
+	private void setNavigation() {
+		inNavigation = new INNavigation(this, this.inMap);
+		inNavigation.startNavigation(new Point(3395, 123), new Point(2592, 170), 10, new OnNavigationMessageReceive<String>() {
+			@Override
+			public void onMessageReceive(String message) {
+				Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+				Log.e("indoor", "message: " + message);
+			}
+		});
+	}
+
+	private void stopNavigation() {
+		inNavigation.stopNavigation();
 	}
 
 	private void prepareListData() {
@@ -595,6 +613,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		List<String> heading3 = new ArrayList<String>();
 		heading3.add(getString(R.string.start_localization));
 		heading3.add(getString(R.string.stop_localization));
+		heading3.add(getString(R.string.start_navigation));
+		heading3.add(getString(R.string.stop_navigation));
 
 		listDataChild.put(listDataHeader.get(0), heading1);
 		listDataChild.put(listDataHeader.get(1), heading1);
@@ -631,7 +651,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	public void onDestroy() {
 		super.onDestroy();
 		Log.e("Indoor", "OnDestroy");
-		if(BluetoothScanService.SERVICE_CONNECTED) {
+		if (BluetoothScanService.SERVICE_CONNECTED) {
 			unbindService(bluetoothConnection);
 			BluetoothScanService.SERVICE_CONNECTED = false;
 		}
@@ -667,7 +687,6 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 					break;
 				case BluetoothScanService.ACTION_LOCATION_NOT_ENABLED:
 					Log.e(BluetoothScanService.TAG, "Location not enable");
-					//mActivity.get().enableLocation();
 					break;
 				case BluetoothScanService.ACTION_BLUETOOTH_PERMISSION_NOT_GRANTED:
 					Log.e(BluetoothScanService.TAG, "Bluetooth Permission not granted");
@@ -694,12 +713,4 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
 		}
 	}
-//
-//	private void enableLocation() {
-//		LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-//		if (locationManager != null && !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-//			Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-//			startActivityForResult(enableBtIntent, REQUEST_ENABLE_LOCATION);
-//		}
-//	}
 }

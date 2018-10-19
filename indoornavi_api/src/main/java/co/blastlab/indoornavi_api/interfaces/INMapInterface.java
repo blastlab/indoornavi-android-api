@@ -21,11 +21,10 @@ public class INMapInterface {
 
 	@JavascriptInterface
 	public void pulledPoint(int promiseId, String point) {
-		if(!point.equals("null")) {
-			try{
+		if (!point.equals("null")) {
+			try {
 				Controller.ReceiveValueMap.get(promiseId).onReceiveValue(PointsUtil.stringToPoint(point));
-			}
-			catch(Exception e) {
+			} catch (Exception e) {
 				Log.e("Data receive error: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 			}
 		}
