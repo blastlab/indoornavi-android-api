@@ -1521,11 +1521,15 @@ class INNavigation {
     }
 }
 
+let AreaEventMode = {
+    ON_ENTER: 'on_enter',
+    ON_LEAVE: 'on_leave'
+};
+
 /**
  * Class representing a BLE,
  * creates the INBle object to handle Bluetooth related events
  */
-
 class INBle {
     /**
      * @constructor
@@ -1539,8 +1543,8 @@ class INBle {
         Validation.isString(apiKey, 'apiKey parameter should be type of string');
         this._dataProvider = new INData(targetHost, apiKey);
         this._floor = floor;
+        this._areaEventsMap = new Map();
     }
-
     /**
      * Sets callback function to react for position update event
      * @param {function} callback - function that will be executed when new area event is triggered, callback takes {@link AreaPayload} as argument
@@ -1571,13 +1575,38 @@ class INBle {
     updatePosition(position) {
         Validation.isPoint(position, 'Updated position is not a Point');
         if (!!this._areas && this._areas.length > 0) {
-            const areaIndex = this._areas.findIndex(area => {
-                return MapUtils.pointIsWithinGivenArea(position, area.points);
+            this._areas.findIndex(area => {
+                if (MapUtils.pointIsWithinGivenArea(position, area.points)) {
+                    if (this._shouldSendOnEnterEvent(area)) {
+                        this._areaEventsMap.set(area, new Date());
+                        this._callback({
+                            area: area,
+                            mode: AreaEventMode.ON_ENTER
+                        });
+                    } else {
+                        this._updateTime(area)
+                    }
+                } else if (this._shouldSendOnLeaveEvent(area)) {
+                    this._areaEventsMap.delete(area);
+                    this._callback({
+                        area: area,
+                        mode: AreaEventMode.ON_LEAVE
+                    });
+                }
             });
-            if (areaIndex > 0) {
-                this._callback(this._areas[areaIndex]);
-            }
         }
+    }
+
+    _shouldSendOnEnterEvent(area) {
+        return !this._areaEventsMap.has(area);
+    }
+
+    _shouldSendOnLeaveEvent(area) {
+        return this._areaEventsMap.has(area);
+    }
+
+    _updateTime(area) {
+        this._areaEventsMap.set(area, new Date());
     }
 
     /**
