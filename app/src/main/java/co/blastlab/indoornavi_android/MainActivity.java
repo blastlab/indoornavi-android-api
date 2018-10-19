@@ -263,7 +263,6 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 			if (this.phoneID == -1) {
 				String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-				Log.e("IndoorNavi", "Id: " + androidId);
 				this.phoneID = phoneModule.registerPhone("Android" + androidId);
 			}
 			phoneModule.saveCoordinates(new Coordinates((int) Math.round(position.x * 100), (int) Math.round(position.y * 100), (int) Math.round(position.z * 100), this.phoneID, position.timestamp));
@@ -710,7 +709,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 					Position position = (Position) msg.obj;
 					Log.e(BluetoothScanService.TAG, "Position: x:" + position.x + ", y: " + position.y);
 					mActivity.get().drawCircle(new Point((int) Math.round(position.x * 100), (int) Math.round(position.y * 100)));
-					mActivity.get().saveCoordinates(position);
+					//mActivity.get().saveCoordinates(position);
 					break;
 			}
 		}

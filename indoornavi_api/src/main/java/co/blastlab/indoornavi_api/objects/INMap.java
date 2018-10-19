@@ -102,7 +102,7 @@ public class INMap extends WebView {
 	 */
 	public void load(int floorId, OnObjectReadyCallback onObjectReadyCallback) {
 		this.floorId = floorId;
-		setTimeout();
+		//setTimeout();
 		this.ready(floorId, (object) -> {
 			waitUntilMapReady(onObjectReadyCallback);
 			getMapDimensions();
@@ -116,7 +116,7 @@ public class INMap extends WebView {
 	 */
 	public void load(int floorId) {
 		this.floorId = floorId;
-		setTimeout();
+		//setTimeout();
 		this.ready(floorId, (object) -> {
 			getMapDimensions();
 		});
