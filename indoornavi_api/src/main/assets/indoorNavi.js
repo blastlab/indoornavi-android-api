@@ -1525,7 +1525,6 @@ class INNavigation {
  * Class representing a BLE,
  * creates the INBle object to handle Bluetooth related events
  */
-
 class INBle {
     /**
      * @constructor
@@ -1539,8 +1538,8 @@ class INBle {
         Validation.isString(apiKey, 'apiKey parameter should be type of string');
         this._dataProvider = new INData(targetHost, apiKey);
         this._floor = floor;
+        this._areaEventsMap = new Map();
     }
-
     /**
      * Sets callback function to react for position update event
      * @param {function} callback - function that will be executed when new area event is triggered, callback takes {@link AreaPayload} as argument
@@ -1558,7 +1557,6 @@ class INBle {
                 resolve();
             });
         });
-
     }
 
     /**
@@ -1569,16 +1567,43 @@ class INBle {
      * ble.updatePosition((areaPayload) => console.log(areaPayload)).then(ble.updatePosition({x: 1, y: 1}));
      */
     updatePosition(position) {
-        Validation.isPoint(position, 'Updated position is not a Point');
-        if (!!this._areas && this._areas.length > 0) {
-            const areaIndex = this._areas.findIndex(area => {
-                return MapUtils.pointIsWithinGivenArea(position, area.points);
-            });
-            if (areaIndex > 0) {
-                this._callback(this._areas[areaIndex]);
+            Validation.isPoint(position, 'Updated position is not a Point');
+            if (!!this._areas && this._areas.length > 0) {
+                this._areas.forEach(area => {
+                    if (MapUtils.pointIsWithinGivenArea(position, area.points)) {
+                        if (this._shouldSendOnEnterEvent(area)) {
+                            this._areaEventsMap.set(area, new Date());
+                            this._sendAreaEvent(area, 'ON_ENTER');
+                        } else {
+                            this._updateTime(area)
+                        }
+                    } else if (this._shouldSendOnLeaveEvent(area)) {
+                        this._areaEventsMap.delete(area);
+                        this._sendAreaEvent(area, 'ON_LEAVE');
+                    }
+                });
             }
         }
-    }
+
+        _sendAreaEvent(area, mode) {
+            this._callback({
+                area: area,
+                date: new Date(),
+                mode: mode
+            });
+        }
+
+        _shouldSendOnEnterEvent(area) {
+            return !this._areaEventsMap.has(area);
+        }
+
+        _shouldSendOnLeaveEvent(area) {
+            return this._areaEventsMap.has(area);
+        }
+
+        _updateTime(area) {
+            this._areaEventsMap.set(area, new Date());
+        }
 
     /**
      * Returns areas that are checked for Bluetooth events
