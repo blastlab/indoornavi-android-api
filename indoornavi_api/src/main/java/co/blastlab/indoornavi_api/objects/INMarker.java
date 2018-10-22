@@ -8,6 +8,8 @@ import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
+import co.blastlab.indoornavi_api.model.Scale;
+import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -165,13 +167,15 @@ public class INMarker extends INObject {
 	public static class INMarkerBuilder {
 
 		private INMarker inMarker;
+		private Scale scale;
 
 		public INMarkerBuilder(INMap inMap) {
-			inMarker = new INMarker(inMap);
+			this.inMarker = new INMarker(inMap);
+			this.scale = inMap.getMapScale();
 		}
 
 		public INMarkerBuilder setPosition(Point point) {
-			inMarker.setPosition(point);
+			inMarker.setPosition(MapUtil.pixelsToRealDimensions(this.scale, point));
 			return this;
 		}
 

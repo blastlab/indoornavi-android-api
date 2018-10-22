@@ -102,6 +102,19 @@ public class BluetoothScanService extends Service {
 		}
 	};
 
+	private BroadcastReceiver mLocationReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			final String action = intent.getAction();
+
+			if (action != null && action.equals(LocationManager.PROVIDERS_CHANGED_ACTION)) {
+
+				final int state = intent.getIntExtra(LocationManager.KEY_STATUS_CHANGED, BluetoothAdapter.ERROR);
+				Log.i(TAG, "LocationManager State: " + state);
+			}
+		}
+	};
+
 	@Override
 	public IBinder onBind(Intent intent) {
 		Log.i(TAG, "Binding Service");
@@ -126,6 +139,7 @@ public class BluetoothScanService extends Service {
 		this.context = this;
 		BluetoothScanService.SERVICE_CONNECTED = true;
 		registerBluetoothReceiver();
+		registerLocationReceiver();
 	}
 
 	@Override
@@ -135,6 +149,7 @@ public class BluetoothScanService extends Service {
 		BluetoothScanService.SERVICE_CONNECTED = false;
 		stopScanning();
 		unregisterBluetoothReceiver();
+		unregisterLocationReceiver();
 
 		clearAll();
 	}
@@ -157,12 +172,28 @@ public class BluetoothScanService extends Service {
 		this.registerReceiver(mBluetoothReceiver, intentFilter);
 	}
 
+	private void registerLocationReceiver() {
+		Log.i(TAG, "Registering Location Receiver");
+		IntentFilter intentFilter = new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION);
+
+		this.registerReceiver(mLocationReceiver, intentFilter);
+	}
+
 	private void unregisterBluetoothReceiver() {
 		try {
 			this.unregisterReceiver(mBluetoothReceiver);
 			Log.i(TAG, "Bluetooth Receiver Unregistered Successfully");
 		} catch (Exception e) {
 			Log.i(TAG, "Bluetooth Receiver Already Unregistered. Exception : " + e.getLocalizedMessage());
+		}
+	}
+
+	private void unregisterLocationReceiver() {
+		try {
+			this.unregisterReceiver(mLocationReceiver);
+			Log.i(TAG, "Location Receiver Unregistered Successfully");
+		} catch (Exception e) {
+			Log.i(TAG, "Location Receiver Already Unregistered. Exception : " + e.getLocalizedMessage());
 		}
 	}
 
@@ -316,7 +347,7 @@ public class BluetoothScanService extends Service {
 
 	private void sendPositionToActivity(Position position) {
 		if (mHandler != null) {
-			mHandler.obtainMessage(ACTION_POSITION, position).sendToTarget();
+			mHandler.obtainMessage(ACTION_POSITION, new Point((int) Math.round(position.x * 100), (int) Math.round(position.y * 100))).sendToTarget();
 			sendBroadcastPosition(position);
 		}
 	}
