@@ -195,13 +195,23 @@ public class INMap extends WebView {
 	 * @param position               point coordinates in real dimensions
 	 * @param onReceiveValueCallback interface - invoked when calculated point is available. Return {@link Point} or null if unsuccessful.
 	 */
-	public void pullToPath(Position position, int accuracy, final OnReceiveValueCallback<Point> onReceiveValueCallback) {
+	public void pullToPath(Point position, int accuracy, final OnReceiveValueCallback<Point> onReceiveValueCallback) {
 		final INMap inMap = this;
 
-		int callbackId = onReceiveValueCallback.hashCode();
-		Controller.ReceiveValueMap.put(callbackId, onReceiveValueCallback);
+		OnReceiveValueCallback<Point> innerReceiveValueCallback = new OnReceiveValueCallback<Point>() {
+			@Override
+			public void onReceiveValue(Point point) {
+				Handler handler = new Handler(Looper.getMainLooper());
+				handler.post(() ->
+					onReceiveValueCallback.onReceiveValue(point == null ? null : MapUtil.pixelsToRealDimensions(inMap.getMapScale(), point))
+				);
+			}
+		};
 
-		String javaScriptString = String.format(Locale.US, "navi.pullToPath({x: %d, y: %d}, %d).then(pulledPoint => inMapInterface.pulledPoint(%d, JSON.stringify(pulledPoint)));", Math.round(position.x), Math.round(position.y), accuracy, callbackId);
+		int callbackId = innerReceiveValueCallback.hashCode();
+		Controller.ReceiveValueMap.put(callbackId, innerReceiveValueCallback);
+
+		String javaScriptString = String.format(Locale.US, "navi.pullToPath({x: %d, y: %d}, %d).then(pulledPoint => inMapInterface.pulledPoint(%d, JSON.stringify(pulledPoint)));", position.x, position.y, accuracy, callbackId);
 		inMap.evaluate(javaScriptString, null);
 	}
 
@@ -252,6 +262,7 @@ public class INMap extends WebView {
 
 		this.getSettings().setAllowUniversalAccessFromFileURLs(true);
 		this.getSettings().setAllowContentAccess(true);
+		this.setWebContentsDebuggingEnabled(true);
 	}
 
 	/**

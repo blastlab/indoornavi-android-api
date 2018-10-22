@@ -28,6 +28,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.ValueCallback;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
@@ -74,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private INCircle inCircle;
 	private BluetoothScanService bluetoothScanService;
 	INNavigation inNavigation;
+	private List<INArea> areas;
 
 
 	private int floorId = 2;
@@ -225,6 +227,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			@Override
 			public void onReady(Object o) {
 				setBleAreaListener();
+				getAreas();
 			}
 		});
 
@@ -233,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			public void onEvent(Point point) {
 				vibrator.vibrate(500);
 				new INMarker.INMarkerBuilder(inMap)
-					.setPosition(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), point))
+					.setPosition(point)
 					.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
 					.build();
 			}
@@ -325,10 +328,11 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void drawCircle(Point position) {
+		if(position == null) return;
 		if (inCircle == null) {
 			inCircle = new INCircle.INCircleBuilder(inMap)
 				.setPosition(position)
-				.setRadius(30)
+				.setRadius(8)
 				.setOpacity(0.3)
 				.setColor(Color.RED)
 				.setBorder(new Border(30, Color.GREEN))
@@ -492,6 +496,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		inData.getAreas(areas -> {
 				Log.i("Indoor", "Received areas: " + areas);
+				this.areas = areas;
 				for (INArea inArea : areas) {
 					inArea.getID(new OnReceiveValueCallback<Long>() {
 						@Override
@@ -559,7 +564,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void getPointPulledToPath() {
-		inMap.pullToPath(new Position(600, 600, 1, new Date()), 1, new OnReceiveValueCallback<Point>() {
+		inMap.pullToPath(new Point(600, 600), 1, new OnReceiveValueCallback<Point>() {
 			@Override
 			public void onReceiveValue(Point point) {
 				Log.e("indoor", "point: " + point);
@@ -706,10 +711,17 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 					Log.e(BluetoothScanService.TAG, "Location Permission not granted");
 					break;
 				case BluetoothScanService.ACTION_POSITION:
-					Position position = (Position) msg.obj;
+					Point position = (Point) msg.obj;
 					Log.e(BluetoothScanService.TAG, "Position: x:" + position.x + ", y: " + position.y);
-					mActivity.get().drawCircle(new Point((int) Math.round(position.x * 100), (int) Math.round(position.y * 100)));
-					//mActivity.get().saveCoordinates(position);
+
+					mActivity.get().inMap.pullToPath(position, 1, new OnReceiveValueCallback<Point>() {
+						@Override
+						public void onReceiveValue(Point point) {
+							if(point != null) {
+								mActivity.get().drawCircle(new Point(point.x, point.y));
+							}
+						}
+					});
 					break;
 			}
 		}

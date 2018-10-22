@@ -49,7 +49,7 @@ public class INCircle extends INObject {
 	public void setPosition(Point position) {
 		if (position != null) {
 			this.position = position;
-			String javaScriptString = String.format(Locale.ENGLISH, "%s.setPosition(new Point(%d, %d));", objectInstance, position.x, position.y);
+			String javaScriptString = String.format(Locale.ENGLISH, "%s.setPosition({x: %d, y: %d});", objectInstance, position.x, position.y);
 			evaluate(javaScriptString, null);
 		} else {
 			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Invalid point given");
