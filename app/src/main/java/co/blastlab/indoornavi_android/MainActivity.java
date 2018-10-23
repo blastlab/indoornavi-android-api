@@ -28,7 +28,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.webkit.ValueCallback;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
@@ -46,7 +45,7 @@ import co.blastlab.indoornavi_api.PhoneModule;
 import co.blastlab.indoornavi_api.algorithm.model.Position;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
-import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
+import co.blastlab.indoornavi_api.callback.OnINObjectClickListener;
 import co.blastlab.indoornavi_api.callback.OnNavigationMessageReceive;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
@@ -76,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private BluetoothScanService bluetoothScanService;
 	INNavigation inNavigation;
 	private List<INArea> areas;
+	INCircle inCirclePulled;
 
 
 	private int floorId = 2;
@@ -213,7 +213,10 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		inBle.addAreaEventListener(new OnEventListener<AreaEvent>() {
 			@Override
 			public void onEvent(AreaEvent areaEvent) {
+				String msg = areaEvent.mode.equals("ON_ENTER") ? "You entered the area!" : "You left the area!";
 				Log.e("Indoor", areaEvent.areaName + " " + areaEvent.mode);
+				Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+
 			}
 		});
 	}
@@ -328,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void drawCircle(Point position) {
-		if(position == null) return;
+		if (position == null) return;
 		if (inCircle == null) {
 			inCircle = new INCircle.INCircleBuilder(inMap)
 				.setPosition(position)
@@ -349,6 +352,12 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			.setColor(Color.GREEN)
 			.setOpacity(0.3)
 			.build();
+		inArea.addEventListener(new OnINObjectClickListener() {
+			@Override
+			public void onClick() {
+				Log.e("jea!", "jea");
+			}
+		});
 
 		if (inArea != null) {
 			inArea.isWithin(new Coordinates(200, 800, 0, (short) 109999, new Date()), bool -> Log.i("Indoor", "Received value: " + bool));
@@ -377,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		if (inMarker1 != null) {
 			drawInfoWindow();
 
-			inMarker1.addEventListener(new OnMarkerClickListener() {
+			inMarker1.addEventListener(new OnINObjectClickListener() {
 				@Override
 				public void onClick() {
 					show_toast();
@@ -710,15 +719,30 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				case BluetoothScanService.ACTION_LOCATION_PERMISSION_NOT_GRANTED:
 					Log.e(BluetoothScanService.TAG, "Location Permission not granted");
 					break;
+				case BluetoothScanService.ACTION_LOCATION_STATUS_CHANGE:
+					Log.e(BluetoothScanService.TAG, "Location status change");
+					break;
 				case BluetoothScanService.ACTION_POSITION:
 					Point position = (Point) msg.obj;
 					Log.e(BluetoothScanService.TAG, "Position: x:" + position.x + ", y: " + position.y);
+					mActivity.get().drawCircle(new Point(position.x, position.y));
 
 					mActivity.get().inMap.pullToPath(position, 1, new OnReceiveValueCallback<Point>() {
 						@Override
 						public void onReceiveValue(Point point) {
-							if(point != null) {
-								mActivity.get().drawCircle(new Point(point.x, point.y));
+							if (point != null) {
+								if (mActivity.get().inCirclePulled == null) {
+									mActivity.get().inCirclePulled = new INCircle.INCircleBuilder(mActivity.get().inMap)
+										.setPosition(point)
+										.setRadius(8)
+										.setOpacity(0.3)
+										.setColor(Color.BLUE)
+										.setBorder(new Border(30, Color.YELLOW))
+										.build();
+								} else {
+									mActivity.get().inCirclePulled.setPosition(point);
+									mActivity.get().inCirclePulled.draw();
+								}
 							}
 						}
 					});

@@ -20,14 +20,13 @@ import java.util.List;
 import java.util.Locale;
 
 import co.blastlab.indoornavi_api.Controller;
-import co.blastlab.indoornavi_api.algorithm.model.Position;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.interfaces.INDataInterface;
 import co.blastlab.indoornavi_api.interfaces.EventListenerInterface;
 import co.blastlab.indoornavi_api.interfaces.INMapInterface;
-import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
+import co.blastlab.indoornavi_api.interfaces.INObjectEventInterface;
 import co.blastlab.indoornavi_api.interfaces.INNavigationInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
 import co.blastlab.indoornavi_api.interfaces.INReportInterface;
@@ -43,7 +42,7 @@ import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 public class INMap extends WebView {
 
 	INObjectInterface inObjectInterface;
-	INMarkerInterface inMarkerInterface;
+	INObjectEventInterface inObjectEventInterface;
 	INReportInterface INReportInterface;
 	EventListenerInterface eventInterface;
 	INDataInterface INDataInterface;
@@ -210,8 +209,8 @@ public class INMap extends WebView {
 
 		int callbackId = innerReceiveValueCallback.hashCode();
 		Controller.ReceiveValueMap.put(callbackId, innerReceiveValueCallback);
-
-		String javaScriptString = String.format(Locale.US, "navi.pullToPath({x: %d, y: %d}, %d).then(pulledPoint => inMapInterface.pulledPoint(%d, JSON.stringify(pulledPoint)));", position.x, position.y, accuracy, callbackId);
+		Point positionInPixels = MapUtil.realDimensionsToPixels(inMap.getMapScale(), position);
+		String javaScriptString = String.format(Locale.US, "navi.pullToPath({x: %d, y: %d}, %d).then(pulledPoint => inMapInterface.pulledPoint(%d, JSON.stringify(pulledPoint)));", positionInPixels.x, positionInPixels.y, accuracy, callbackId);
 		inMap.evaluate(javaScriptString, null);
 	}
 
@@ -334,8 +333,8 @@ public class INMap extends WebView {
 		inObjectInterface = new INObjectInterface();
 		this.addJavascriptInterface(inObjectInterface, "inObjectInterface");
 
-		inMarkerInterface = new INMarkerInterface();
-		this.addJavascriptInterface(inMarkerInterface, "inMarkerInterface");
+		inObjectEventInterface = new INObjectEventInterface();
+		this.addJavascriptInterface(inObjectEventInterface, "inObjectEventInterface");
 
 		INReportInterface = new INReportInterface();
 		this.addJavascriptInterface(INReportInterface, "inReportInterface");
