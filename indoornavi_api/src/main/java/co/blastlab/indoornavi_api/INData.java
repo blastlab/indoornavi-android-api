@@ -86,12 +86,12 @@ public class INData {
 
 	private List<INArea> getAreasFromJSON(String jsonString) {
 		List<INArea> areas = new ArrayList<>();
-		List<Point> points = new ArrayList<>();
 
 		try {
 			JSONArray jsonAreasList = new JSONArray(jsonString);
 
 			for (int i = 0; i < jsonAreasList.length(); i++) {
+				List<Point> points = new ArrayList<>();
 				INArea inArea = INArea.createDefault(this.inMap);
 
 				JSONObject area = jsonAreasList.getJSONObject(i);
