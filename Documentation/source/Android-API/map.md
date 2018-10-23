@@ -9,7 +9,7 @@ INMap can be called only if `onINMapReady` invoked, after that, you can create m
 inMap = (INMap) findViewById(R.id.inMap);
 
 public void onINMapReady(INMap mapView) {
-   inMap.createMap("http://mybuilding.com", "apiKey");
+   inMap.createMap("http://mybuilding.com", "apiKey", height, width);
     inMap.load(floorId);
     }
 ```

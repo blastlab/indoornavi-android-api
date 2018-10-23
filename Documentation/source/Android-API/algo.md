@@ -96,6 +96,7 @@ private MyHandler mHandler;
 					break;
 				case BluetoothScanService.ACTION_BLUETOOTH_NOT_ENABLED:
 					Log.e(BluetoothScanService.TAG, "Bluetooth not enable");
+					mActivity.get().enableBluetooth();
 					break;
 				case BluetoothScanService.ACTION_LOCATION_NOT_ENABLED:
 					Log.e(BluetoothScanService.TAG, "Location not enable");
@@ -105,6 +106,9 @@ private MyHandler mHandler;
 					break;
 				case BluetoothScanService.ACTION_LOCATION_PERMISSION_NOT_GRANTED:
 					Log.e(BluetoothScanService.TAG, "Location Permission not granted");
+					break;
+				case BluetoothScanService.ACTION_LOCATION_STATUS_CHANGE:
+					Log.e(BluetoothScanService.TAG, "Location status change");
 					break;
 				case BluetoothScanService.ACTION_POSITION:
 					Position position = (Position) msg.obj;

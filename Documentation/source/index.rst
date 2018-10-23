@@ -35,6 +35,9 @@ API was created to trace and control tag movements.
 	Android-API/inter
 	Android-API/data
 	Android-API/algo
+	Android-API/navi
+	Android-API/event
+	Android-API/phone
 
 .. toctree::
 	:caption: iOS API

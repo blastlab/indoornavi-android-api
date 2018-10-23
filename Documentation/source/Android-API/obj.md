@@ -32,6 +32,17 @@ INArea inArea = new INArea.INAreaBuilder(inMap)
     .build();
 ```
 
+It's possible to add an EventListener to the INArea object. An event is invoked after clicking on the area.
+
+```java
+inArea.addEventListener(new OnINObjectClickListener() {
+	@Override
+	public void onClick() {
+		Toast.makeText(this, "Event!", Toast.LENGTH_LONG).show();
+	}
+});
+```
+
 Additionaly you can check if given coordinates are located inside area.
 
 ```java
@@ -58,7 +69,7 @@ INMarker inMarker = new INMarker.INMarkerBuilder(inMap)
 It's possible to add an EventListener to the Marker object. An event is invoked after clicking on the marker.
 
 ```java
-inMarker.addEventListener(new OnMarkerClickListener() {
+inMarker.addEventListener(new OnINObjectClickListener() {
     @Override
         public void onClick() {
             Toast.makeText(this, "Hello!", Toast.LENGTH_LONG).show();
