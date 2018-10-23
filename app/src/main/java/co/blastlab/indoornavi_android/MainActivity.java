@@ -561,7 +561,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void getPointPulledToPath() {
-		inMap.pullToPath(new Position(600, 600, 1, new Date()), 1, new OnReceiveValueCallback<Point>() {
+		inMap.pullToPath(new Point(600, 600), 1, new OnReceiveValueCallback<Point>() {
 			@Override
 			public void onReceiveValue(Point point) {
 				Log.e("indoor", "point: " + point);
