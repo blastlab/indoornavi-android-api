@@ -513,6 +513,19 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		}
 	}
 
+
+	private void listAll() {
+		try {
+			String[] list = getFilesDir().list();
+			Log.e("Files", "Size: " + list.length);
+			for (int i = 0; i < list.length; i++) {
+				Log.e("Files", "FileName:" + list[i]);
+			}
+		} catch (Exception e) {
+
+		}
+	}
+
 	public void setNavigationViewListener() {
 		expandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
 			@Override
@@ -521,7 +534,6 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				switch (groupIndex) {
 					case 0:
 						drawPoly(itemIndex);
-						getAreas();
 						break;
 					case 1:
 						drawArea(itemIndex);
@@ -714,12 +726,4 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
 		}
 	}
-//
-//	private void enableLocation() {
-//		LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-//		if (locationManager != null && !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-//			Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-//			startActivityForResult(enableBtIntent, REQUEST_ENABLE_LOCATION);
-//		}
-//	}
 }
