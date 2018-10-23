@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
+import co.blastlab.indoornavi_api.Controller;
+import co.blastlab.indoornavi_api.callback.OnINObjectClickListener;
 import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.utils.CoordinatesUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
@@ -26,6 +28,7 @@ public class INArea extends INObject {
 	private @FloatRange(from = 0.0, to = 1.0)
 	double opacity;
 	private String name;
+	private int callbackId;
 
 	/**
 	 * INArea constructor
@@ -132,6 +135,33 @@ public class INArea extends INObject {
 			}
 		});
 	}
+
+	/**
+	 * Register a callback to be invoked when marker is clicked.
+	 *
+	 * @param onMarkerClickListener interface - invoked when event occurs.
+	 */
+	public void addEventListener(OnINObjectClickListener onMarkerClickListener) {
+
+		callbackId = onMarkerClickListener.hashCode();
+		Controller.inObjectClickListenerMap.put(callbackId, onMarkerClickListener);
+
+		String javaScriptString = String.format(Locale.US, "%s.addEventListener(Event.MOUSE.CLICK, () => inObjectEventInterface.onClick(%d))", objectInstance, callbackId);
+		evaluate(javaScriptString, null);
+
+		draw();
+	}
+
+	/**
+	 * Removes listener if exists.
+	 */
+	public void removeEventListener() {
+
+		Controller.inObjectClickListenerMap.remove(callbackId);
+		String javaScriptString = String.format("%s.removeEventListener(Event.MOUSE.CLICK)", objectInstance);
+		evaluate(javaScriptString, null);
+	}
+
 
 	public static INArea createDefault(INMap inMap) {
 		return new INArea(inMap);

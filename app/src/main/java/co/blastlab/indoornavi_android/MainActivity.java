@@ -44,7 +44,7 @@ import co.blastlab.indoornavi_api.PhoneModule;
 import co.blastlab.indoornavi_api.algorithm.model.Position;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
-import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
+import co.blastlab.indoornavi_api.callback.OnINObjectClickListener;
 import co.blastlab.indoornavi_api.callback.OnNavigationMessageReceive;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
@@ -334,6 +334,13 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			.setColor(Color.GREEN)
 			.setOpacity(0.3)
 			.build();
+		inArea.addEventListener(new OnINObjectClickListener() {
+			@Override
+			public void onClick() {
+				Log.e("jea!", "jea");
+			}
+		});
+
 
 		if (inArea != null) {
 			inArea.isWithin(new Coordinates(200, 800, 0, (short) 109999, new Date()), bool -> Log.i("Indoor", "Received value: " + bool));
@@ -362,7 +369,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		if (inMarker1 != null) {
 			drawInfoWindow();
 
-			inMarker1.addEventListener(new OnMarkerClickListener() {
+			inMarker1.addEventListener(new OnINObjectClickListener() {
 				@Override
 				public void onClick() {
 					show_toast();
@@ -695,6 +702,10 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				case BluetoothScanService.ACTION_LOCATION_PERMISSION_NOT_GRANTED:
 					Log.e(BluetoothScanService.TAG, "Location Permission not granted");
 					break;
+				case BluetoothScanService.ACTION_LOCATION_STATUS_CHANGE:
+					Log.e(BluetoothScanService.TAG, "Location status change");
+					break;
+
 				case BluetoothScanService.ACTION_POSITION:
 					Position position = (Position) msg.obj;
 					Log.e(BluetoothScanService.TAG, "Position: x:" + position.x + ", y: " + position.y);
@@ -714,12 +725,4 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
 		}
 	}
-//
-//	private void enableLocation() {
-//		LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-//		if (locationManager != null && !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-//			Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-//			startActivityForResult(enableBtIntent, REQUEST_ENABLE_LOCATION);
-//		}
-//	}
 }
