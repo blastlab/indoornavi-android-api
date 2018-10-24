@@ -49,6 +49,11 @@ Additionaly you can check if given coordinates are located inside area.
 inArea.isWithin(new Coordinates(200, 800, (short)109999, new Date()), bool -> Log.i("Indoor", "Is within: " + bool));
 ```
 
+Optional you can receive middle point of the area by colling:
+```java
+inArea.getCenterPoint();
+```
+
 <br>
 ![image](screenshots/area.png)
 <br>

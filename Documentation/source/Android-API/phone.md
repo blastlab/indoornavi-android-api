@@ -1,6 +1,7 @@
 # __Phone module__
 
-Phone module allows to register user and allows to save coordinates in the database.
+Phone module allows saving data in the database.  
+You can register a user with custom data or save coordinates.
 
 ### Phone Register
 
