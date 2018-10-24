@@ -1504,10 +1504,12 @@ class INNavigation {
      * const navigation = new INNavigation(navi);
      * navigation.start({x: 100, y: 100}, {x: 800, y: 800}, 10);
      */
-    start(location, destination, margin) {
+    start(location, destination, margin, callback) {
         Validation.isPoint(location, 'Given argument is not a Point');
         Validation.isPoint(destination, 'Given argument is not a Point');
         Validation.isInteger(margin, 'Pull width value is not an integer');
+        Validation.isFunction(callback,'Given callback is not a function');
+        Communication.listen(`navigation`, callback);
         this._sendToIFrame('start', {
             location: location,
             destination: destination,

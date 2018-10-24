@@ -109,7 +109,15 @@ public class BluetoothScanService extends Service {
 			final String action = intent.getAction();
 
 			if (action != null && action.equals(LocationManager.PROVIDERS_CHANGED_ACTION)) {
-				mHandler.obtainMessage(ACTION_LOCATION_STATUS_CHANGE, null).sendToTarget();
+				if (mHandler != null) {
+					mHandler.obtainMessage(ACTION_LOCATION_STATUS_CHANGE, null).sendToTarget();
+				}
+
+				int localizationPermission = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION);
+
+				if (localization && localizationPermission == PackageManager.PERMISSION_GRANTED) {
+					startLocalization();
+				}
 			}
 		}
 	};
@@ -223,13 +231,13 @@ public class BluetoothScanService extends Service {
 	private void checkBluetoothPermission() {
 
 		if (mHandler != null) {
-			int localizationPermission = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+			int localizationPermission = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION);
 
 			if (localizationPermission != PackageManager.PERMISSION_GRANTED) {
 				mHandler.obtainMessage(ACTION_LOCATION_PERMISSION_NOT_GRANTED, null).sendToTarget();
 			}
 
-			int permissionBluetooth = ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH);
+			int permissionBluetooth = ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH);
 
 			if (permissionBluetooth != PackageManager.PERMISSION_GRANTED) {
 				mHandler.obtainMessage(ACTION_BLUETOOTH_PERMISSION_NOT_GRANTED, null).sendToTarget();
@@ -313,6 +321,7 @@ public class BluetoothScanService extends Service {
 		@Override
 		public void onScanResult(int callbackType, ScanResult result) {
 
+			Log.e("scan is working" ,"jeah!");
 			int id = getAnchorIdfromScanResult(result);
 
 			if (anchorConfiguration.indexOfKey(id) >= 0) {

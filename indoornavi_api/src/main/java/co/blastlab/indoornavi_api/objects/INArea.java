@@ -140,12 +140,12 @@ public class INArea extends INObject {
 	/**
 	 * Register a callback to be invoked when marker is clicked.
 	 *
-	 * @param onMarkerClickListener interface - invoked when event occurs.
+	 * @param onINObjectClickListener interface - invoked when event occurs.
 	 */
-	public void addEventListener(OnINObjectClickListener onMarkerClickListener) {
+	public void addEventListener(OnINObjectClickListener onINObjectClickListener) {
 
-		callbackId = onMarkerClickListener.hashCode();
-		Controller.inObjectClickListenerMap.put(callbackId, onMarkerClickListener);
+		callbackId = onINObjectClickListener.hashCode();
+		Controller.inObjectClickListenerMap.put(callbackId, onINObjectClickListener);
 
 		String javaScriptString = String.format(Locale.US, "%s.addEventListener(Event.MOUSE.CLICK, () => inObjectEventInterface.onClick(%d))", objectInstance, callbackId);
 		evaluate(javaScriptString, null);
@@ -161,6 +161,19 @@ public class INArea extends INObject {
 		Controller.inObjectClickListenerMap.remove(callbackId);
 		String javaScriptString = String.format("%s.removeEventListener(Event.MOUSE.CLICK)", objectInstance);
 		evaluate(javaScriptString, null);
+	}
+
+	public Point getCenterPoint() {
+		if(this.points == null) return null;
+
+		int avgX = 0;
+		int avgY = 0;
+
+		for (Point point : this.points) {
+			avgX += point.x;
+			avgY += point.y;
+		}
+		return new Point(Math.round(avgX/this.points.size()),Math.round(avgY/this.points.size()));
 	}
 
 	public static INArea createDefault(INMap inMap) {
