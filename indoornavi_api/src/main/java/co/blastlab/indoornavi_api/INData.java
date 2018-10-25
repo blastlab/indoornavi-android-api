@@ -1,7 +1,11 @@
 package co.blastlab.indoornavi_api;
 
 import android.graphics.Color;
+import android.graphics.Point;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.webkit.ValueCallback;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -9,14 +13,15 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
-import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
+
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
-import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.model.Path;
 import co.blastlab.indoornavi_api.objects.INArea;
 import co.blastlab.indoornavi_api.objects.INMap;
-import co.blastlab.indoornavi_api.objects.INObject;
+
+import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 public class INData {
@@ -38,7 +43,7 @@ public class INData {
 		this.inMap = inMap;
 
 		String javaScriptString = String.format("var %s = new INData('%s', '%s');", objectInstance, targetHost, apiKey);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -52,7 +57,7 @@ public class INData {
 		Controller.ReceiveValueMap.put(promiseId, onReceiveValueCallback);
 
 		String javaScriptString = String.format(Locale.US, "%s.getPaths(%d).then(res => inDataInterface.pathsData(%d, JSON.stringify(res)));", objectInstance, this.inMap.getFloorId(), promiseId);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -65,7 +70,10 @@ public class INData {
 		OnReceiveValueCallback<String> innerReceiveValueCallback = new OnReceiveValueCallback<String>() {
 			@Override
 			public void onReceiveValue(String stringAreasJson) {
-				onReceiveValueCallback.onReceiveValue(getAreasFromJSON(stringAreasJson));
+				Handler handler = new Handler(Looper.getMainLooper());
+				handler.post(() ->
+					onReceiveValueCallback.onReceiveValue(getAreasFromJSON(stringAreasJson))
+				);
 			}
 		};
 
@@ -73,7 +81,7 @@ public class INData {
 		Controller.ReceiveValueMap.put(promiseId, innerReceiveValueCallback);
 
 		String javaScriptString = String.format(Locale.US, "%s.getAreas(%d).then(areas => inDataInterface.onAreas(%d, JSON.stringify(areas)));", objectInstance, this.inMap.getFloorId(), promiseId);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	private List<INArea> getAreasFromJSON(String jsonString) {
@@ -83,20 +91,48 @@ public class INData {
 			JSONArray jsonAreasList = new JSONArray(jsonString);
 
 			for (int i = 0; i < jsonAreasList.length(); i++) {
+				List<Point> points = new ArrayList<>();
 				INArea inArea = INArea.createDefault(this.inMap);
 
 				JSONObject area = jsonAreasList.getJSONObject(i);
 				inArea.setName(area.getString("name"));
-				inArea.setPoints(PointsUtil.stringToPoints(area.getString("points")));
+				inArea.setDatabaseId(Integer.parseInt(area.getString("id")));
+
+				for(Point point : PointsUtil.stringToPoints(area.getString("points"))) {
+					points.add(MapUtil.pixelsToRealDimensions(this.inMap.getMapScale(), point));
+				}
+
+				inArea.setPoints(points);
 				inArea.setOpacity(0.3);
 				inArea.setColor(Color.GREEN);
-				areas.add(inArea);
+				try {
+					CountDownLatch latch = new CountDownLatch(1);
+					inArea.ready(data -> latch.countDown());
+
+					latch.await();
+					areas.add(inArea);
+
+				} catch (Exception e) {
+					Log.e("Create object exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+				}
 			}
 			return areas;
 		} catch (Exception e) {
 			Log.e("Json parse exception: ", "(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): " + e.toString());
 		}
 		return null;
+	}
+
+	private void evaluate(String javaScriptString, ValueCallback<String> valueCallback) {
+		if (Looper.myLooper() == Looper.getMainLooper()) {
+			inMap.evaluateJavascript(javaScriptString, valueCallback);
+		} else {
+			Handler handler = new Handler(Looper.getMainLooper());
+			handler.post(() -> {
+				inMap.evaluateJavascript(javaScriptString, valueCallback);
+			});
+
+		}
 	}
 
 }

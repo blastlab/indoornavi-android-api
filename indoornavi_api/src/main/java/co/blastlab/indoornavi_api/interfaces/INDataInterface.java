@@ -19,29 +19,35 @@ public class INDataInterface {
 
 	@JavascriptInterface
 	public void pathsData(int promiseId, String paths) {
-		if(!paths.equals("[]") && !paths.equals("null")) {
-			List<Path> pathList = new ArrayList<>();
-			try {
-				JSONArray jsonArray = new JSONArray(paths);
-				for (int i = 0; i < jsonArray.length(); i++) {
-					JSONObject jsonObject = jsonArray.getJSONObject(i);
-					pathList.add(new Path(PointsUtil.stringToPoint(jsonObject.getString("startPoint")), PointsUtil.stringToPoint(jsonObject.getString("endPoint"))));
+		Handler handler = new Handler(Looper.getMainLooper());
+		handler.post(() -> {
+			if (!paths.equals("[]") && !paths.equals("null")) {
+				List<Path> pathList = new ArrayList<>();
+				try {
+					JSONArray jsonArray = new JSONArray(paths);
+					for (int i = 0; i < jsonArray.length(); i++) {
+						JSONObject jsonObject = jsonArray.getJSONObject(i);
+						pathList.add(new Path(PointsUtil.stringToPoint(jsonObject.getString("startPoint")), PointsUtil.stringToPoint(jsonObject.getString("endPoint"))));
+					}
+					Controller.ReceiveValueMap.get(promiseId).onReceiveValue(pathList);
+				} catch (Exception e) {
+					Controller.ReceiveValueMap.get(promiseId).onReceiveValue(null);
+					Log.e("Json parse exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 				}
-				Controller.ReceiveValueMap.get(promiseId).onReceiveValue(pathList);
+			} else {
+				Controller.ReceiveValueMap.get(promiseId).onReceiveValue(null);
 			}
-			catch(Exception e) {
-				Log.e("Json parse exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
-			}
-		}
-		Controller.ReceiveValueMap.get(promiseId).onReceiveValue(null);
+			Controller.ReceiveValueMap.remove(promiseId);
+		});
 	}
 
 
 	@JavascriptInterface
 	public void onAreas(final int eventId, final String response) {
 		Handler handler = new Handler(Looper.getMainLooper());
-		handler.post(() ->
-			Controller.ReceiveValueMap.get(eventId).onReceiveValue(response)
-		);
+		handler.post(() -> {
+			Controller.ReceiveValueMap.get(eventId).onReceiveValue(response);
+			Controller.ReceiveValueMap.remove(eventId);
+		});
 	}
 }

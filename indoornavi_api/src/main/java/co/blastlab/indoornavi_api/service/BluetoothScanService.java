@@ -14,9 +14,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.ParcelUuid;
@@ -30,7 +32,7 @@ import android.util.SparseArray;
 import java.util.ArrayList;
 import java.util.Date;
 
-import java.util.List;;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -42,13 +44,15 @@ import co.blastlab.indoornavi_api.algorithm.model.Position;
 public class BluetoothScanService extends Service {
 
 	public static final String TAG = "IndoorBluetoothService";
+	public static final String CALCULATE_POSITION = "calculated position";
 	public static final int ACTION_BLUETOOTH_READY = 0;
 	public static final int ACTION_BLUETOOTH_NOT_SUPPORTED = 1;
 	public static final int ACTION_BLUETOOTH_NOT_ENABLED = 2;
 	public static final int ACTION_BLUETOOTH_PERMISSION_NOT_GRANTED = 3;
 	public static final int ACTION_LOCATION_PERMISSION_NOT_GRANTED = 4;
 	public static final int ACTION_LOCATION_NOT_ENABLED = 5;
-	public static final int ACTION_POSITION = 6;
+	public static final int ACTION_LOCATION_STATUS_CHANGE = 6;
+	public static final int ACTION_POSITION = 7;
 	public static boolean SERVICE_CONNECTED = false;
 
 	private BluetoothManager mBluetoothManager;
@@ -75,7 +79,6 @@ public class BluetoothScanService extends Service {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			final String action = intent.getAction();
-			Log.e("Indoor action", action);
 
 			if (action != null && action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
 
@@ -97,6 +100,44 @@ public class BluetoothScanService extends Service {
 						}
 						break;
 				}
+			}
+		}
+	};
+
+	private BroadcastReceiver mLocationReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			final String action = intent.getAction();
+
+			if (action != null && action.equals(LocationManager.PROVIDERS_CHANGED_ACTION)) {
+				if (mHandler != null) {
+					mHandler.obtainMessage(ACTION_LOCATION_STATUS_CHANGE, null).sendToTarget();
+				}
+
+				int localizationPermission = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION);
+
+				if (localization && localizationPermission == PackageManager.PERMISSION_GRANTED) {
+					startLocalization();
+				}
+			}
+		}
+	};
+
+	private ScanCallback mLeScanCallback = new ScanCallback() {
+		@Override
+		public void onScanResult(int callbackType, ScanResult result) {
+
+			int id = getAnchorIdfromScanResult(result);
+
+			if (anchorConfiguration.indexOfKey(id) >= 0) {
+				if (anchorMatrix.indexOfKey(id) < 0) {
+					anchorMatrix.append(id, getAnchor(id));
+					anchorMatrix.get(id).rssiRef = getAnchorTxPowerfromScanResult(result);
+					anchorMatrix.get(id).rssi_array.add(result.getRssi());
+				} else {
+					anchorMatrix.get(id).rssi_array.add(result.getRssi());
+				}
+				if (isFistPosition) calculateFirstPosition();
 			}
 		}
 	};
@@ -125,6 +166,7 @@ public class BluetoothScanService extends Service {
 		this.context = this;
 		BluetoothScanService.SERVICE_CONNECTED = true;
 		registerBluetoothReceiver();
+		registerLocationReceiver();
 	}
 
 	@Override
@@ -134,6 +176,7 @@ public class BluetoothScanService extends Service {
 		BluetoothScanService.SERVICE_CONNECTED = false;
 		stopScanning();
 		unregisterBluetoothReceiver();
+		unregisterLocationReceiver();
 
 		clearAll();
 	}
@@ -156,12 +199,28 @@ public class BluetoothScanService extends Service {
 		this.registerReceiver(mBluetoothReceiver, intentFilter);
 	}
 
+	private void registerLocationReceiver() {
+		Log.i(TAG, "Registering Location Receiver");
+		IntentFilter intentFilter = new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION);
+
+		this.registerReceiver(mLocationReceiver, intentFilter);
+	}
+
 	private void unregisterBluetoothReceiver() {
 		try {
 			this.unregisterReceiver(mBluetoothReceiver);
 			Log.i(TAG, "Bluetooth Receiver Unregistered Successfully");
 		} catch (Exception e) {
 			Log.i(TAG, "Bluetooth Receiver Already Unregistered. Exception : " + e.getLocalizedMessage());
+		}
+	}
+
+	private void unregisterLocationReceiver() {
+		try {
+			this.unregisterReceiver(mLocationReceiver);
+			Log.i(TAG, "Location Receiver Unregistered Successfully");
+		} catch (Exception e) {
+			Log.i(TAG, "Location Receiver Already Unregistered. Exception : " + e.getLocalizedMessage());
 		}
 	}
 
@@ -189,16 +248,16 @@ public class BluetoothScanService extends Service {
 		}
 	}
 
-	private void checkBluetoothPermission() {
+	private void checkPermission() {
 
 		if (mHandler != null) {
-			int localizationPermission = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+			int localizationPermission = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION);
 
 			if (localizationPermission != PackageManager.PERMISSION_GRANTED) {
 				mHandler.obtainMessage(ACTION_LOCATION_PERMISSION_NOT_GRANTED, null).sendToTarget();
 			}
 
-			int permissionBluetooth = ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH);
+			int permissionBluetooth = ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH);
 
 			if (permissionBluetooth != PackageManager.PERMISSION_GRANTED) {
 				mHandler.obtainMessage(ACTION_BLUETOOTH_PERMISSION_NOT_GRANTED, null).sendToTarget();
@@ -208,8 +267,10 @@ public class BluetoothScanService extends Service {
 
 	public void startLocalization() {
 
-		if (!localization || btScanner == null) {
+		if (!localization) {
 			localization = true;
+		}
+		if (btScanner == null) {
 			init();
 		}
 		startScanning();
@@ -226,24 +287,26 @@ public class BluetoothScanService extends Service {
 	private void init() {
 
 		checkSupport();
-		checkBluetoothPermission();
+		checkPermission();
 		checkBluetoothEnable();
 		checkLocalizationEnable();
 
-		if (btScanner == null) {
-			mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-			mBluetoothAdapter = mBluetoothManager.getAdapter();
+		mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+		mBluetoothAdapter = mBluetoothManager.getAdapter();
 
-			btScanner = mBluetoothAdapter.getBluetoothLeScanner();
-			algorithm = new Algorithm();
-		}
+		btScanner = mBluetoothAdapter.getBluetoothLeScanner();
+		algorithm = new Algorithm();
 
 		uuid = new ParcelUuid(UUID.fromString("2a49e0a7-8ad8-479d-834d-dc2e407dfd30"));
 
-		settings = new ScanSettings.Builder()
-			.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-			.build();
+		ScanSettings.Builder settingsBuilder = new ScanSettings.Builder();
+		settingsBuilder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+		if (Build.VERSION.SDK_INT >= 23) {
+			settingsBuilder.setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
+		}
+		settings = settingsBuilder.build();
 	}
+
 
 	private void startScanning() {
 
@@ -278,25 +341,6 @@ public class BluetoothScanService extends Service {
 		return scanFilterList;
 	}
 
-	private ScanCallback mLeScanCallback = new ScanCallback() {
-		@Override
-		public void onScanResult(int callbackType, ScanResult result) {
-
-			int id = getAnchorIdfromScanResult(result);
-
-			if (anchorConfiguration.indexOfKey(id) >= 0) {
-				if (anchorMatrix.indexOfKey(id) < 0) {
-					anchorMatrix.append(id, getAnchor(id));
-					anchorMatrix.get(id).rssiRef = getAnchorTxPowerfromScanResult(result);
-					anchorMatrix.get(id).rssi_array.add(result.getRssi());
-				} else {
-					anchorMatrix.get(id).rssi_array.add(result.getRssi());
-				}
-				if (isFistPosition) calculateFirstPosition();
-			}
-		}
-	};
-
 	private void calculateFirstPosition() {
 		isFistPosition = false;
 		final Handler handler = new Handler();
@@ -305,7 +349,7 @@ public class BluetoothScanService extends Service {
 			if (position != null) {
 				position.timestamp = new Date();
 				positionsArray.add(position);
-				sendPositionToactivity(position);
+				sendPositionToActivity(position);
 				executePeriodicTask();
 			} else {
 				isFistPosition = true;
@@ -313,9 +357,10 @@ public class BluetoothScanService extends Service {
 		}, 3000);
 	}
 
-	private void sendPositionToactivity(Position position) {
+	private void sendPositionToActivity(Position position) {
 		if (mHandler != null) {
-			mHandler.obtainMessage(ACTION_POSITION, position).sendToTarget();
+			mHandler.obtainMessage(ACTION_POSITION, new Point((int) Math.round(position.x * 100), (int) Math.round(position.y * 100))).sendToTarget();
+			sendBroadcastPosition(position);
 		}
 	}
 
@@ -343,7 +388,7 @@ public class BluetoothScanService extends Service {
 			Position newPosition = algorithm.getIntersectionCircleLine(getLastKnownPosition(), point);
 			newPosition.timestamp = new Date();
 			positionsArray.add(newPosition);
-			sendPositionToactivity(newPosition);
+			sendPositionToActivity(newPosition);
 		}
 	}
 
@@ -373,34 +418,30 @@ public class BluetoothScanService extends Service {
 		timer.cancel();
 	}
 
+	private void sendBroadcastPosition(Position position) {
+		try {
+			Intent broadCastIntent = new Intent();
+			broadCastIntent.setAction(CALCULATE_POSITION);
+			broadCastIntent.putExtra("position", new Point((int) Math.round(position.x * 100), (int) Math.round(position.y * 100)));
+			sendBroadcast(broadCastIntent);
+
+		} catch (Exception e) {
+			Log.e("SendBroadcast Exception", e.getMessage());
+		}
+	}
 
 	private void addDefaultConf() {
-		anchorConfiguration.append(65022, new Anchor(65022, new Position(32.12, 2.46, 3.00)));
-		anchorConfiguration.append(65023, new Anchor(65023, new Position(36.81, 1.40, 3.00)));
-		anchorConfiguration.append(65024, new Anchor(65024, new Position(32.20, 11.61, 3.00)));
-		anchorConfiguration.append(65025, new Anchor(65025, new Position(37.49, 12.27, 3.00)));
+		anchorConfiguration.append(65050, new Anchor(65050, new Position(32.12, 2.46, 3.00)));
+		anchorConfiguration.append(65045, new Anchor(65045, new Position(36.81, 1.40, 3.00)));
+		anchorConfiguration.append(65049, new Anchor(65049, new Position(32.20, 11.61, 3.00)));
+		anchorConfiguration.append(65048, new Anchor(65048, new Position(37.49, 12.27, 3.00)));
 
-		anchorConfiguration.append(65026, new Anchor(65026, new Position(24.60, 8.69, 3.00)));
-		anchorConfiguration.append(65027, new Anchor(65027, new Position(24.45, 1.97, 3.00)));
-		anchorConfiguration.append(65028, new Anchor(65028, new Position(29.91, 1.97, 3.00)));
-		anchorConfiguration.append(65029, new Anchor(65029, new Position(29.91, 9.09, 3.00)));
+		anchorConfiguration.append(65051, new Anchor(65051, new Position(24.60, 8.69, 3.00)));
+		anchorConfiguration.append(65044, new Anchor(65044, new Position(24.45, 1.97, 3.00)));
+		anchorConfiguration.append(65052, new Anchor(65052, new Position(29.91, 1.97, 3.00)));
+		anchorConfiguration.append(65043, new Anchor(65043, new Position(29.91, 9.09, 3.00)));
 
-		anchorConfiguration.append(65030, new Anchor(65030, new Position(34.61, 14.59, 3.00)));
-		anchorConfiguration.append(65031, new Anchor(65031, new Position(24.34, 14.41, 3.00)));
-//		anchorConfiguration.append(65014, new Anchor(65014, new Position(32.12, 2.46, 3.00)));
-//		anchorConfiguration.append(65008, new Anchor(65008, new Position(36.81, 1.40, 3.00)));
-//		anchorConfiguration.append(65021, new Anchor(65021, new Position(32.20, 11.61, 3.00)));
-//		anchorConfiguration.append(65007, new Anchor(65007, new Position(37.49, 12.27, 3.00)));
-//		anchorConfiguration.append(65012, new Anchor(65012, new Position(24.45, 1.97, 3.00)));
-//		anchorConfiguration.append(65018, new Anchor(65018, new Position(29.91, 1.94, 3.00)));
-//		anchorConfiguration.append(65016, new Anchor(65016, new Position(24.60, 8.69, 3.00)));
-//		anchorConfiguration.append(65019, new Anchor(65019, new Position(29.91, 9.09, 3.00)));
-//		anchorConfiguration.append(65015, new Anchor(65015, new Position(34.61, 14.59, 3.00)));
-//		anchorConfiguration.append(65011, new Anchor(65011, new Position(24.34, 14.41, 3.00)));
-//		anchorConfiguration.append(65017, new Anchor(65017, new Position(16.82, 14.44, 3.00)));
-//		anchorConfiguration.append(65020, new Anchor(65020, new Position(1.17, 17.42, 3.00)));
-//		anchorConfiguration.append(65003, new Anchor(65003, new Position(7.60, 16.44, 3.00)));
-//		anchorConfiguration.append(65006, new Anchor(65006, new Position(1.26, 22.88, 3.00)));
-//		anchorConfiguration.append(65009, new Anchor(65009, new Position(7.00, 23.22, 3.00)));
+		anchorConfiguration.append(65047, new Anchor(65047, new Position(34.61, 14.59, 3.00)));
+		anchorConfiguration.append(65046, new Anchor(65046, new Position(24.34, 14.41, 3.00)));
 	}
 }

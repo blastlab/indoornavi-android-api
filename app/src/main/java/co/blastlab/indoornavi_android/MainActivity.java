@@ -10,7 +10,6 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.location.LocationManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -38,13 +37,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import co.blastlab.indoornavi_api.INBle;
 import co.blastlab.indoornavi_api.INData;
+import co.blastlab.indoornavi_api.INNavigation;
 import co.blastlab.indoornavi_api.INReport;
 import co.blastlab.indoornavi_api.PhoneModule;
 import co.blastlab.indoornavi_api.algorithm.model.Position;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnINMapReadyCallback;
-import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
+import co.blastlab.indoornavi_api.callback.OnINObjectClickListener;
+import co.blastlab.indoornavi_api.callback.OnNavigationMessageReceive;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.model.AreaEvent;
@@ -71,6 +73,10 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private INReport INReport;
 	private INCircle inCircle;
 	private BluetoothScanService bluetoothScanService;
+	INNavigation inNavigation;
+	private List<INArea> areas;
+	INCircle inCirclePulled;
+	INCircle inCirclePulledInner;
 
 
 	private int floorId = 2;
@@ -203,6 +209,19 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		}
 	}
 
+	public void setBleAreaListener() {
+		INBle inBle = new INBle(inMap, backendServer, inMap.getFloorId());
+		inBle.setPulledPositionFlag(true);
+		inBle.addAreaEventListener(new OnEventListener<AreaEvent>() {
+			@Override
+			public void onEvent(AreaEvent areaEvent) {
+				String msg = areaEvent.mode.equals("ON_ENTER") ? "You entered the area!" : "You left the area!";
+				Log.e("Indoor", areaEvent.areaName + " " + areaEvent.mode);
+				Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+			}
+		});
+	}
+
 	public void onINMapReady(INMap mapView) {
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -211,6 +230,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		inMap.load(floorId, new OnObjectReadyCallback() {
 			@Override
 			public void onReady(Object o) {
+				setBleAreaListener();
+				getAreas();
 			}
 		});
 
@@ -219,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			public void onEvent(Point point) {
 				vibrator.vibrate(500);
 				new INMarker.INMarkerBuilder(inMap)
-					.setPosition(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), point))
+					.setPosition(point)
 					.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
 					.build();
 			}
@@ -249,7 +270,6 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 			if (this.phoneID == -1) {
 				String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-				Log.e("IndoorNavi", "Id: " + androidId);
 				this.phoneID = phoneModule.registerPhone("Android" + androidId);
 			}
 			phoneModule.saveCoordinates(new Coordinates((int) Math.round(position.x * 100), (int) Math.round(position.y * 100), (int) Math.round(position.z * 100), this.phoneID, position.timestamp));
@@ -291,7 +311,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			inArea = new INArea.INAreaBuilder(inMap)
 				.setPoints(getPointsSetByIndex(index))
 				.setColor(Color.GREEN)
-				.setOpacity(0.3)
+				.setOpacity(0.1)
+				.setBorder(new Border(5, Color.GREEN))
 				.build();
 		} else {
 			inArea.erase();
@@ -312,10 +333,11 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void drawCircle(Point position) {
+		if (position == null) return;
 		if (inCircle == null) {
 			inCircle = new INCircle.INCircleBuilder(inMap)
 				.setPosition(position)
-				.setRadius(30)
+				.setRadius(8)
 				.setOpacity(0.3)
 				.setColor(Color.RED)
 				.setBorder(new Border(30, Color.GREEN))
@@ -330,8 +352,15 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		inArea = new INArea.INAreaBuilder(inMap)
 			.setPoints(getPointsSetByIndex(index))
 			.setColor(Color.GREEN)
-			.setOpacity(0.3)
+			.setOpacity(0.1)
+			.setBorder(new Border(2, Color.GREEN))
 			.build();
+		inArea.addEventListener(new OnINObjectClickListener() {
+			@Override
+			public void onClick() {
+				Log.e("jea!", "jea");
+			}
+		});
 
 		if (inArea != null) {
 			inArea.isWithin(new Coordinates(200, 800, 0, (short) 109999, new Date()), bool -> Log.i("Indoor", "Received value: " + bool));
@@ -360,7 +389,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		if (inMarker1 != null) {
 			drawInfoWindow();
 
-			inMarker1.addEventListener(new OnMarkerClickListener() {
+			inMarker1.addEventListener(new OnINObjectClickListener() {
 				@Override
 				public void onClick() {
 					show_toast();
@@ -493,6 +522,12 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			case 1:
 				bluetoothScanService.stopLocalization();
 				break;
+			case 2:
+				setNavigation();
+				break;
+			case 3:
+				stopNavigation();
+				break;
 		}
 	}
 
@@ -531,12 +566,33 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void getPointPulledToPath() {
-		inMap.pullToPath(new Position(600, 600, 1, new Date()), 1, new OnReceiveValueCallback<Point>() {
+		inMap.pullToPath(new Point(600, 600), 1, new OnReceiveValueCallback<Point>() {
 			@Override
 			public void onReceiveValue(Point point) {
 				Log.e("indoor", "point: " + point);
 			}
 		});
+	}
+
+	private void setNavigation() {
+		if (inNavigation == null) {
+			inNavigation = new INNavigation(this, this.inMap);
+			inNavigation.startNavigation(new Point(3395, 123), new Point(2592, 170), 0, new OnNavigationMessageReceive<String>() {
+				@Override
+				public void onMessageReceive(String message) {
+					Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+					Log.e("indoor", "message: " + message);
+				}
+			});
+		} else {
+			inNavigation.restartNavigation();
+		}
+
+	}
+
+	private void stopNavigation() {
+		if (inNavigation != null)
+			inNavigation.stopNavigation();
 	}
 
 	private void prepareListData() {
@@ -581,6 +637,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		List<String> heading3 = new ArrayList<String>();
 		heading3.add(getString(R.string.start_localization));
 		heading3.add(getString(R.string.stop_localization));
+		heading3.add(getString(R.string.start_navigation));
+		heading3.add(getString(R.string.stop_navigation));
 
 		listDataChild.put(listDataHeader.get(0), heading1);
 		listDataChild.put(listDataHeader.get(1), heading1);
@@ -617,7 +675,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	public void onDestroy() {
 		super.onDestroy();
 		Log.e("Indoor", "OnDestroy");
-		if(BluetoothScanService.SERVICE_CONNECTED) {
+		if (BluetoothScanService.SERVICE_CONNECTED) {
 			unbindService(bluetoothConnection);
 			BluetoothScanService.SERVICE_CONNECTED = false;
 		}
@@ -660,14 +718,53 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				case BluetoothScanService.ACTION_LOCATION_PERMISSION_NOT_GRANTED:
 					Log.e(BluetoothScanService.TAG, "Location Permission not granted");
 					break;
+				case BluetoothScanService.ACTION_LOCATION_STATUS_CHANGE:
+					Log.e(BluetoothScanService.TAG, "Location status change");
+					break;
 				case BluetoothScanService.ACTION_POSITION:
-					Position position = (Position) msg.obj;
+					Point position = (Point) msg.obj;
 					Log.e(BluetoothScanService.TAG, "Position: x:" + position.x + ", y: " + position.y);
-					mActivity.get().drawCircle(new Point((int) Math.round(position.x * 100), (int) Math.round(position.y * 100)));
-					mActivity.get().saveCoordinates(position);
+					mActivity.get().drawCircle(position);
+
+					mActivity.get().inMap.pullToPath(position, 1, new OnReceiveValueCallback<Point>() {
+						@Override
+						public void onReceiveValue(Point point) {
+							if (point != null) {
+								mActivity.get().drawPulledCircle(point);
+							}
+						}
+					});
 					break;
 			}
 		}
+	}
+
+	private void drawPulledCircle(Point position) {
+		if (inCirclePulled == null) {
+			inCirclePulled = new INCircle.INCircleBuilder(inMap)
+				.setPosition(position)
+				.setRadius(30)
+				.setOpacity(0.3)
+				.setColor(Color.parseColor("#007FFF"))
+				.setBorder(new Border(4, Color.parseColor("#007FFF")))
+				.build();
+		} else {
+			inCirclePulled.setPosition(position);
+			inCirclePulled.draw();
+		}
+		if (inCirclePulledInner == null) {
+			inCirclePulledInner = new INCircle.INCircleBuilder(inMap)
+				.setPosition(position)
+				.setRadius(8)
+				.setOpacity(1.0)
+				.setColor(Color.parseColor("#007FFF"))
+				.setBorder(new Border(0, Color.parseColor("#007FFF")))
+				.build();
+		} else {
+			inCirclePulledInner.setPosition(position);
+			inCirclePulledInner.draw();
+		}
+
 	}
 
 	private void enableBluetooth() {
@@ -679,12 +776,4 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
 		}
 	}
-//
-//	private void enableLocation() {
-//		LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-//		if (locationManager != null && !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-//			Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-//			startActivityForResult(enableBtIntent, REQUEST_ENABLE_LOCATION);
-//		}
-//	}
 }

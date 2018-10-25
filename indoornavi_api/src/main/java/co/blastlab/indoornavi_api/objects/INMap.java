@@ -20,14 +20,14 @@ import java.util.List;
 import java.util.Locale;
 
 import co.blastlab.indoornavi_api.Controller;
-import co.blastlab.indoornavi_api.algorithm.model.Position;
 import co.blastlab.indoornavi_api.callback.OnEventListener;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.interfaces.INDataInterface;
 import co.blastlab.indoornavi_api.interfaces.EventListenerInterface;
 import co.blastlab.indoornavi_api.interfaces.INMapInterface;
-import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
+import co.blastlab.indoornavi_api.interfaces.INObjectEventInterface;
+import co.blastlab.indoornavi_api.interfaces.INNavigationInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
 import co.blastlab.indoornavi_api.interfaces.INReportInterface;
 import co.blastlab.indoornavi_api.model.Complex;
@@ -42,11 +42,12 @@ import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 public class INMap extends WebView {
 
 	INObjectInterface inObjectInterface;
-	INMarkerInterface inMarkerInterface;
+	INObjectEventInterface inObjectEventInterface;
 	INReportInterface INReportInterface;
 	EventListenerInterface eventInterface;
 	INDataInterface INDataInterface;
 	INMapInterface inMapInterface;
+	INNavigationInterface inNavigationInterface;
 
 	private Context context;
 
@@ -100,6 +101,7 @@ public class INMap extends WebView {
 	 */
 	public void load(int floorId, OnObjectReadyCallback onObjectReadyCallback) {
 		this.floorId = floorId;
+		//setTimeout();
 		this.ready(floorId, (object) -> {
 			waitUntilMapReady(onObjectReadyCallback);
 			getMapDimensions();
@@ -113,6 +115,7 @@ public class INMap extends WebView {
 	 */
 	public void load(int floorId) {
 		this.floorId = floorId;
+		//setTimeout();
 		this.ready(floorId, (object) -> {
 			getMapDimensions();
 		});
@@ -140,11 +143,34 @@ public class INMap extends WebView {
 		String javaScriptString = "navi.parameters;";
 		inMap.evaluate(javaScriptString, data -> {
 			inMap.scale = MapUtil.stringToScale(data);
-			for (OnObjectReadyCallback readyCallback : Controller.promiseMapReady) {
-				readyCallback.onReady(null);
-			}
-			Controller.promiseMapReady.clear();
+			clearReadyPromiseMap();
 		});
+	}
+
+	private void setTimeout() {
+		final INMap inMap = this;
+		Thread thread = new Thread() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(20000);
+					if (Controller.promiseMapReady.size() > 0) {
+						Log.e("Timeout ", " server " + inMap.getTargetHost() + " not responding");
+						clearReadyPromiseMap();
+					}
+				} catch (InterruptedException e) {
+					Log.e("Indoor", "thread exception");
+				}
+			}
+		};
+		thread.start();
+	}
+
+	private void clearReadyPromiseMap() {
+		for (OnObjectReadyCallback readyCallback : Controller.promiseMapReady) {
+			readyCallback.onReady(null);
+		}
+		Controller.promiseMapReady.clear();
 	}
 
 	/**
@@ -168,13 +194,23 @@ public class INMap extends WebView {
 	 * @param position               point coordinates in real dimensions
 	 * @param onReceiveValueCallback interface - invoked when calculated point is available. Return {@link Point} or null if unsuccessful.
 	 */
-	public void pullToPath(Position position, int accuracy, final OnReceiveValueCallback<Point> onReceiveValueCallback) {
+	public void pullToPath(Point position, int accuracy, final OnReceiveValueCallback<Point> onReceiveValueCallback) {
 		final INMap inMap = this;
 
-		int callbackId = onReceiveValueCallback.hashCode();
-		Controller.ReceiveValueMap.put(callbackId, onReceiveValueCallback);
+		OnReceiveValueCallback<Point> innerReceiveValueCallback = new OnReceiveValueCallback<Point>() {
+			@Override
+			public void onReceiveValue(Point point) {
+				Handler handler = new Handler(Looper.getMainLooper());
+				handler.post(() ->
+					onReceiveValueCallback.onReceiveValue(point == null ? null : MapUtil.pixelsToRealDimensions(inMap.getMapScale(), point))
+				);
+			}
+		};
 
-		String javaScriptString = String.format(Locale.US, "navi.pullToPath({x: %d, y: %d}, %d).then(pulledPoint => inMapInterface.pulledPoint(%d, JSON.stringify(pulledPoint)));", Math.round(position.x), Math.round(position.y), accuracy, callbackId);
+		int callbackId = innerReceiveValueCallback.hashCode();
+		Controller.ReceiveValueMap.put(callbackId, innerReceiveValueCallback);
+		Point positionInPixels = MapUtil.realDimensionsToPixels(inMap.getMapScale(), position);
+		String javaScriptString = String.format(Locale.US, "navi.pullToPath({x: %d, y: %d}, %d).then(pulledPoint => inMapInterface.pulledPoint(%d, JSON.stringify(pulledPoint)));", positionInPixels.x, positionInPixels.y, accuracy, callbackId);
 		inMap.evaluate(javaScriptString, null);
 	}
 
@@ -210,13 +246,13 @@ public class INMap extends WebView {
 		this.setWebViewClient(new IndoorWebViewClient());
 		this.setWebChromeClient(new IndoorWebChromeClient());
 
-		this.getSettings().setAppCacheMaxSize(500 * 1024 * 1024 ); // 500 MB
+		this.getSettings().setAppCacheMaxSize(500 * 1024 * 1024); // 500 MB
 		this.getSettings().setAppCachePath(this.context.getFilesDir().getAbsolutePath());
-		this.getSettings().setAllowFileAccess( true );
-		this.getSettings().setAppCacheEnabled( true );
-		this.getSettings().setJavaScriptEnabled( true );
+		this.getSettings().setAllowFileAccess(true);
+		this.getSettings().setAppCacheEnabled(true);
+		this.getSettings().setJavaScriptEnabled(true);
 
-		this.getSettings().setCacheMode( WebSettings.LOAD_DEFAULT);
+		this.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
 
 		this.getSettings().setJavaScriptEnabled(true);
 		this.getSettings().setDomStorageEnabled(true);
@@ -225,6 +261,7 @@ public class INMap extends WebView {
 
 		this.getSettings().setAllowUniversalAccessFromFileURLs(true);
 		this.getSettings().setAllowContentAccess(true);
+		this.setWebContentsDebuggingEnabled(true);
 	}
 
 	/**
@@ -296,8 +333,8 @@ public class INMap extends WebView {
 		inObjectInterface = new INObjectInterface();
 		this.addJavascriptInterface(inObjectInterface, "inObjectInterface");
 
-		inMarkerInterface = new INMarkerInterface();
-		this.addJavascriptInterface(inMarkerInterface, "inMarkerInterface");
+		inObjectEventInterface = new INObjectEventInterface();
+		this.addJavascriptInterface(inObjectEventInterface, "inObjectEventInterface");
 
 		INReportInterface = new INReportInterface();
 		this.addJavascriptInterface(INReportInterface, "inReportInterface");
@@ -310,6 +347,10 @@ public class INMap extends WebView {
 
 		inMapInterface = new INMapInterface();
 		this.addJavascriptInterface(inMapInterface, "inMapInterface");
+
+		inNavigationInterface = new INNavigationInterface();
+		this.addJavascriptInterface(inNavigationInterface, "inNavigationInterface");
+
 	}
 
 	private void evaluate(String javaScriptString, ValueCallback<String> valueCallback) {

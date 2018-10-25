@@ -23,16 +23,23 @@ public class EventListenerInterface {
 
 	@JavascriptInterface
 	public void onClickEvent(final int eventId, final String response) {
-		Point point  = PointsUtil.stringToPoint(response);
+		Point point = PointsUtil.stringToPoint(response);
 		Handler handler = new Handler(Looper.getMainLooper());
 		handler.post(() -> {
-				if(point != null ) {
+				if (point != null) {
 					Controller.eventListenerMap.get(eventId).onEvent(point);
-				}
-				else {
+				} else {
 					Controller.eventListenerMap.get(eventId).onEvent(null);
 				}
 			}
+		);
+	}
+
+	@JavascriptInterface
+	public void onBleAreaEvent(final int eventId, final String event) {
+		Handler handler = new Handler(Looper.getMainLooper());
+		handler.post(() ->
+			Controller.eventListenerMap.get(eventId).onEvent(EventsUtil.jsonEventToAreaEvent(event))
 		);
 	}
 }
