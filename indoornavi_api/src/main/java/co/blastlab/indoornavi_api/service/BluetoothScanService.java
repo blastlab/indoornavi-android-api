@@ -18,6 +18,7 @@ import android.graphics.Point;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.ParcelUuid;
@@ -118,6 +119,25 @@ public class BluetoothScanService extends Service {
 				if (localization && localizationPermission == PackageManager.PERMISSION_GRANTED) {
 					startLocalization();
 				}
+			}
+		}
+	};
+
+	private ScanCallback mLeScanCallback = new ScanCallback() {
+		@Override
+		public void onScanResult(int callbackType, ScanResult result) {
+
+			int id = getAnchorIdfromScanResult(result);
+
+			if (anchorConfiguration.indexOfKey(id) >= 0) {
+				if (anchorMatrix.indexOfKey(id) < 0) {
+					anchorMatrix.append(id, getAnchor(id));
+					anchorMatrix.get(id).rssiRef = getAnchorTxPowerfromScanResult(result);
+					anchorMatrix.get(id).rssi_array.add(result.getRssi());
+				} else {
+					anchorMatrix.get(id).rssi_array.add(result.getRssi());
+				}
+				if (isFistPosition) calculateFirstPosition();
 			}
 		}
 	};
@@ -228,7 +248,7 @@ public class BluetoothScanService extends Service {
 		}
 	}
 
-	private void checkBluetoothPermission() {
+	private void checkPermission() {
 
 		if (mHandler != null) {
 			int localizationPermission = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION);
@@ -247,8 +267,10 @@ public class BluetoothScanService extends Service {
 
 	public void startLocalization() {
 
-		if (!localization || btScanner == null) {
+		if (!localization) {
 			localization = true;
+		}
+		if (btScanner == null) {
 			init();
 		}
 		startScanning();
@@ -265,24 +287,26 @@ public class BluetoothScanService extends Service {
 	private void init() {
 
 		checkSupport();
-		checkBluetoothPermission();
+		checkPermission();
 		checkBluetoothEnable();
 		checkLocalizationEnable();
 
-		if (btScanner == null) {
-			mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-			mBluetoothAdapter = mBluetoothManager.getAdapter();
+		mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+		mBluetoothAdapter = mBluetoothManager.getAdapter();
 
-			btScanner = mBluetoothAdapter.getBluetoothLeScanner();
-			algorithm = new Algorithm();
-		}
+		btScanner = mBluetoothAdapter.getBluetoothLeScanner();
+		algorithm = new Algorithm();
 
 		uuid = new ParcelUuid(UUID.fromString("2a49e0a7-8ad8-479d-834d-dc2e407dfd30"));
 
-		settings = new ScanSettings.Builder()
-			.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-			.build();
+		ScanSettings.Builder settingsBuilder = new ScanSettings.Builder();
+		settingsBuilder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+		if (Build.VERSION.SDK_INT >= 23) {
+			settingsBuilder.setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
+		}
+		settings = settingsBuilder.build();
 	}
+
 
 	private void startScanning() {
 
@@ -316,26 +340,6 @@ public class BluetoothScanService extends Service {
 		scanFilterList.add(scanFilter);
 		return scanFilterList;
 	}
-
-	private ScanCallback mLeScanCallback = new ScanCallback() {
-		@Override
-		public void onScanResult(int callbackType, ScanResult result) {
-
-			Log.e("scan is working" ,"jeah!");
-			int id = getAnchorIdfromScanResult(result);
-
-			if (anchorConfiguration.indexOfKey(id) >= 0) {
-				if (anchorMatrix.indexOfKey(id) < 0) {
-					anchorMatrix.append(id, getAnchor(id));
-					anchorMatrix.get(id).rssiRef = getAnchorTxPowerfromScanResult(result);
-					anchorMatrix.get(id).rssi_array.add(result.getRssi());
-				} else {
-					anchorMatrix.get(id).rssi_array.add(result.getRssi());
-				}
-				if (isFistPosition) calculateFirstPosition();
-			}
-		}
-	};
 
 	private void calculateFirstPosition() {
 		isFistPosition = false;

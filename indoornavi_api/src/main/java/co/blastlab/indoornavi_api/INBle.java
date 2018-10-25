@@ -47,7 +47,9 @@ public class INBle {
 
 	private void updatePosition(Point position) {
 
-		String javaScriptString = String.format(Locale.US, "%s.updatePosition({x: %d, y: %d});", objectInstance, position.x, position.y);
+		Point positionInPixels = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), position);
+
+		String javaScriptString = String.format(Locale.US, "%s.updatePosition({x: %d, y: %d});", objectInstance, positionInPixels.x, positionInPixels.y);
 		inMap.evaluateJavascript(javaScriptString, null);
 	}
 
@@ -56,9 +58,8 @@ public class INBle {
 		public void onReceive(Context context, Intent intent) {
 			switch (intent.getAction()) {
 				case BluetoothScanService.CALCULATE_POSITION:
-					Point position = MapUtil.realDimensionsToPixels(inMap.getMapScale(),intent.getParcelableExtra("position"));
+					Point position = intent.getParcelableExtra("position");
 					if (position != null) {
-
 						if(pulledPositionFlag) {
 							inMap.pullToPath(position, 0, new OnReceiveValueCallback<Point>() {
 								@Override

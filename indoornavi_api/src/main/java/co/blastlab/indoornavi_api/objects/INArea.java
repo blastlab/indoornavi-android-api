@@ -4,7 +4,6 @@ import android.graphics.Point;
 import android.support.annotation.ColorInt;
 import android.support.annotation.FloatRange;
 import android.util.Log;
-import android.view.View;
 import android.webkit.ValueCallback;
 
 import java.util.List;
@@ -13,6 +12,7 @@ import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnINObjectClickListener;
+import co.blastlab.indoornavi_api.model.Border;
 import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.utils.CoordinatesUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
@@ -30,6 +30,8 @@ public class INArea extends INObject {
 	double opacity;
 	private String name;
 	private int callbackId;
+	private int databaseId = -1;
+	private Border border;
 
 	/**
 	 * INArea constructor
@@ -115,8 +117,30 @@ public class INArea extends INObject {
 		return this.opacity;
 	}
 
+	/**
+	 * Sets border of the area. To apply this method it's necessary to call draw() after.
+	 *
+	 * @param border Border object, define border parameters of the circle.
+	 */
+	public void setBorder(Border border) {
+		this.border = border;
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.setBorder(new Border(%d, '%s'));", objectInstance, border.width, String.format("#%06X", (0xFFFFFF & border.color)));
+		evaluate(javaScriptString, null);
+	}
+
+	/**
+	 * Gets border of the circle.
+	 */
+	public Border getBorder() {
+		return this.border;
+	}
+
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public void setDatabaseId(int id) {
+		this.databaseId = id;
 	}
 
 	/**
@@ -217,6 +241,11 @@ public class INArea extends INObject {
 
 		public INAreaBuilder setName(String name) {
 			inArea.setName(name);
+			return this;
+		}
+
+		public INAreaBuilder setBorder(Border border) {
+			inArea.setBorder(border);
 			return this;
 		}
 

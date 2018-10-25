@@ -96,6 +96,7 @@ public class INData {
 
 				JSONObject area = jsonAreasList.getJSONObject(i);
 				inArea.setName(area.getString("name"));
+				inArea.setDatabaseId(Integer.parseInt(area.getString("id")));
 
 				for(Point point : PointsUtil.stringToPoints(area.getString("points"))) {
 					points.add(MapUtil.pixelsToRealDimensions(this.inMap.getMapScale(), point));

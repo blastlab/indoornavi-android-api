@@ -311,7 +311,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			inArea = new INArea.INAreaBuilder(inMap)
 				.setPoints(getPointsSetByIndex(index))
 				.setColor(Color.GREEN)
-				.setOpacity(0.3)
+				.setOpacity(0.1)
+				.setBorder(new Border(5, Color.GREEN))
 				.build();
 		} else {
 			inArea.erase();
@@ -351,7 +352,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		inArea = new INArea.INAreaBuilder(inMap)
 			.setPoints(getPointsSetByIndex(index))
 			.setColor(Color.GREEN)
-			.setOpacity(0.3)
+			.setOpacity(0.1)
+			.setBorder(new Border(2, Color.GREEN))
 			.build();
 		inArea.addEventListener(new OnINObjectClickListener() {
 			@Override
@@ -506,11 +508,6 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		inData.getAreas(areas -> {
 				Log.i("Indoor", "Received areas: " + areas);
-				this.areas = areas;
-				for (INArea inArea : areas) {
-					Log.i("Indoor", " center x: " + inArea.getCenterPoint().x + "y: " + inArea.getCenterPoint().y);
-					inArea.draw();
-				}
 			}
 		);
 	}
@@ -727,6 +724,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				case BluetoothScanService.ACTION_POSITION:
 					Point position = (Point) msg.obj;
 					Log.e(BluetoothScanService.TAG, "Position: x:" + position.x + ", y: " + position.y);
+					mActivity.get().drawCircle(position);
 
 					mActivity.get().inMap.pullToPath(position, 1, new OnReceiveValueCallback<Point>() {
 						@Override
