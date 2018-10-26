@@ -85,6 +85,8 @@ public class INData {
 	}
 
 	private List<INArea> getAreasFromJSON(String jsonString) {
+		if(jsonString == null) return null;
+
 		List<INArea> areas = new ArrayList<>();
 
 		try {
@@ -96,7 +98,7 @@ public class INData {
 
 				JSONObject area = jsonAreasList.getJSONObject(i);
 				inArea.setName(area.getString("name"));
-				inArea.setDatabaseId(Integer.parseInt(area.getString("id")));
+				inArea.setDatabaseId(area.getInt("id"));
 
 				for(Point point : PointsUtil.stringToPoints(area.getString("points"))) {
 					points.add(MapUtil.pixelsToRealDimensions(this.inMap.getMapScale(), point));

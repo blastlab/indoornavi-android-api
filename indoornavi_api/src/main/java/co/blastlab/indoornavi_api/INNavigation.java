@@ -31,6 +31,7 @@ public class INNavigation {
 	private Point startPointInPixels;
 	private Point destinationPointInPixels;
 	private int accuracy = 1;
+	private boolean navigationIsRunning = false;
 
 
 	private final BroadcastReceiver serviceReceiver = new BroadcastReceiver() {
@@ -56,21 +57,33 @@ public class INNavigation {
 		evaluate(javaScriptString, null);
 	}
 
-	public void startNavigation(Point startPoint, Point destinationPoint, int accuracy, OnNavigationMessageReceive<String> onNavigationMessageReceive) {
+	public void startNavigation(Point startPoint, Point destinationPoint, int accuracy) {
 		this.startPoint = startPoint;
 		this.destinationPoint = destinationPoint;
 
 		this.startPointInPixels = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), startPoint);
 		this.destinationPointInPixels = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), destinationPoint);
 		this.accuracy = accuracy;
-		this.onNavigationMessageReceive = onNavigationMessageReceive;
 
 		registerReceiver();
+		navigationIsRunning = true;
+
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.start({x: %d, y: %d}, {x: %d, y: %d}, %d);", objectInstance, this.startPointInPixels.x, this.startPointInPixels.y, this.destinationPointInPixels.x, this.destinationPointInPixels.y, accuracy);
+		evaluate(javaScriptString, null);
+	}
+
+	public void addEventListener(OnNavigationMessageReceive<String> onNavigationMessageReceive) {
+		this.onNavigationMessageReceive = onNavigationMessageReceive;
 
 		int eventId = onNavigationMessageReceive.hashCode();
 		Controller.navigationMessageMap.put(eventId, onNavigationMessageReceive);
 
-		String javaScriptString = String.format(Locale.ENGLISH, "%s.start({x: %d, y: %d}, {x: %d, y: %d}, %d, action => inNavigationInterface.onMessageReceive(%d, JSON.stringify(action)));", objectInstance, this.startPointInPixels.x, this.startPointInPixels.y, this.destinationPointInPixels.x, this.destinationPointInPixels.y, accuracy, eventId);
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.addEventListener(action => inNavigationInterface.onMessageReceive(%d, JSON.stringify(action)));", objectInstance, eventId);
+		evaluate(javaScriptString, null);
+	}
+
+	public void removeEventListener() {
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.removeEventListener();", objectInstance);
 		evaluate(javaScriptString, null);
 	}
 
@@ -87,12 +100,13 @@ public class INNavigation {
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.stop();", objectInstance);
 		evaluate(javaScriptString, null);
 		unregisterReceiver();
+		navigationIsRunning = false;
 	}
 
 	public void restartNavigation() {
 		if(this.lastPosition == null || this.destinationPoint == null) return;
-		stopNavigation();
-		startNavigation(lastPosition, destinationPoint, accuracy, onNavigationMessageReceive);
+		if(navigationIsRunning) stopNavigation();
+		startNavigation(lastPosition, destinationPoint, accuracy);
 	}
 
 	private void registerReceiver() {

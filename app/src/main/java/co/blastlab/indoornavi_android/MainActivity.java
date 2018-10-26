@@ -79,9 +79,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	INCircle inCirclePulledInner;
 
 
-	private int floorId = 2;
-	private String frontendServer = "http://172.16.170.50:4200";
-	private String backendServer = "http://172.16.170.50:90";
+	private int floorId = 5;
+	private String frontendServer = "http://indoornavi.westeurope.azurecontainer.io:4200";
+	private String backendServer = "http://indoornavi.westeurope.azurecontainer.io:8080";
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
 	private static final int REQUEST_INTERNET = 1;
 	private static final int REQUEST_ENABLE_BT = 1;
@@ -577,7 +577,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private void setNavigation() {
 		if (inNavigation == null) {
 			inNavigation = new INNavigation(this, this.inMap);
-			inNavigation.startNavigation(new Point(3395, 123), new Point(2592, 170), 0, new OnNavigationMessageReceive<String>() {
+			inNavigation.startNavigation(new Point(3395, 123), new Point(2592, 170), 0);
+
+			inNavigation.addEventListener(new OnNavigationMessageReceive<String>() {
 				@Override
 				public void onMessageReceive(String message) {
 					Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();

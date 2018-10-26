@@ -1488,7 +1488,7 @@ class INData {
                 const payloads = JSON.parse(data);
                 const areas = payloads.map(payload => {
                     return {
-                        id: payload.name,
+                        id: payload.id,
                         name: payload.name,
                         points: payload.points
                     }
@@ -1513,6 +1513,7 @@ class INNavigation {
         this._navi = navi;
         this._navi._checkIsReady();
         this._navi._setIFrame();
+        this._callback_event = null;
     }
 
     /**
@@ -1525,12 +1526,10 @@ class INNavigation {
      * const navigation = new INNavigation(navi);
      * navigation.start({x: 100, y: 100}, {x: 800, y: 800}, 10);
      */
-    start(location, destination, margin, callback) {
+    start(location, destination, margin) {
         Validation.isPoint(location, 'Given argument is not a Point');
         Validation.isPoint(destination, 'Given argument is not a Point');
         Validation.isInteger(margin, 'Pull width value is not an integer');
-        Validation.isFunction(callback,'Given callback is not a function');
-        Communication.listen(`navigation`, callback);
         this._sendToIFrame('start', {
             location: location,
             destination: destination,
@@ -1538,6 +1537,27 @@ class INNavigation {
         });
         return this;
     }
+
+        addEventListener(callback) {
+            this._callback_event = callback;
+            Communication.listen('navigation', this._callbackDispatcher.bind(this));
+            return this;
+        }
+
+        /**
+         * Removes listener if listener exists. Use of this method is optional.
+         * @return {INNavigation} self to let you chain methods
+         * @example
+         * const navigation = new INNavigation(navi);
+         * navigation.removeEventListener();
+         */
+        removeEventListener() {
+            if (!!this._callback_event) {
+                Communication.remove(this._callbackDispatcher);
+                this._callback_event = null;
+            }
+            return this;
+        }
 
     /**
      * Updates actual location on navigation path
@@ -1576,6 +1596,12 @@ class INNavigation {
             }
         });
     }
+
+    _callbackDispatcher(event) {
+            if (!!this._callback_event) {
+                this._callback_event(event);
+            }
+        }
 }
 
 /**
