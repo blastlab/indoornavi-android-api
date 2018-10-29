@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v4.content.LocalBroadcastManager;
 import android.webkit.ValueCallback;
 
 import java.util.Locale;
@@ -19,7 +18,7 @@ import co.blastlab.indoornavi_api.utils.MapUtil;
 
 public class INNavigation {
 
-	private  String objectInstance;
+	private String objectInstance;
 	private Context context;
 	private INMap inMap;
 	private Point lastPosition;
@@ -49,7 +48,7 @@ public class INNavigation {
 	};
 
 	public INNavigation(Context context, INMap inMap) {
-		this.objectInstance = String.format(Locale.US, "navigation%d",this.hashCode());
+		this.objectInstance = String.format(Locale.US, "navigation%d", this.hashCode());
 		this.context = context;
 		this.inMap = inMap;
 
@@ -104,33 +103,27 @@ public class INNavigation {
 	}
 
 	public void restartNavigation() {
-		if(this.lastPosition == null || this.destinationPoint == null) return;
-		if(navigationIsRunning) stopNavigation();
+		if (this.lastPosition == null || this.destinationPoint == null) return;
+		if (navigationIsRunning) stopNavigation();
 		startNavigation(lastPosition, destinationPoint, accuracy);
 	}
 
 	private void registerReceiver() {
-		try
-		{
+		try {
 			IntentFilter intentFilter = new IntentFilter();
 			intentFilter.addAction(BluetoothScanService.CALCULATE_POSITION);
 			this.context.registerReceiver(serviceReceiver, intentFilter);
-		}
-		catch (Exception ex)
-		{
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
 
 	private void unregisterReceiver() {
-		try
-		{
-			if(serviceReceiver != null) {
+		try {
+			if (serviceReceiver != null) {
 				this.context.unregisterReceiver(serviceReceiver);
 			}
-		}
-		catch (Exception ex)
-		{
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}

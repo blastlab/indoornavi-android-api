@@ -11,6 +11,7 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Entity;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -32,7 +33,9 @@ import android.util.SparseArray;
 import java.util.ArrayList;
 import java.util.Date;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -53,6 +56,9 @@ public class BluetoothScanService extends Service {
 	public static final int ACTION_LOCATION_NOT_ENABLED = 5;
 	public static final int ACTION_LOCATION_STATUS_CHANGE = 6;
 	public static final int ACTION_POSITION = 7;
+	public static final int ACTION_NO_SCAN_RESULTS = 8;
+	public static final int ACTION_FLOOR_ID_CHANGE = 9;
+	public static final int ACTION_DEVICES_OUT_OF_RANGE = 10;
 	public static boolean SERVICE_CONNECTED = false;
 
 	private BluetoothManager mBluetoothManager;
@@ -74,6 +80,7 @@ public class BluetoothScanService extends Service {
 	private boolean localization = false;
 	private boolean isFistPosition = true;
 	private int maxDistance = 12;
+	private int actualFloorId = -1;
 
 	private final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
 		@Override
@@ -265,6 +272,25 @@ public class BluetoothScanService extends Service {
 		}
 	}
 
+	private void DeviceAvailability() {
+		Thread thread = new Thread() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(6000);
+					if (getLastKnownPosition() == null && mHandler != null) {
+						if (mHandler != null) {
+							mHandler.obtainMessage(ACTION_NO_SCAN_RESULTS, null).sendToTarget();
+						}
+					}
+				} catch (InterruptedException e) {
+					Log.e("Indoor", "thread exception");
+				}
+			}
+		};
+		thread.start();
+	}
+
 	public void startLocalization() {
 
 		if (!localization) {
@@ -315,6 +341,7 @@ public class BluetoothScanService extends Service {
 				@Override
 				public void run() {
 					Log.i(TAG, "Start scanning");
+					DeviceAvailability();
 					btScanner.startScan(getScanFilters(), settings, mLeScanCallback);
 				}
 			});
@@ -343,8 +370,8 @@ public class BluetoothScanService extends Service {
 
 	private void calculateFirstPosition() {
 		isFistPosition = false;
-		final Handler handler = new Handler();
-		handler.postDelayed(() -> {
+		new Handler().postDelayed(() -> {
+			checkSuggestedFloor();
 			Position position = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
 			if (position != null) {
 				position.timestamp = new Date();
@@ -373,6 +400,9 @@ public class BluetoothScanService extends Service {
 				handler.post(() -> {
 					try {
 						getPosition();
+						if (anchorMatrix.size() <= 0 && mHandler != null) {
+							mHandler.obtainMessage(ACTION_DEVICES_OUT_OF_RANGE, null).sendToTarget();
+						}
 					} catch (Exception e) {
 						Log.e("Localization exception", "Position computing failed: " + e);
 					}
@@ -383,12 +413,40 @@ public class BluetoothScanService extends Service {
 	}
 
 	private void getPosition() {
+		checkSuggestedFloor();
 		Position point = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
 		if (point != null) {
 			Position newPosition = algorithm.getIntersectionCircleLine(getLastKnownPosition(), point);
 			newPosition.timestamp = new Date();
 			positionsArray.add(newPosition);
 			sendPositionToActivity(newPosition);
+		}
+	}
+
+	private void checkSuggestedFloor() {
+		Map<Integer, Integer> floorMap = new HashMap<>();
+
+		for (int i = 0; i < anchorMatrix.size(); i++) {
+			int floorId = anchorMatrix.valueAt(i).floorId;
+			if (!floorMap.containsKey(floorId)) {
+				floorMap.put(floorId, 1);
+			} else {
+				floorMap.put(floorId, floorMap.get(floorId) + 1);
+			}
+		}
+
+		int mostCommonFloor = -1;
+		for (Integer floorId : floorMap.keySet()) {
+			if (floorMap.get(floorId) >= (mostCommonFloor == -1 ? -1 : floorMap.get(mostCommonFloor))) {
+				mostCommonFloor = floorId;
+			}
+		}
+
+		if (actualFloorId != mostCommonFloor) {
+			actualFloorId = mostCommonFloor;
+			if (mHandler != null) {
+				mHandler.obtainMessage(ACTION_FLOOR_ID_CHANGE, actualFloorId).sendToTarget();
+			}
 		}
 	}
 
@@ -431,17 +489,17 @@ public class BluetoothScanService extends Service {
 	}
 
 	private void addDefaultConf() {
-		anchorConfiguration.append(65050, new Anchor(65050, new Position(32.12, 2.46, 3.00)));
-		anchorConfiguration.append(65045, new Anchor(65045, new Position(36.81, 1.40, 3.00)));
-		anchorConfiguration.append(65049, new Anchor(65049, new Position(32.20, 11.61, 3.00)));
-		anchorConfiguration.append(65048, new Anchor(65048, new Position(37.49, 12.27, 3.00)));
+		anchorConfiguration.append(65050, new Anchor(65050, new Position(32.12, 2.46, 3.00), 2));
+		anchorConfiguration.append(65045, new Anchor(65045, new Position(36.81, 1.40, 3.00), 2));
+		anchorConfiguration.append(65049, new Anchor(65049, new Position(32.20, 11.61, 3.00), 2));
+		anchorConfiguration.append(65048, new Anchor(65048, new Position(37.49, 12.27, 3.00), 2));
 
-		anchorConfiguration.append(65051, new Anchor(65051, new Position(24.60, 8.69, 3.00)));
-		anchorConfiguration.append(65044, new Anchor(65044, new Position(24.45, 1.97, 3.00)));
-		anchorConfiguration.append(65052, new Anchor(65052, new Position(29.91, 1.97, 3.00)));
-		anchorConfiguration.append(65043, new Anchor(65043, new Position(29.91, 9.09, 3.00)));
+		anchorConfiguration.append(65051, new Anchor(65051, new Position(24.60, 8.69, 3.00), 2));
+		anchorConfiguration.append(65044, new Anchor(65044, new Position(24.45, 1.97, 3.00), 2));
+		anchorConfiguration.append(65052, new Anchor(65052, new Position(29.91, 1.97, 3.00), 2));
+		anchorConfiguration.append(65043, new Anchor(65043, new Position(29.91, 9.09, 3.00), 2));
 
-		anchorConfiguration.append(65047, new Anchor(65047, new Position(34.61, 14.59, 3.00)));
-		anchorConfiguration.append(65046, new Anchor(65046, new Position(24.34, 14.41, 3.00)));
+		anchorConfiguration.append(65047, new Anchor(65047, new Position(34.61, 14.59, 3.00), 2));
+		anchorConfiguration.append(65046, new Anchor(65046, new Position(24.34, 14.41, 3.00), 2));
 	}
 }

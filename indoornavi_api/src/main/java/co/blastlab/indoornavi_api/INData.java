@@ -17,6 +17,7 @@ import java.util.concurrent.CountDownLatch;
 
 
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
+import co.blastlab.indoornavi_api.model.Border;
 import co.blastlab.indoornavi_api.model.Path;
 import co.blastlab.indoornavi_api.objects.INArea;
 import co.blastlab.indoornavi_api.objects.INMap;
@@ -105,8 +106,9 @@ public class INData {
 				}
 
 				inArea.setPoints(points);
-				inArea.setOpacity(0.3);
+				inArea.setOpacity(0.2);
 				inArea.setColor(Color.GREEN);
+				inArea.setBorder(new Border(4, Color.GREEN));
 				try {
 					CountDownLatch latch = new CountDownLatch(1);
 					inArea.ready(data -> latch.countDown());

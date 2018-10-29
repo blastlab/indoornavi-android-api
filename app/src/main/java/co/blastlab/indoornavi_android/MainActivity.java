@@ -79,9 +79,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	INCircle inCirclePulledInner;
 
 
-	private int floorId = 5;
-	private String frontendServer = "http://indoornavi.westeurope.azurecontainer.io:4200";
-	private String backendServer = "http://indoornavi.westeurope.azurecontainer.io:8080";
+	private int floorId = 2;
+	private String frontendServer = "http://172.16.170.50:4200";
+	private String backendServer = "http://172.16.170.50:90";
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
 	private static final int REQUEST_INTERNET = 1;
 	private static final int REQUEST_ENABLE_BT = 1;
@@ -508,6 +508,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		inData.getAreas(areas -> {
 				Log.i("Indoor", "Received areas: " + areas);
+				for(INArea area : areas) {
+					area.draw();
+				}
 			}
 		);
 	}
@@ -722,6 +725,17 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 					break;
 				case BluetoothScanService.ACTION_LOCATION_STATUS_CHANGE:
 					Log.e(BluetoothScanService.TAG, "Location status change");
+					break;
+				case BluetoothScanService.ACTION_FLOOR_ID_CHANGE:
+					int floorId = (int) msg.obj;
+					Log.e(BluetoothScanService.TAG, "Floor id change: " + floorId);
+					break;
+				case BluetoothScanService.ACTION_NO_SCAN_RESULTS:
+					Log.e(BluetoothScanService.TAG, "No scan results available");
+					break;
+
+				case BluetoothScanService.ACTION_DEVICES_OUT_OF_RANGE:
+					Log.e(BluetoothScanService.TAG, "You are too far from the devices");
 					break;
 				case BluetoothScanService.ACTION_POSITION:
 					Point position = (Point) msg.obj;
