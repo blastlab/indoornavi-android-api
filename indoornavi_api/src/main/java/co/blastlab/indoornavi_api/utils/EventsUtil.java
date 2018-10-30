@@ -27,9 +27,15 @@ public class EventsUtil {
 		String date;
 
 		try {
-			JSONObject jsonObject = new JSONObject(new JSONObject(jsonString).getString("area"));
-			date = jsonObject.getString("date");
-			event = new AreaEvent(jsonObject.getInt("tagId"), date.equals("null") ? null : dt.parse(date), jsonObject.getInt("areaId"), jsonObject.getString("areaName"), jsonObject.getString("mode"));
+			JSONObject jsonObject = new JSONObject(jsonString);
+			JSONObject areaJsonObject = new JSONObject(jsonObject.getString("area"));
+
+			if (areaJsonObject.has("tagId")) {
+				date = areaJsonObject.getString("date");
+				event = new AreaEvent(areaJsonObject.getInt("tagId"), date.equals("null") ? null : dt.parse(date), areaJsonObject.getInt("areaId"), areaJsonObject.getString("areaName"), areaJsonObject.getString("mode"));
+			} else {
+				event = new AreaEvent(dt.parse(jsonObject.getString("date")), areaJsonObject.getInt("id"), areaJsonObject.getString("name"), jsonObject.getString("mode"));
+			}
 			return event;
 		} catch (Exception e) {
 			Log.e("Json parse exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());

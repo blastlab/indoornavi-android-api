@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import co.blastlab.indoornavi_api.INBle;
 import co.blastlab.indoornavi_api.INData;
 import co.blastlab.indoornavi_api.INNavigation;
 import co.blastlab.indoornavi_api.INReport;
@@ -205,6 +206,16 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		}
 	}
 
+	public void setBleAreaListener() {
+		INBle inBle = new INBle(inMap, backendServer, inMap.getFloorId());
+		inBle.addAreaEventListener(new OnEventListener<AreaEvent>() {
+			@Override
+			public void onEvent(AreaEvent areaEvent) {
+				Log.e("Indoor", areaEvent.areaName + " " + areaEvent.mode);
+			}
+		});
+	}
+
 	public void onINMapReady(INMap mapView) {
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -213,6 +224,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		inMap.load(floorId, new OnObjectReadyCallback() {
 			@Override
 			public void onReady(Object o) {
+				setBleAreaListener();
 			}
 		});
 
