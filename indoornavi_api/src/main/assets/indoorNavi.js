@@ -259,6 +259,24 @@ class AreaEvent {
         this.mode = mode;
     }
 }
+/**
+ * Class representing an NavigationPoint
+ */
+class NavigationPoint {
+    /**
+     * Navigation point
+     *  @param {number} radius of the circle
+     *  @param {Border} Border object
+     *  @param {number} opacity of the circle
+     *  @param {String} color of the circle
+     */
+     constructor(radius, border, opacity, color) {
+             this.radius = radius;
+             this.border = border;
+             this.opacity = opacity
+             this.color = color;
+         }
+}
 
 /**
  * Class representing an AreaPayload
@@ -1538,26 +1556,26 @@ class INNavigation {
         return this;
     }
 
-        addEventListener(callback) {
-            this._callback_event = callback;
-            Communication.listen('navigation', this._callbackDispatcher.bind(this));
-            return this;
-        }
+    addEventListener(callback) {
+        this._callback_event = callback;
+        Communication.listen('navigation', this._callbackDispatcher.bind(this));
+        return this;
+    }
 
-        /**
-         * Removes listener if listener exists. Use of this method is optional.
-         * @return {INNavigation} self to let you chain methods
-         * @example
-         * const navigation = new INNavigation(navi);
-         * navigation.removeEventListener();
-         */
-        removeEventListener() {
-            if (!!this._callback_event) {
-                Communication.remove(this._callbackDispatcher);
-                this._callback_event = null;
-            }
-            return this;
+    /**
+     * Removes listener if listener exists. Use of this method is optional.
+     * @return {INNavigation} self to let you chain methods
+     * @example
+     * const navigation = new INNavigation(navi);
+     * navigation.removeEventListener();
+     */
+    removeEventListener() {
+        if (!!this._callback_event) {
+            Communication.remove(this._callbackDispatcher);
+            this._callback_event = null;
         }
+        return this;
+    }
 
     /**
      * Updates actual location on navigation path
@@ -1586,6 +1604,63 @@ class INNavigation {
         return this;
     }
 
+    /**
+     * Disable drawing starting point of navigation.
+     * @param state {boolean} enable or disable circle visibility, false by default
+     * @returns {INNavigation} self to let you chain methods
+     * @example
+     * const navigation = new INNavigation(navi);
+     * navigation.disableStartPoint(true);
+     */
+    disableStartPoint(state) {
+        this._sendToIFrame('disableStart', {state: state});
+        return this;
+    }
+
+    /**
+     * Disable drawing destination point of navigation.
+     * @param state {boolean} enable or disable circle visibility, false by default
+     * @returns {INNavigation} self to let you chain methods
+     * @example
+     * const navigation = new INNavigation(navi);
+     * navigation.disableEndPoint(true);
+     */
+    disableEndPoint(state) {
+        this._sendToIFrame('disableEnd', {state: state});
+        return this;
+    }
+
+    /**
+     * Sets graphic properties of the starting point
+     * @param startPointObject {NavigationPoint} point parameters
+     * @returns {INNavigation} self to let you chain methods
+     */
+    setStartPoint(startPointObject) {
+        this._sendToIFrame('startPoint', {navigationPoint: startPointObject});
+        return this;
+    }
+
+    /**
+     * Sets graphic properties of the destination point
+     * @param startPointObject {NavigationPoint} point parameters
+     * @returns {INNavigation} self to let you chain methods
+     */
+    setEndPoint(endPointObject) {
+        this._sendToIFrame('endPoint', {navigationPoint: endPointObject});
+        return this;
+    }
+
+    /**
+     * Sets color of the navigation path
+     * @param pathColor desired color
+     * @returns {INNavigation} self to let you chain methods
+     */
+    setPathColor(pathColor) {
+        this._sendToIFrame('setPathColor', {pathColor: pathColor});
+        return this;
+    }
+
+
     _sendToIFrame(action, payload) {
         Communication.send(this._navi.iFrame, this._navi.targetHost, {
             command: 'navigation',
@@ -1598,10 +1673,10 @@ class INNavigation {
     }
 
     _callbackDispatcher(event) {
-            if (!!this._callback_event) {
-                this._callback_event(event);
-            }
+        if (!!this._callback_event) {
+            this._callback_event(event);
         }
+    }
 }
 
 /**

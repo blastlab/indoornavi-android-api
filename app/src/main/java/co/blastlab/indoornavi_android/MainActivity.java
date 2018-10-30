@@ -39,7 +39,7 @@ import java.util.List;
 
 import co.blastlab.indoornavi_api.INBle;
 import co.blastlab.indoornavi_api.INData;
-import co.blastlab.indoornavi_api.INNavigation;
+import co.blastlab.indoornavi_api.navigation.INNavigation;
 import co.blastlab.indoornavi_api.INReport;
 import co.blastlab.indoornavi_api.PhoneModule;
 import co.blastlab.indoornavi_api.algorithm.model.Position;
@@ -53,6 +53,7 @@ import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.model.Border;
 import co.blastlab.indoornavi_api.model.Complex;
 import co.blastlab.indoornavi_api.model.Coordinates;
+import co.blastlab.indoornavi_api.navigation.NavigationPoint;
 import co.blastlab.indoornavi_api.objects.INArea;
 import co.blastlab.indoornavi_api.objects.INCircle;
 import co.blastlab.indoornavi_api.objects.INInfoWindow;
@@ -578,8 +579,20 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	private void setNavigation() {
+		NavigationPoint navigationPoint = new NavigationPoint.NavigationPointBuilder()
+			.setBorder(new Border(5, Color.RED))// Color.parseColor("#007FFF")))
+			.setColor(Color.RED)//Color.parseColor("#007FFF"))
+			.setOpacity(0.2)
+			.setRadius(30)
+			.build();
+
+
 		if (inNavigation == null) {
 			inNavigation = new INNavigation(this, this.inMap);
+			inNavigation.setStartPoint(navigationPoint);
+			inNavigation.setEndPoint(navigationPoint);
+			inNavigation.disableStartpoint(false);
+			inNavigation.setPathColor(Color.RED);
 			inNavigation.startNavigation(new Point(3395, 123), new Point(2592, 170), 0);
 
 			inNavigation.addEventListener(new OnNavigationMessageReceive<String>() {

@@ -1,4 +1,4 @@
-package co.blastlab.indoornavi_api;
+package co.blastlab.indoornavi_api.navigation;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -7,10 +7,12 @@ import android.content.IntentFilter;
 import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.ColorInt;
 import android.webkit.ValueCallback;
 
 import java.util.Locale;
 
+import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnNavigationMessageReceive;
 import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.service.BluetoothScanService;
@@ -22,7 +24,6 @@ public class INNavigation {
 	private Context context;
 	private INMap inMap;
 	private Point lastPosition;
-	private Point lastPositionInPixel;
 	private OnNavigationMessageReceive<String> onNavigationMessageReceive;
 
 	private Point startPoint;
@@ -31,7 +32,6 @@ public class INNavigation {
 	private Point destinationPointInPixels;
 	private int accuracy = 1;
 	private boolean navigationIsRunning = false;
-
 
 	private final BroadcastReceiver serviceReceiver = new BroadcastReceiver() {
 		@Override
@@ -88,7 +88,7 @@ public class INNavigation {
 
 	private void updateActualLocation(Point position) {
 		lastPosition = position;
-		lastPositionInPixel = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), position);
+		Point lastPositionInPixel = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), position);
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.updatePosition({x: %d, y: %d});", objectInstance, lastPositionInPixel.x, lastPositionInPixel.y);
 		evaluate(javaScriptString, null);
 	}
@@ -106,6 +106,35 @@ public class INNavigation {
 		if (this.lastPosition == null || this.destinationPoint == null) return;
 		if (navigationIsRunning) stopNavigation();
 		startNavigation(lastPosition, destinationPoint, accuracy);
+	}
+
+	public void disableStartpoint(boolean state) {
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.disableStartPoint(%s);", objectInstance, state ? "true" : "false");
+		evaluate(javaScriptString, null);
+	}
+
+	public void disableEndPoint(boolean state) {
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.disableEndPoint(%s);", objectInstance, state ? "true" : "false");
+		evaluate(javaScriptString, null);
+	}
+
+	public void setPathColor(@ColorInt int color) {
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.setPathColor('%s');", objectInstance, getStringColor(color));
+		evaluate(javaScriptString, null);
+	}
+
+	public void setStartPoint(NavigationPoint startPoint) {
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.setStartPoint(new NavigationPoint(%d, new Border(%d, '%s'), %s, '%s'));", objectInstance, startPoint.getRadius(), startPoint.getBorder().width, getStringColor(startPoint.getBorder().color), String.format(Locale.US, "%f", startPoint.getOpacity()), getStringColor(startPoint.getColor()));
+		evaluate(javaScriptString, null);
+	}
+
+	public void setEndPoint(NavigationPoint endPoint) {
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.setEndPoint(new NavigationPoint(%d, new Border(%d, '%s'), %s, '%s'));", objectInstance, endPoint.getRadius(), endPoint.getBorder().width, getStringColor(endPoint.getBorder().color), String.format(Locale.US, "%f", endPoint.getOpacity()), getStringColor(endPoint.getColor()));
+		evaluate(javaScriptString, null);
+	}
+
+	private String getStringColor(@ColorInt int color) {
+		return String.format("#%06X", (0xFFFFFF & color));
 	}
 
 	private void registerReceiver() {
