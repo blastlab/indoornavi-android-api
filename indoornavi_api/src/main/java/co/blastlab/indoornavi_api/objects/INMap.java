@@ -27,7 +27,7 @@ import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.interfaces.INDataInterface;
 import co.blastlab.indoornavi_api.interfaces.EventListenerInterface;
 import co.blastlab.indoornavi_api.interfaces.INMapInterface;
-import co.blastlab.indoornavi_api.interfaces.INMarkerInterface;
+import co.blastlab.indoornavi_api.interfaces.INObjectEventInterface;
 import co.blastlab.indoornavi_api.interfaces.INNavigationInterface;
 import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
 import co.blastlab.indoornavi_api.interfaces.INReportInterface;
@@ -43,7 +43,7 @@ import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
 public class INMap extends WebView {
 
 	INObjectInterface inObjectInterface;
-	INMarkerInterface inMarkerInterface;
+	INObjectEventInterface inObjectEventInterface;
 	INReportInterface INReportInterface;
 	EventListenerInterface eventInterface;
 	INDataInterface INDataInterface;
@@ -331,8 +331,8 @@ public class INMap extends WebView {
 		inObjectInterface = new INObjectInterface();
 		this.addJavascriptInterface(inObjectInterface, "inObjectInterface");
 
-		inMarkerInterface = new INMarkerInterface();
-		this.addJavascriptInterface(inMarkerInterface, "inMarkerInterface");
+		inObjectEventInterface = new INObjectEventInterface();
+		this.addJavascriptInterface(inObjectEventInterface, "inObjectEventInterface");
 
 		INReportInterface = new INReportInterface();
 		this.addJavascriptInterface(INReportInterface, "inReportInterface");

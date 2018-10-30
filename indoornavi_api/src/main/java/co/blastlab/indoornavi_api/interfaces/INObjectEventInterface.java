@@ -6,15 +6,14 @@ import android.webkit.JavascriptInterface;
 
 import co.blastlab.indoornavi_api.Controller;
 
-public class INMarkerInterface {
+public class INObjectEventInterface {
 
 	@JavascriptInterface
 	public void onClick(final int callbackId) {
-		Controller.markerClickListenerMap.get(callbackId).onClick();
+		Controller.inObjectClickListenerMap.get(callbackId).onClick();
 		Handler handler = new Handler(Looper.getMainLooper());
 		handler.post(() ->
-			Controller.markerClickListenerMap.get(callbackId).onClick()
+			Controller.inObjectClickListenerMap.get(callbackId).onClick()
 		);
 	}
-
 }

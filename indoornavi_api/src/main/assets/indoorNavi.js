@@ -82,7 +82,7 @@ class Http {
 class MapUtils {
 
 	static pixelsToRealDimensions(navi, point) {
-		
+
 		if(!!navi.parameters) {
 			let xDifferenceInPix = navi.parameters.scale.start.x - navi.parameters.scale.stop.x;
             let yDifferenceInPix = navi.parameters.scale.start.y - navi.parameters.scale.stop.y;
@@ -95,9 +95,9 @@ class MapUtils {
 			throw new Error('Unable to calculate coordinates. Missing information about map scale!');
 		}
     }
-	
+
 	static realDimensionsToPixels(navi, point) {
-		
+
 		if(!!navi.parameters) {
             let xDifferenceInPix = navi.parameters.scale.start.x - navi.parameters.scale.stop.x;
             let yDifferenceInPix = navi.parameters.scale.start.y - navi.parameters.scale.stop.y;
@@ -511,6 +511,7 @@ class INArea extends INMapObject {
         this._type = 'AREA';
         this._opacity = 1;
         this._color = '#ff2233';
+        this._events = new Set();
     }
 
     /**
@@ -601,6 +602,38 @@ class INArea extends INMapObject {
     }
 
     /**
+     * Add listener to listen when area is clicked. Use of this method is optional.
+     * @param {Event.MOUSE} event - {@link Event}
+     * @param {function} callback - function that is going to be executed when event occurs.
+     * @return {INArea} self to let you chain methods
+     * @example
+     * const area = new INArea(navi);
+     * area.ready(() => area.addEventListener(Event.MOUSE.CLICK, () => console.log('event occurred!'));
+     */
+    addEventListener(event, callback) {
+        this._events.add(event);
+        const eventID = `${event}-${this._id}`;
+        Communication.listen(eventID, callback);
+        return this;
+    }
+
+    /**
+     * Removes listener if listener exists. Use of this method is optional.
+     * @param {Event.MOUSE} event - {@link Event}
+     * @param {callback} callback - callback function that was added to event listener to be executed when event occurs.
+     * @return {INArea} self to let you chain methods
+     * @example
+     * const area = new INArea(navi);
+     * area.ready(() => area.removeEventListener(Event.MOUSE.CLICK); );
+     */
+    removeEventListener(event, callback) {
+        if (this._events.has(event)) {
+            Communication.remove(callback)
+        }
+        return this;
+    }
+
+    /**
      * Place area on the map with all given settings. There is necessary to use setPoints() method before draw() method to indicate where area should to be located.
      * Use of this method is indispensable to draw area with set configuration in the IndoorNavi Map.
      * @example
@@ -617,7 +650,8 @@ class INArea extends INMapObject {
                         id: this._id,
                         points: this._points,
                         opacity: this._opacity,
-                        color: this._color
+                        color: this._color,
+                        events: this._events
                     }
                 }
             });
@@ -1525,7 +1559,6 @@ class INNavigation {
  * Class representing a BLE,
  * creates the INBle object to handle Bluetooth related events
  */
-
 class INBle {
     /**
      * @constructor
@@ -1539,8 +1572,8 @@ class INBle {
         Validation.isString(apiKey, 'apiKey parameter should be type of string');
         this._dataProvider = new INData(targetHost, apiKey);
         this._floor = floor;
+        this._areaEventsMap = new Map();
     }
-
     /**
      * Sets callback function to react for position update event
      * @param {function} callback - function that will be executed when new area event is triggered, callback takes {@link AreaPayload} as argument
@@ -1558,7 +1591,6 @@ class INBle {
                 resolve();
             });
         });
-
     }
 
     /**
@@ -1569,16 +1601,43 @@ class INBle {
      * ble.updatePosition((areaPayload) => console.log(areaPayload)).then(ble.updatePosition({x: 1, y: 1}));
      */
     updatePosition(position) {
-        Validation.isPoint(position, 'Updated position is not a Point');
-        if (!!this._areas && this._areas.length > 0) {
-            const areaIndex = this._areas.findIndex(area => {
-                return MapUtils.pointIsWithinGivenArea(position, area.points);
-            });
-            if (areaIndex > 0) {
-                this._callback(this._areas[areaIndex]);
+            Validation.isPoint(position, 'Updated position is not a Point');
+            if (!!this._areas && this._areas.length > 0) {
+                this._areas.forEach(area => {
+                    if (MapUtils.pointIsWithinGivenArea(position, area.points)) {
+                        if (this._shouldSendOnEnterEvent(area)) {
+                            this._areaEventsMap.set(area, new Date());
+                            this._sendAreaEvent(area, 'ON_ENTER');
+                        } else {
+                            this._updateTime(area)
+                        }
+                    } else if (this._shouldSendOnLeaveEvent(area)) {
+                        this._areaEventsMap.delete(area);
+                        this._sendAreaEvent(area, 'ON_LEAVE');
+                    }
+                });
             }
         }
-    }
+
+        _sendAreaEvent(area, mode) {
+            this._callback({
+                area: area,
+                date: new Date(),
+                mode: mode
+            });
+        }
+
+        _shouldSendOnEnterEvent(area) {
+            return !this._areaEventsMap.has(area);
+        }
+
+        _shouldSendOnLeaveEvent(area) {
+            return this._areaEventsMap.has(area);
+        }
+
+        _updateTime(area) {
+            this._areaEventsMap.set(area, new Date());
+        }
 
     /**
      * Returns areas that are checked for Bluetooth events

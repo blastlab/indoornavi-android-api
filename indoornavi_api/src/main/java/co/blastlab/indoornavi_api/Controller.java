@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import co.blastlab.indoornavi_api.callback.OnEventListener;
-import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
+import co.blastlab.indoornavi_api.callback.OnINObjectClickListener;
 import co.blastlab.indoornavi_api.callback.OnNavigationMessageReceive;
 import co.blastlab.indoornavi_api.callback.OnObjectReadyCallback;
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
@@ -20,7 +20,7 @@ public final class Controller {
 	}
 
 	public static volatile SparseArray<OnNavigationMessageReceive> navigationMessageMap = new SparseArray<>();
-	public static volatile SparseArray<OnMarkerClickListener> markerClickListenerMap = new SparseArray<>();
+	public static volatile SparseArray<OnINObjectClickListener> inObjectClickListenerMap = new SparseArray<>();
 	public static volatile SparseArray<OnObjectReadyCallback> promiseCallbackMap = new SparseArray<>();
 	public static volatile SparseArray<OnReceiveValueCallback> ReceiveValueMap = new SparseArray<>();
 	public static volatile SparseArray<OnEventListener> eventListenerMap = new SparseArray<>();

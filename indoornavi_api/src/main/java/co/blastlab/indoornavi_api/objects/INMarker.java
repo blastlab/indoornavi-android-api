@@ -7,9 +7,8 @@ import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.Controller;
-import co.blastlab.indoornavi_api.callback.OnMarkerClickListener;
-import co.blastlab.indoornavi_api.model.Scale;
 import co.blastlab.indoornavi_api.utils.MapUtil;
+import co.blastlab.indoornavi_api.callback.OnINObjectClickListener;;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -31,6 +30,7 @@ public class INMarker extends INObject {
 	private INMarker(INMap inMap) {
 		super(inMap);
 		this.objectInstance = String.format(Locale.US, "marker%d", this.hashCode());
+		this.inMap = inMap;
 
 		String javaScriptString = String.format("var %s = new INMarker(navi);", this.objectInstance);
 		evaluate(javaScriptString, null);
@@ -39,14 +39,14 @@ public class INMarker extends INObject {
 	/**
 	 * Register a callback to be invoked when marker is clicked.
 	 *
-	 * @param onMarkerClickListener interface - invoked when event occurs.
+	 * @param onINObjectClickListener interface - invoked when event occurs.
 	 */
-	public void addEventListener(OnMarkerClickListener onMarkerClickListener) {
+	public void addEventListener(OnINObjectClickListener onINObjectClickListener) {
 
-		callbackId = onMarkerClickListener.hashCode();
-		Controller.markerClickListenerMap.put(callbackId, onMarkerClickListener);
+		callbackId = onINObjectClickListener.hashCode();
+		Controller.inObjectClickListenerMap.put(callbackId, onINObjectClickListener);
 
-		String javaScriptString = String.format(Locale.US, "%s.addEventListener(Event.MOUSE.CLICK, () => inMarkerInterface.onClick(%d))", objectInstance, callbackId);
+		String javaScriptString = String.format(Locale.US, "%s.addEventListener(Event.MOUSE.CLICK, () => inObjectEventInterface.onClick(%d))", objectInstance, callbackId);
 		evaluate(javaScriptString, null);
 
 		draw();
@@ -57,7 +57,7 @@ public class INMarker extends INObject {
 	 */
 	public void removeEventListener() {
 
-		Controller.markerClickListenerMap.remove(callbackId);
+		Controller.inObjectClickListenerMap.remove(callbackId);
 		String javaScriptString = String.format("%s.removeEventListener(Event.MOUSE.CLICK)", objectInstance);
 		evaluate(javaScriptString, null);
 	}
@@ -78,7 +78,7 @@ public class INMarker extends INObject {
 	 */
 	public void setPosition(Point point) {
 		if (point != null) {
-			this.point = point;
+			this.point = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), point);
 			String javaScriptString = String.format("%s.setPosition(%s);", objectInstance, PointsUtil.pointToString(point));
 			evaluate(javaScriptString, null);
 		} else {
@@ -167,15 +167,13 @@ public class INMarker extends INObject {
 	public static class INMarkerBuilder {
 
 		private INMarker inMarker;
-		private Scale scale;
 
 		public INMarkerBuilder(INMap inMap) {
-			this.inMarker = new INMarker(inMap);
-			this.scale = inMap.getMapScale();
+			inMarker = new INMarker(inMap);
 		}
 
 		public INMarkerBuilder setPosition(Point point) {
-			inMarker.setPosition(MapUtil.pixelsToRealDimensions(this.scale, point));
+			inMarker.setPosition(point);
 			return this;
 		}
 
