@@ -23,10 +23,13 @@ public class INNavigation {
 	private Context context;
 	private INMap inMap;
 	private Point lastPosition;
+	private Point lastPositionInPixel;
 	private OnNavigationMessageReceive<String> onNavigationMessageReceive;
 
 	private Point startPoint;
 	private Point destinationPoint;
+	private Point startPointInPixels;
+	private Point destinationPointInPixels;
 	private int accuracy = 1;
 
 
@@ -54,8 +57,11 @@ public class INNavigation {
 	}
 
 	public void startNavigation(Point startPoint, Point destinationPoint, int accuracy, OnNavigationMessageReceive<String> onNavigationMessageReceive) {
-		this.startPoint = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), startPoint);
-		this.destinationPoint = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), destinationPoint);
+		this.startPoint = startPoint;
+		this.destinationPoint = destinationPoint;
+
+		this.startPointInPixels = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), startPoint);
+		this.destinationPointInPixels = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), destinationPoint);
 		this.accuracy = accuracy;
 		this.onNavigationMessageReceive = onNavigationMessageReceive;
 
@@ -64,13 +70,14 @@ public class INNavigation {
 		int eventId = onNavigationMessageReceive.hashCode();
 		Controller.navigationMessageMap.put(eventId, onNavigationMessageReceive);
 
-		String javaScriptString = String.format(Locale.ENGLISH, "%s.start({x: %d, y: %d}, {x: %d, y: %d}, %d, action => inNavigationInterface.onMessageReceive(%d, JSON.stringify(action)));", objectInstance, this.startPoint.x, this.startPoint.y, this.destinationPoint.x, this.destinationPoint.y, accuracy, eventId);
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.start({x: %d, y: %d}, {x: %d, y: %d}, %d, action => inNavigationInterface.onMessageReceive(%d, JSON.stringify(action)));", objectInstance, this.startPointInPixels.x, this.startPointInPixels.y, this.destinationPointInPixels.x, this.destinationPointInPixels.y, accuracy, eventId);
 		evaluate(javaScriptString, null);
 	}
 
 	private void updateActualLocation(Point position) {
-		lastPosition = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), position);
-		String javaScriptString = String.format(Locale.ENGLISH, "%s.updatePosition({x: %d, y: %d});", objectInstance, lastPosition.x, lastPosition.y);
+		lastPosition = position;
+		lastPositionInPixel = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), position);
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.updatePosition({x: %d, y: %d});", objectInstance, lastPositionInPixel.x, lastPositionInPixel.y);
 		evaluate(javaScriptString, null);
 	}
 
@@ -83,7 +90,7 @@ public class INNavigation {
 	}
 
 	public void restartNavigation() {
-		if(this.lastPosition == null || this.destinationPoint == null)
+		if(this.lastPosition == null || this.destinationPoint == null) return;
 		stopNavigation();
 		startNavigation(lastPosition, destinationPoint, accuracy, onNavigationMessageReceive);
 	}

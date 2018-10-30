@@ -512,6 +512,7 @@ class INArea extends INMapObject {
         this._opacity = 1;
         this._color = '#ff2233';
         this._events = new Set();
+        this._border = {width: 0, color: '#111'};
     }
 
     /**
@@ -589,6 +590,25 @@ class INArea extends INMapObject {
     }
 
     /**
+     * Sets border of the area
+     * @param {Border} border of the area
+     * @return {INCircle} self to let you chain methods
+     */
+    setBorder(border) {
+        Validation.requiredAny(border, ['color', 'width'], 'Border must have at least color and/or width');
+        this._border = border;
+        return this;
+    }
+
+    /**
+     * Gets border of the area
+     * @return {Border} border of the area
+     */
+    getBorder() {
+        return this._border;
+    }
+
+    /**
      * Checks, is point of given coordinates inside of the created object.
      * Use of this method is optional.
      * @param {Point} point - coordinates in {@link Point} format that are described in real world dimensions.
@@ -651,7 +671,8 @@ class INArea extends INMapObject {
                         points: this._points,
                         opacity: this._opacity,
                         color: this._color,
-                        events: this._events
+                        events: this._events,
+                        border: this._border
                     }
                 }
             });
@@ -1504,10 +1525,12 @@ class INNavigation {
      * const navigation = new INNavigation(navi);
      * navigation.start({x: 100, y: 100}, {x: 800, y: 800}, 10);
      */
-    start(location, destination, margin) {
+    start(location, destination, margin, callback) {
         Validation.isPoint(location, 'Given argument is not a Point');
         Validation.isPoint(destination, 'Given argument is not a Point');
         Validation.isInteger(margin, 'Pull width value is not an integer');
+        Validation.isFunction(callback,'Given callback is not a function');
+        Communication.listen(`navigation`, callback);
         this._sendToIFrame('start', {
             location: location,
             destination: destination,

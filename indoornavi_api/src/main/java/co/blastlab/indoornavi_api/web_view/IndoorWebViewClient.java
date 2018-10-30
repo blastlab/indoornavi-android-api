@@ -45,8 +45,7 @@ public class IndoorWebViewClient extends WebViewClient {
 	private ResourcesModule resourcesModule;
 
 	@Override
-	public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-		Log.e("shouldOverrideUrlLoad", request.getUrl().toString());
+	public boolean shouldOverrideUrlLoading(WebView view, android.webkit.WebResourceRequest request) {
 		return true;
 	}
 
@@ -61,7 +60,7 @@ public class IndoorWebViewClient extends WebViewClient {
 
 	@Override
 	public void onReceivedError(WebView view, int errorCode,
-	                            String description, String failingUrl) {
+	                          String description, String failingUrl){
 		super.onReceivedError(view, errorCode, description, failingUrl);
 	}
 

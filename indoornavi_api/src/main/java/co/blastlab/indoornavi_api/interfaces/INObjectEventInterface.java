@@ -10,7 +10,6 @@ public class INObjectEventInterface {
 
 	@JavascriptInterface
 	public void onClick(final int callbackId) {
-		Controller.inObjectClickListenerMap.get(callbackId).onClick();
 		Handler handler = new Handler(Looper.getMainLooper());
 		handler.post(() ->
 			Controller.inObjectClickListenerMap.get(callbackId).onClick()

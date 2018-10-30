@@ -7,8 +7,8 @@ import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.Controller;
+import co.blastlab.indoornavi_api.callback.OnINObjectClickListener;
 import co.blastlab.indoornavi_api.utils.MapUtil;
-import co.blastlab.indoornavi_api.callback.OnINObjectClickListener;;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -169,7 +169,7 @@ public class INMarker extends INObject {
 		private INMarker inMarker;
 
 		public INMarkerBuilder(INMap inMap) {
-			inMarker = new INMarker(inMap);
+			this.inMarker = new INMarker(inMap);
 		}
 
 		public INMarkerBuilder setPosition(Point point) {

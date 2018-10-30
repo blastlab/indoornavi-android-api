@@ -10,6 +10,7 @@ import android.util.Log;
 import java.util.Locale;
 
 import co.blastlab.indoornavi_api.callback.OnEventListener;
+import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.service.BluetoothScanService;
@@ -21,6 +22,7 @@ public class INBle {
 	private INMap inMap;
 	private String targetHost;
 	private String objectInstance;
+	private boolean pulledPositionFlag = false;
 
 	public INBle(INMap inMap, String targetHost, int floorId) {
 		this.objectInstance = String.format(Locale.US, "ble%d", this.hashCode());
@@ -45,8 +47,9 @@ public class INBle {
 
 	private void updatePosition(Point position) {
 
-		Log.e("indoor", "position: " + position.x + " " + position.y);
-		String javaScriptString = String.format(Locale.US, "%s.updatePosition({x: %d, y: %d});", objectInstance, position.x, position.y);
+		Point positionInPixels = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), position);
+
+		String javaScriptString = String.format(Locale.US, "%s.updatePosition({x: %d, y: %d});", objectInstance, positionInPixels.x, positionInPixels.y);
 		inMap.evaluateJavascript(javaScriptString, null);
 	}
 
@@ -55,14 +58,29 @@ public class INBle {
 		public void onReceive(Context context, Intent intent) {
 			switch (intent.getAction()) {
 				case BluetoothScanService.CALCULATE_POSITION:
-					Point position = MapUtil.realDimensionsToPixels(inMap.getMapScale(),intent.getParcelableExtra("position"));
+					Point position = intent.getParcelableExtra("position");
 					if (position != null) {
-						updatePosition(position);
+						if(pulledPositionFlag) {
+							inMap.pullToPath(position, 0, new OnReceiveValueCallback<Point>() {
+								@Override
+								public void onReceiveValue(Point point) {
+									updatePosition(point);
+								}
+							});
+						} else {
+							updatePosition(position);
+						}
 					}
 					break;
 			}
 		}
 	};
+
+
+	public void setPulledPositionFlag(boolean pulledPositionFlag) {
+		this.pulledPositionFlag = pulledPositionFlag;
+	}
+
 
 	private void registerReceiver() {
 		try {

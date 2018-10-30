@@ -74,7 +74,6 @@ public class PointsUtil {
 
 			String str = stringPoint.replaceAll("[^-?0-9]+", " ");
 			final String[] tokens = str.trim().split(" ");
-
 			return new Point(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]));
 		} catch (Exception e) {
 			Log.e("Point parse exception", "(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): " + e);

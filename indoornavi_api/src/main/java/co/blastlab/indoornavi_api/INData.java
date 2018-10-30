@@ -70,7 +70,10 @@ public class INData {
 		OnReceiveValueCallback<String> innerReceiveValueCallback = new OnReceiveValueCallback<String>() {
 			@Override
 			public void onReceiveValue(String stringAreasJson) {
-				onReceiveValueCallback.onReceiveValue(getAreasFromJSON(stringAreasJson));
+				Handler handler = new Handler(Looper.getMainLooper());
+				handler.post(() ->
+					onReceiveValueCallback.onReceiveValue(getAreasFromJSON(stringAreasJson))
+				);
 			}
 		};
 
@@ -93,6 +96,7 @@ public class INData {
 
 				JSONObject area = jsonAreasList.getJSONObject(i);
 				inArea.setName(area.getString("name"));
+				inArea.setDatabaseId(Integer.parseInt(area.getString("id")));
 
 				for(Point point : PointsUtil.stringToPoints(area.getString("points"))) {
 					points.add(MapUtil.pixelsToRealDimensions(this.inMap.getMapScale(), point));
@@ -130,6 +134,5 @@ public class INData {
 
 		}
 	}
-
 
 }

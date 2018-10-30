@@ -12,6 +12,7 @@ import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnINObjectClickListener;
+import co.blastlab.indoornavi_api.model.Border;
 import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.utils.CoordinatesUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
@@ -29,6 +30,8 @@ public class INArea extends INObject {
 	double opacity;
 	private String name;
 	private int callbackId;
+	private int databaseId = -1;
+	private Border border;
 
 	/**
 	 * INArea constructor
@@ -114,8 +117,30 @@ public class INArea extends INObject {
 		return this.opacity;
 	}
 
+	/**
+	 * Sets border of the area. To apply this method it's necessary to call draw() after.
+	 *
+	 * @param border Border object, define border parameters of the circle.
+	 */
+	public void setBorder(Border border) {
+		this.border = border;
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.setBorder(new Border(%d, '%s'));", objectInstance, border.width, String.format("#%06X", (0xFFFFFF & border.color)));
+		evaluate(javaScriptString, null);
+	}
+
+	/**
+	 * Gets border of the circle.
+	 */
+	public Border getBorder() {
+		return this.border;
+	}
+
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public void setDatabaseId(int id) {
+		this.databaseId = id;
 	}
 
 	/**
@@ -139,12 +164,12 @@ public class INArea extends INObject {
 	/**
 	 * Register a callback to be invoked when marker is clicked.
 	 *
-	 * @param onMarkerClickListener interface - invoked when event occurs.
+	 * @param onINObjectClickListener interface - invoked when event occurs.
 	 */
-	public void addEventListener(OnINObjectClickListener onMarkerClickListener) {
+	public void addEventListener(OnINObjectClickListener onINObjectClickListener) {
 
-		callbackId = onMarkerClickListener.hashCode();
-		Controller.inObjectClickListenerMap.put(callbackId, onMarkerClickListener);
+		callbackId = onINObjectClickListener.hashCode();
+		Controller.inObjectClickListenerMap.put(callbackId, onINObjectClickListener);
 
 		String javaScriptString = String.format(Locale.US, "%s.addEventListener(Event.MOUSE.CLICK, () => inObjectEventInterface.onClick(%d))", objectInstance, callbackId);
 		evaluate(javaScriptString, null);
@@ -162,6 +187,18 @@ public class INArea extends INObject {
 		evaluate(javaScriptString, null);
 	}
 
+	public Point getCenterPoint() {
+		if(this.points == null) return null;
+
+		int avgX = 0;
+		int avgY = 0;
+
+		for (Point point : this.points) {
+			avgX += point.x;
+			avgY += point.y;
+		}
+		return new Point(Math.round(avgX/this.points.size()),Math.round(avgY/this.points.size()));
+	}
 
 	public static INArea createDefault(INMap inMap) {
 		return new INArea(inMap);
@@ -204,6 +241,11 @@ public class INArea extends INObject {
 
 		public INAreaBuilder setName(String name) {
 			inArea.setName(name);
+			return this;
+		}
+
+		public INAreaBuilder setBorder(Border border) {
+			inArea.setBorder(border);
 			return this;
 		}
 
