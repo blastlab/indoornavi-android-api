@@ -22,12 +22,13 @@ INPolyline inPolyline = new INPolyline.INPolylineBuilder(inMap)
 ## __INArea__
 
 An INArea is a closed area, defined with a series of points which starts and ends at the same point.
-Points should be given in real-world dimensions. Additionally, you can change color and opacity of the created area.
+Points should be given in real-world dimensions. Additionally, you can change color, opacity and customize the border set on the created area.
 
 ```java
 INArea inArea = new INArea.INAreaBuilder(inMap)
     .setPoints(points)
     .setColor(Color.GREEN)
+	.setBorder(new Border(2, Color.GREEN))
     .setOpacity(0.3)
     .build();
 ```

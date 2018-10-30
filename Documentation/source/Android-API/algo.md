@@ -28,11 +28,27 @@ Adding service.
 	<service
 		android:name="co.blastlab.indoornavi_api.service.BluetoothScanService"
 		android:enabled="true">
+		<meta-data android:name="longScanForcingEnabled" android:value="true"/>
 	</service>
 </application>
 ```
 
 ### __Handle response from Service__
+
+Available responses:
+- `ACTION_BLUETOOTH_READY` - Bluetooth is enable and ready to use. 
+- `ACTION_BLUETOOTH_NOT_SUPPORTED` - Bluetooth is not supported on this device.
+- `ACTION_BLUETOOTH_NOT_ENABLED` - Bluetooth is not enable.
+- `ACTION_LOCATION_NOT_ENABLED` - Location is not enable
+- `ACTION_BLUETOOTH_PERMISSION_NOT_GRANTED` - Bluetooth permission not granted.
+- `ACTION_LOCATION_PERMISSION_NOT_GRANTED` - Location permission not granted.
+- `ACTION_LOCATION_STATUS_CHANGE` - Location status change (set on/set off) 
+- `ACTION_FLOOR_ID_CHANGE`- Return Integer with acctual floor ID, if no scan result available return `-1`
+    The message is invoked after start scanning and when most available devices are on the different floor (someone goes to the different floor)
+- `ACTION_NO_SCAN_RESULTS` - No available devices or Scunner error occurred.
+- `ACTION_DEVICES_OUT_OF_RANGE` - Invoked when scanner doesn't discovery any devices.
+- `ACTION_POSITION` - Return Point object with a current position from the algorithm, given in cm
+
 
 This is an example of Activity with `BluetoothScanService` with proper handling.
 
@@ -109,6 +125,16 @@ private MyHandler mHandler;
 					break;
 				case BluetoothScanService.ACTION_LOCATION_STATUS_CHANGE:
 					Log.e(BluetoothScanService.TAG, "Location status change");
+					break;
+				case BluetoothScanService.ACTION_FLOOR_ID_CHANGE:
+					int floorId = (int) msg.obj;
+					Log.e(BluetoothScanService.TAG, "Floor id change: " + floorId);
+					break;
+				case BluetoothScanService.ACTION_NO_SCAN_RESULTS:
+					Log.e(BluetoothScanService.TAG, "No scan results available");
+					break;
+				case BluetoothScanService.ACTION_DEVICES_OUT_OF_RANGE:
+					Log.e(BluetoothScanService.TAG, "You are too far from the devices");
 					break;
 				case BluetoothScanService.ACTION_POSITION:
 					Position position = (Position) msg.obj;

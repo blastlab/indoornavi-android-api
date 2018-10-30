@@ -15,10 +15,10 @@ The accuracy of the navigation means in what radius the position should be pulle
 ```java
 INNavigation inNavigation = new INNavigation(this, this.inMap);
 inNavigation.startNavigation(new Point(3395, 123), new Point(2592, 170), 0, new OnNavigationMessageReceive<String>() {
-	@Override
-	public void onMessageReceive(String message) {
-		Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-	}
+    @Override
+    public void onMessageReceive(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+    }
 });
 ```
 After initiation navigation, you can handle a message, containing info about navigation status. <br>
@@ -47,4 +47,37 @@ Allows recalculating the shortest path.
 
 ```java
 inNavigation.restartNavigation();
+```
+
+### Disable endpoints
+
+Allows to enable/disable start and destinations point
+
+```java
+inNavigation.disableStartpoint(true);
+inNavigation.disableEndPoint(false);
+```
+
+### Change path colour
+
+Allows to set navigation path colour
+
+```java
+inNavigation.setPathColor(Color.RED);
+```
+
+### Change endpoints settings
+
+Allows setting colour, radius and opacity of the start and end of navigation points.
+Additionally, it's possible to change border settings.
+
+```java
+NavigationPoint navigationPoint = new NavigationPoint.NavigationPointBuilder()
+    .setBorder(new Border(5, Color.parseColor("#007FFF")))
+    .setColor(Color.parseColor("#007FFF"))
+    .setOpacity(0.2)
+    .setRadius(30)
+    .build();
+
+inNavigation.setStartPoint(navigationPoint);
 ```

@@ -10,7 +10,6 @@ Available modes: <br>
 
 Initialization requires entering the backend address and floorId (It's possible to listen on the different floor than it is loaded.
 
-
 ```java
 INBle inBle = new INBle(inMap, backendServer, inMap.getFloorId);
 inBle.addAreaEventListener(new OnEventListener<AreaEvent>() {
@@ -24,5 +23,5 @@ inBle.addAreaEventListener(new OnEventListener<AreaEvent>() {
 Additionaly, you can set the flag so that the point checked was previously pull to the path.
 
 ```java
-inArea.isWithin(new Coordinates(200, 800, (short)109999, new Date()), bool -> Log.i("Indoor", "Is within: " + bool));
+inBle.setPulledPositionFlag(true);
 ```
