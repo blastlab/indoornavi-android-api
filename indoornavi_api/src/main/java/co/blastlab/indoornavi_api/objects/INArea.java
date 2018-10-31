@@ -139,8 +139,16 @@ public class INArea extends INObject {
 		this.name = name;
 	}
 
+	public String getName() {
+		return this.name;
+	}
+
 	public void setDatabaseId(int id) {
 		this.databaseId = id;
+	}
+
+	public int getDatabaseId() {
+		return this.databaseId;
 	}
 
 	/**

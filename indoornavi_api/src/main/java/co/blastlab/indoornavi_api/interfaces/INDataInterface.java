@@ -46,7 +46,11 @@ public class INDataInterface {
 	public void onAreas(final int eventId, final String response) {
 		Handler handler = new Handler(Looper.getMainLooper());
 		handler.post(() -> {
-			Controller.ReceiveValueMap.get(eventId).onReceiveValue(response);
+			if (!response.equals("[]") && !response.equals("null")) {
+				Controller.ReceiveValueMap.get(eventId).onReceiveValue(response);
+			} else {
+				Controller.ReceiveValueMap.get(eventId).onReceiveValue(null);
+			}
 			Controller.ReceiveValueMap.remove(eventId);
 		});
 	}

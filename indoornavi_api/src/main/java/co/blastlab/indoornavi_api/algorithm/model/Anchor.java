@@ -13,9 +13,11 @@ public class Anchor {
 	public double rssiAvg = -100.0;
 	public int configNumber;
 	public int rssiRef;
+	public int floorId;
 
-	public Anchor(int id, Position position) {
+	public Anchor(int id, Position position, int floorId) {
 		this.id = id;
 		this.position = position;
+		this.floorId = floorId;
 	}
 }

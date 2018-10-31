@@ -17,6 +17,7 @@ import java.util.concurrent.CountDownLatch;
 
 
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
+import co.blastlab.indoornavi_api.model.Border;
 import co.blastlab.indoornavi_api.model.Path;
 import co.blastlab.indoornavi_api.objects.INArea;
 import co.blastlab.indoornavi_api.objects.INMap;
@@ -85,6 +86,8 @@ public class INData {
 	}
 
 	private List<INArea> getAreasFromJSON(String jsonString) {
+		if(jsonString == null) return null;
+
 		List<INArea> areas = new ArrayList<>();
 
 		try {
@@ -96,15 +99,16 @@ public class INData {
 
 				JSONObject area = jsonAreasList.getJSONObject(i);
 				inArea.setName(area.getString("name"));
-				inArea.setDatabaseId(Integer.parseInt(area.getString("id")));
+				inArea.setDatabaseId(area.getInt("id"));
 
 				for(Point point : PointsUtil.stringToPoints(area.getString("points"))) {
 					points.add(MapUtil.pixelsToRealDimensions(this.inMap.getMapScale(), point));
 				}
 
 				inArea.setPoints(points);
-				inArea.setOpacity(0.3);
+				inArea.setOpacity(0.2);
 				inArea.setColor(Color.GREEN);
+				inArea.setBorder(new Border(4, Color.GREEN));
 				try {
 					CountDownLatch latch = new CountDownLatch(1);
 					inArea.ready(data -> latch.countDown());
