@@ -1,7 +1,10 @@
 package co.blastlab.indoornavi_api.objects;
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
@@ -32,6 +35,7 @@ import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
 import co.blastlab.indoornavi_api.interfaces.INReportInterface;
 import co.blastlab.indoornavi_api.model.Complex;
 import co.blastlab.indoornavi_api.model.Scale;
+import co.blastlab.indoornavi_api.service.BluetoothScanService;
 import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.web_view.IndoorWebChromeClient;
 import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
@@ -55,6 +59,7 @@ public class INMap extends WebView {
 	private String apiKey;
 	private int floorId;
 	private Scale scale;
+	private boolean isAutoReload = false;
 
 	public static final String AREA = "AREA";
 	public static final String COORDINATES = "COORDINATES";
@@ -231,6 +236,16 @@ public class INMap extends WebView {
 		return this.floorId;
 	}
 
+	public void setAutoReload(boolean state) {
+		this.isAutoReload = state;
+
+		if (state) {
+			registerReceiver();
+		} else {
+			unregisterReceiver();
+		}
+	}
+
 	public void waitUntilMapReady(OnObjectReadyCallback onObjectReadyCallback) {
 		if (this.scale != null) {
 			onObjectReadyCallback.onReady(null);
@@ -349,6 +364,41 @@ public class INMap extends WebView {
 		this.addJavascriptInterface(inNavigationInterface, "inNavigationInterface");
 
 	}
+
+	private final BroadcastReceiver serviceReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			switch (intent.getAction()) {
+				case BluetoothScanService.FLOOR_CHANGE:
+					int newFloorId = intent.getIntExtra("floorId", -1);
+					if (newFloorId != -1 && newFloorId != floorId && isAutoReload) {
+						load(newFloorId);
+					}
+					break;
+			}
+		}
+	};
+
+	private void registerReceiver() {
+		try {
+			IntentFilter intentFilter = new IntentFilter();
+			intentFilter.addAction(BluetoothScanService.FLOOR_CHANGE);
+			this.context.registerReceiver(serviceReceiver, intentFilter);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	private void unregisterReceiver() {
+		try {
+			if (serviceReceiver != null) {
+				this.context.unregisterReceiver(serviceReceiver);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
 
 	private void evaluate(String javaScriptString, ValueCallback<String> valueCallback) {
 		if (Looper.myLooper() == Looper.getMainLooper()) {

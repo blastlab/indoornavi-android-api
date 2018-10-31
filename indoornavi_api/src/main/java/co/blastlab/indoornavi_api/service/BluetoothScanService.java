@@ -48,6 +48,7 @@ public class BluetoothScanService extends Service {
 
 	public static final String TAG = "IndoorBluetoothService";
 	public static final String CALCULATE_POSITION = "calculated position";
+	public static final String FLOOR_CHANGE = "floor change";
 	public static final int ACTION_BLUETOOTH_READY = 0;
 	public static final int ACTION_BLUETOOTH_NOT_SUPPORTED = 1;
 	public static final int ACTION_BLUETOOTH_NOT_ENABLED = 2;
@@ -279,9 +280,9 @@ public class BluetoothScanService extends Service {
 				try {
 					Thread.sleep(6000);
 					if (getLastKnownPosition() == null && mHandler != null) {
-						if (mHandler != null) {
-							mHandler.obtainMessage(ACTION_NO_SCAN_RESULTS, null).sendToTarget();
-						}
+						mHandler.obtainMessage(ACTION_NO_SCAN_RESULTS, null).sendToTarget();
+						stopScanning();
+						startScanning();
 					}
 				} catch (InterruptedException e) {
 					Log.e("Indoor", "thread exception");
@@ -335,28 +336,19 @@ public class BluetoothScanService extends Service {
 
 
 	private void startScanning() {
-
 		if (btScanner != null) {
-			AsyncTask.execute(new Runnable() {
-				@Override
-				public void run() {
-					Log.i(TAG, "Start scanning");
-					DeviceAvailability();
-					btScanner.startScan(getScanFilters(), settings, mLeScanCallback);
-				}
-			});
+			DeviceAvailability();
+			AsyncTask.execute(() ->
+				btScanner.startScan(getScanFilters(), settings, mLeScanCallback)
+			);
 		}
 	}
 
 	private void stopScanning() {
 		if (btScanner != null) {
-			AsyncTask.execute(new Runnable() {
-				@Override
-				public void run() {
-					Log.i(TAG, "Stopping scanning");
-					btScanner.stopScan(mLeScanCallback);
-				}
-			});
+			AsyncTask.execute(() ->
+				btScanner.stopScan(mLeScanCallback)
+			);
 		}
 	}
 
@@ -446,6 +438,7 @@ public class BluetoothScanService extends Service {
 			actualFloorId = mostCommonFloor;
 			if (mHandler != null) {
 				mHandler.obtainMessage(ACTION_FLOOR_ID_CHANGE, actualFloorId).sendToTarget();
+				sendBroadcastFloorChange(actualFloorId);
 			}
 		}
 	}
@@ -481,6 +474,18 @@ public class BluetoothScanService extends Service {
 			Intent broadCastIntent = new Intent();
 			broadCastIntent.setAction(CALCULATE_POSITION);
 			broadCastIntent.putExtra("position", new Point((int) Math.round(position.x * 100), (int) Math.round(position.y * 100)));
+			sendBroadcast(broadCastIntent);
+
+		} catch (Exception e) {
+			Log.e("SendBroadcast Exception", e.getMessage());
+		}
+	}
+
+	private void sendBroadcastFloorChange(int floorId) {
+		try {
+			Intent broadCastIntent = new Intent();
+			broadCastIntent.setAction(FLOOR_CHANGE);
+			broadCastIntent.putExtra("floorId", floorId);
 			sendBroadcast(broadCastIntent);
 
 		} catch (Exception e) {

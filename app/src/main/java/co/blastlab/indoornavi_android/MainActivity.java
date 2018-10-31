@@ -236,6 +236,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			}
 		});
 
+		inMap.setAutoReload(true);
+
 		inMap.addLongClickListener(new OnEventListener<Point>() {
 			@Override
 			public void onEvent(Point point) {
@@ -509,7 +511,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		inData.getAreas(areas -> {
 				Log.i("Indoor", "Received areas: " + areas);
-				for(INArea area : areas) {
+				for (INArea area : areas) {
 					area.draw();
 				}
 			}
