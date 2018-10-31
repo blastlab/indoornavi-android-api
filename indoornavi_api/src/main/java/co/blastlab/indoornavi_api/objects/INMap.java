@@ -130,10 +130,21 @@ public class INMap extends WebView {
 	 * @param onEventListener interface - trigger when the event occurs.
 	 */
 	public void addLongClickListener(OnEventListener onEventListener) {
+		INMap inMap = this;
 
 		waitUntilMapReady((object) -> {
-			int eventId = onEventListener.hashCode();
-			Controller.eventListenerMap.put(eventId, onEventListener);
+			OnEventListener<Point> innerOnEventListener = new OnEventListener<Point>() {
+				@Override
+				public void onEvent(Point point) {
+					Handler handler = new Handler(Looper.getMainLooper());
+					handler.post(() ->
+						onEventListener.onEvent(point == null ? null : MapUtil.pixelsToRealDimensions(inMap.getMapScale(), point))
+					);
+				}
+			};
+
+			int eventId = innerOnEventListener.hashCode();
+			Controller.eventListenerMap.put(eventId, innerOnEventListener);
 
 			String javaScriptString = String.format(Locale.US, "navi.addMapLongClickListener(res => eventInterface.onClickEvent(%s, JSON.stringify(res)));", eventId);
 			this.evaluate(javaScriptString, null);
