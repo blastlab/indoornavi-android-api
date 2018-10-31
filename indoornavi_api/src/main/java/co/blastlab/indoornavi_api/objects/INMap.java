@@ -6,12 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Point;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.StringDef;
 import android.util.AttributeSet;
 import android.util.Log;
 
+import android.view.View;
 import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -270,7 +272,6 @@ public class INMap extends WebView {
 		this.setWebViewClient(new IndoorWebViewClient());
 		this.setWebChromeClient(new IndoorWebChromeClient());
 
-		this.getSettings().setAppCacheMaxSize(500 * 1024 * 1024); // 500 MB
 		this.getSettings().setAppCachePath(this.context.getFilesDir().getAbsolutePath());
 		this.getSettings().setAllowFileAccess(true);
 		this.getSettings().setAppCacheEnabled(true);
@@ -285,6 +286,10 @@ public class INMap extends WebView {
 
 		this.getSettings().setAllowUniversalAccessFromFileURLs(true);
 		this.getSettings().setAllowContentAccess(true);
+		this.getSettings().setSaveFormData(true);
+		this.getSettings().setSupportZoom(true);
+		this.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+
 	}
 
 	/**
