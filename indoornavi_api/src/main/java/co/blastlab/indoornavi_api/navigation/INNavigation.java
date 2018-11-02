@@ -18,6 +18,9 @@ import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.service.BluetoothScanService;
 import co.blastlab.indoornavi_api.utils.MapUtil;
 
+/**
+ * Class responsible for navigation, calculates the shortest path and automatically update actual position.
+ */
 public class INNavigation {
 
 	private String objectInstance;
@@ -39,7 +42,7 @@ public class INNavigation {
 			switch (intent.getAction()) {
 				case BluetoothScanService.CALCULATE_POSITION:
 					Point position = intent.getParcelableExtra("position");
-					if(position != null) {
+					if (position != null) {
 						updateActualLocation(position);
 					}
 					break;
@@ -47,6 +50,12 @@ public class INNavigation {
 		}
 	};
 
+	/**
+	 * Creates instance of the navigation object
+	 *
+	 * @param context application context.
+	 * @param inMap   INMap object instance.
+	 */
 	public INNavigation(Context context, INMap inMap) {
 		this.objectInstance = String.format(Locale.US, "navigation%d", this.hashCode());
 		this.context = context;
@@ -56,6 +65,14 @@ public class INNavigation {
 		evaluate(javaScriptString, null);
 	}
 
+	/**
+	 * Starting navigation - calculates path and create navigation.
+	 *
+	 * @param startPoint       starting {@link Point}
+	 * @param destinationPoint destination {@link Point}
+	 * @param accuracy         radius given in real dimension, defines in what circle it should be pulled to the navigated path
+	 *                         0 - sets accuracy as Infinity and pull from the entire map
+	 */
 	public void startNavigation(Point startPoint, Point destinationPoint, int accuracy) {
 		this.startPoint = startPoint;
 		this.destinationPoint = destinationPoint;
@@ -71,6 +88,11 @@ public class INNavigation {
 		evaluate(javaScriptString, null);
 	}
 
+	/**
+	 * Register a callback to be invoked when navigation returns information messages.
+	 *
+	 * @param onNavigationMessageReceive interface - invoked when event occurs.
+	 */
 	public void addEventListener(OnNavigationMessageReceive<String> onNavigationMessageReceive) {
 		this.onNavigationMessageReceive = onNavigationMessageReceive;
 
@@ -81,6 +103,9 @@ public class INNavigation {
 		evaluate(javaScriptString, null);
 	}
 
+	/**
+	 * Remove event listener.
+	 */
 	public void removeEventListener() {
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.removeEventListener();", objectInstance);
 		evaluate(javaScriptString, null);
@@ -93,6 +118,9 @@ public class INNavigation {
 		evaluate(javaScriptString, null);
 	}
 
+	/**
+	 * Stops navigation and remove navigation from map.
+	 */
 	public void stopNavigation() {
 		Controller.navigationMessageMap.remove(onNavigationMessageReceive.hashCode());
 
@@ -102,32 +130,62 @@ public class INNavigation {
 		navigationIsRunning = false;
 	}
 
+	/**
+	 * Restart navigation and recalculate shortest path from actual position to destination point
+	 */
 	public void restartNavigation() {
 		if (this.lastPosition == null || this.destinationPoint == null) return;
 		if (navigationIsRunning) stopNavigation();
 		startNavigation(lastPosition, destinationPoint, accuracy);
 	}
 
-	public void disableStartpoint(boolean state) {
+	/**
+	 * It allows to disable the starting point (invisible on the map)
+	 *
+	 * @param state boolean value indicates whether it should be active.
+	 */
+	public void disableStartPoint(boolean state) {
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.disableStartPoint(%s);", objectInstance, state ? "true" : "false");
 		evaluate(javaScriptString, null);
 	}
 
+	/**
+	 * It allows to disable the ending point (invisible on the map)
+	 *
+	 * @param state boolean value indicates whether it should be active.
+	 */
 	public void disableEndPoint(boolean state) {
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.disableEndPoint(%s);", objectInstance, state ? "true" : "false");
 		evaluate(javaScriptString, null);
 	}
 
+	/**
+	 * Allows to set the path color
+	 *
+	 * @param color path color.
+	 */
 	public void setPathColor(@ColorInt int color) {
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.setPathColor('%s');", objectInstance, getStringColor(color));
 		evaluate(javaScriptString, null);
 	}
 
+	/**
+	 * Allows setting color, radius and opacity of the starting point of navigation.
+	 * Additionally, it's possible to change border settings.
+	 *
+	 * @param startPoint {@link NavigationPoint} object.
+	 */
 	public void setStartPoint(NavigationPoint startPoint) {
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.setStartPoint(new NavigationPoint(%d, new Border(%d, '%s'), %s, '%s'));", objectInstance, startPoint.getRadius(), startPoint.getBorder().width, getStringColor(startPoint.getBorder().color), String.format(Locale.US, "%f", startPoint.getOpacity()), getStringColor(startPoint.getColor()));
 		evaluate(javaScriptString, null);
 	}
 
+	/**
+	 * Allows setting color, radius and opacity of the ending point of navigation.
+	 * Additionally, it's possible to change border settings.
+	 *
+	 * @param endPoint {@link NavigationPoint} object.
+	 */
 	public void setEndPoint(NavigationPoint endPoint) {
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.setEndPoint(new NavigationPoint(%d, new Border(%d, '%s'), %s, '%s'));", objectInstance, endPoint.getRadius(), endPoint.getBorder().width, getStringColor(endPoint.getBorder().color), String.format(Locale.US, "%f", endPoint.getOpacity()), getStringColor(endPoint.getColor()));
 		evaluate(javaScriptString, null);

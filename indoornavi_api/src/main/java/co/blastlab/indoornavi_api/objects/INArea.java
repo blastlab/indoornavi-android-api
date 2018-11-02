@@ -129,24 +129,40 @@ public class INArea extends INObject {
 	}
 
 	/**
-	 * Gets border of the circle.
+	 * @return Gets border of the area.
 	 */
 	public Border getBorder() {
 		return this.border;
 	}
 
+
+	/**
+	 * Sets name of the area
+	 *
+	 * @param name name of area
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	/**
+	 * @return Gets name of the area.
+	 */
 	public String getName() {
 		return this.name;
 	}
 
+	/**
+	 * Sets database id of the area (it is not the id of the object, it identifies the object in the database)
+	 * @param id set id
+	 */
 	public void setDatabaseId(int id) {
 		this.databaseId = id;
 	}
 
+	/**
+	 * @return area database id
+	 */
 	public int getDatabaseId() {
 		return this.databaseId;
 	}
@@ -195,6 +211,11 @@ public class INArea extends INObject {
 		evaluate(javaScriptString, null);
 	}
 
+	/**
+	 * Calculates center of given area.
+	 *
+	 * @return center {@link Point}
+	 */
 	public Point getCenterPoint() {
 		if(this.points == null) return null;
 

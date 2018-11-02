@@ -5,6 +5,9 @@ import android.support.annotation.FloatRange;
 
 import co.blastlab.indoornavi_api.model.Border;
 
+/**
+ * Class representing an NavigationPoint
+ */
 public class NavigationPoint {
 
 	private int radius;
@@ -13,14 +16,26 @@ public class NavigationPoint {
 	private Border border;
 
 
-	private NavigationPoint(){};
+	/**
+	 * Navigation point parameters
+	 *  @param {number} radius of the circle
+	 *  @param {Border} Border object
+	 *  @param {number} opacity of the circle
+	 *  @param {String} color of the circle
+	 */
+	private NavigationPoint() {}
 
+	/**
+	 * Sets navigation circle radius.
+	 *
+	 * @param radius radius of the circle
+	 */
 	public void setRadius(int radius) {
 		this.radius = radius;
 	}
 
 	/**
-	 * @return radius of the circle. Return Integer value.
+	 * @return return Integer radius.
 	 */
 	public int getRadius() {
 		return this.radius;
@@ -38,7 +53,8 @@ public class NavigationPoint {
 	/**
 	 * @return color of the circle represent as an Integer.
 	 */
-	public @ColorInt int getColor() {
+	public @ColorInt
+	int getColor() {
 		return this.color;
 	}
 
@@ -54,7 +70,8 @@ public class NavigationPoint {
 	/**
 	 * @return opacity of the circle. Return Float value.
 	 */
-	@FloatRange(from = 0.0, to = 1.0) public  double getOpacity() {
+	@FloatRange(from = 0.0, to = 1.0)
+	public double getOpacity() {
 		return this.opacity;
 	}
 

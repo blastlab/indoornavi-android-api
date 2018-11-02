@@ -237,18 +237,31 @@ public class INMap extends WebView {
 		return this.scale;
 	}
 
+	/**
+	 * @return returns the set target host
+	 */
 	public String getTargetHost() {
 		return this.targetHost;
 	}
 
+	/**
+	 * @return returns the set apiKey
+	 */
 	public String getApiKey() {
 		return apiKey;
 	}
 
+	/**
+	 * @return returns the set floor ID
+	 */
 	public int getFloorId() {
 		return this.floorId;
 	}
 
+	/**
+	 * Sets automatic reloading of the map when the detected floor is changed
+	 * @param state boolean value indicates whether it should be active.
+	 */
 	public void setAutoReload(boolean state) {
 		this.isAutoReload = state;
 

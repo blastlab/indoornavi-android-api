@@ -25,6 +25,9 @@ import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
+/**
+ * Class responsible for communication with backend and database.
+ */
 public class INData {
 
 	private String objectInstance, targetHost, apiKey;

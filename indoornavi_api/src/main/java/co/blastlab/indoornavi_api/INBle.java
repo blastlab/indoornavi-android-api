@@ -16,6 +16,9 @@ import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.service.BluetoothScanService;
 import co.blastlab.indoornavi_api.utils.MapUtil;
 
+/**
+ * Class responsible for Bluetooth module, allows to listen to bluetooth events.
+ */
 public class INBle {
 
 	private int floorId;
@@ -24,6 +27,13 @@ public class INBle {
 	private String objectInstance;
 	private boolean pulledPositionFlag = false;
 
+	/**
+	 * INBle object constructor.
+	 *
+	 * @param inMap INMap instance
+	 * @param targetHost target host address
+	 * @param floorId id of the floor on which module should listen for events
+	 */
 	public INBle(INMap inMap, String targetHost, int floorId) {
 		this.objectInstance = String.format(Locale.US, "ble%d", this.hashCode());
 		this.inMap = inMap;
@@ -34,6 +44,11 @@ public class INBle {
 		inMap.evaluateJavascript(javaScriptString, null);
 	}
 
+	/**
+	 * Register a callback to be invoked when bluetooth coordinates are in the area created on frontend server.
+	 *
+	 * @param onEventListener interface - invoked when event occurs.
+	 */
 	public void addAreaEventListener(OnEventListener<AreaEvent> onEventListener) {
 
 		int promiseId = onEventListener.hashCode();
@@ -76,7 +91,11 @@ public class INBle {
 		}
 	};
 
-
+	/**
+	 * Set flag which determines whether events should to be generated for a pulled or an absolute position
+	 *
+	 * @param pulledPositionFlag boolean value indicates whether it should be active.
+	 */
 	public void setPulledPositionFlag(boolean pulledPositionFlag) {
 		this.pulledPositionFlag = pulledPositionFlag;
 	}
