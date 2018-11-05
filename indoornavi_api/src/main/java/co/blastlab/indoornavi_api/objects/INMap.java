@@ -402,6 +402,7 @@ public class INMap extends WebView {
 					int newFloorId = intent.getIntExtra("floorId", -1);
 					if (newFloorId != -1 && newFloorId != floorId && isAutoReload) {
 						load(newFloorId);
+						floorId = newFloorId;
 					}
 					break;
 			}

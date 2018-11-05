@@ -511,6 +511,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		inData.getAreas(areas -> {
 				Log.i("Indoor", "Received areas: " + areas);
+				if(areas == null) return;
 				for (INArea area : areas) {
 					area.draw();
 				}
@@ -696,7 +697,6 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		super.onDestroy();
 		Log.e("Indoor", "OnDestroy");
 		if (BluetoothScanService.SERVICE_CONNECTED) {
-			unbindService(bluetoothConnection);
 			BluetoothScanService.SERVICE_CONNECTED = false;
 		}
 	}

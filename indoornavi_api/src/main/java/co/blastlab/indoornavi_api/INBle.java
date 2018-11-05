@@ -5,7 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Point;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.webkit.ValueCallback;
 
 import java.util.Locale;
 
@@ -30,9 +33,9 @@ public class INBle {
 	/**
 	 * INBle object constructor.
 	 *
-	 * @param inMap INMap instance
+	 * @param inMap      INMap instance
 	 * @param targetHost target host address
-	 * @param floorId id of the floor on which module should listen for events
+	 * @param floorId    id of the floor on which module should listen for events
 	 */
 	public INBle(INMap inMap, String targetHost, int floorId) {
 		this.objectInstance = String.format(Locale.US, "ble%d", this.hashCode());
@@ -41,7 +44,7 @@ public class INBle {
 		this.floorId = floorId;
 
 		String javaScriptString = String.format(Locale.ENGLISH, "var %s = new INBle(%d, '%s', '%s');", objectInstance, this.floorId, this.targetHost, inMap.getApiKey());
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	/**
@@ -55,7 +58,7 @@ public class INBle {
 		Controller.eventListenerMap.put(promiseId, onEventListener);
 
 		String javaScriptString = String.format(Locale.US, "%s.addCallbackFunction(areaEvent => eventInterface.onBleAreaEvent(%d, JSON.stringify(areaEvent)));", objectInstance, promiseId);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 
 		registerReceiver();
 	}
@@ -65,7 +68,7 @@ public class INBle {
 		Point positionInPixels = MapUtil.realDimensionsToPixels(this.inMap.getMapScale(), position);
 
 		String javaScriptString = String.format(Locale.US, "%s.updatePosition({x: %d, y: %d});", objectInstance, positionInPixels.x, positionInPixels.y);
-		inMap.evaluateJavascript(javaScriptString, null);
+		evaluate(javaScriptString, null);
 	}
 
 	private final BroadcastReceiver serviceReceiver = new BroadcastReceiver() {
@@ -75,11 +78,13 @@ public class INBle {
 				case BluetoothScanService.CALCULATE_POSITION:
 					Point position = intent.getParcelableExtra("position");
 					if (position != null) {
-						if(pulledPositionFlag) {
+						if (pulledPositionFlag) {
 							inMap.pullToPath(position, 0, new OnReceiveValueCallback<Point>() {
 								@Override
 								public void onReceiveValue(Point point) {
-									updatePosition(point);
+									if(point != null) {
+										updatePosition(point);
+									}
 								}
 							});
 						} else {
@@ -108,6 +113,19 @@ public class INBle {
 			this.inMap.getContext().registerReceiver(serviceReceiver, intentFilter);
 		} catch (Exception ex) {
 			ex.printStackTrace();
+		}
+	}
+
+	private void evaluate(String javaScriptString, ValueCallback<String> valueCallback) {
+		if (Looper.myLooper() == Looper.getMainLooper()) {
+			inMap.evaluateJavascript(javaScriptString, valueCallback);
+		} else {
+			Handler handler = new Handler(Looper.getMainLooper());
+			handler.post(() -> {
+				inMap.evaluateJavascript(javaScriptString, valueCallback);
+			});
+
+
 		}
 	}
 }

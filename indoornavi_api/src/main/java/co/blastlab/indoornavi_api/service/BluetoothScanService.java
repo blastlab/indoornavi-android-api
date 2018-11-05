@@ -28,6 +28,7 @@ import android.support.annotation.NonNull;
 
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import android.util.Pair;
 import android.util.SparseArray;
 
 import java.util.ArrayList;
@@ -416,25 +417,27 @@ public class BluetoothScanService extends Service {
 	}
 
 	private void checkSuggestedFloor() {
-		Map<Integer, Integer> floorMap = new HashMap<>();
+		Map<Integer, Pair<Integer, Double>> floorMap = new HashMap<>();
 
 		for (int i = 0; i < anchorMatrix.size(); i++) {
 			int floorId = anchorMatrix.valueAt(i).floorId;
 			if (!floorMap.containsKey(floorId)) {
-				floorMap.put(floorId, 1);
+				floorMap.put(floorId, new Pair<>(1, algorithm.calculateAverage(anchorMatrix.valueAt(i).rssi_array)));
 			} else {
-				floorMap.put(floorId, floorMap.get(floorId) + 1);
+				floorMap.put(floorId, new Pair<>(floorMap.get(floorId).first + 1, floorMap.get(floorId).second + algorithm.calculateAverage(anchorMatrix.valueAt(i).rssi_array)));
 			}
 		}
 
 		int mostCommonFloor = -1;
 		for (Integer floorId : floorMap.keySet()) {
-			if (floorMap.get(floorId) >= (mostCommonFloor == -1 ? -1 : floorMap.get(mostCommonFloor))) {
+			if (floorMap.get(floorId).first > (mostCommonFloor == -1 ? -1 : floorMap.get(mostCommonFloor).first)) {
 				mostCommonFloor = floorId;
+			} else if(floorMap.get(floorId).first == (mostCommonFloor == -1 ? -1 : floorMap.get(mostCommonFloor).first)) {
+				mostCommonFloor = floorMap.get(floorId).second > floorMap.get(mostCommonFloor).second ? floorId : mostCommonFloor;
 			}
 		}
 
-		if (actualFloorId != mostCommonFloor) {
+		if (mostCommonFloor != -1 && actualFloorId != mostCommonFloor) {
 			actualFloorId = mostCommonFloor;
 			if (mHandler != null) {
 				mHandler.obtainMessage(ACTION_FLOOR_ID_CHANGE, actualFloorId).sendToTarget();
@@ -499,12 +502,12 @@ public class BluetoothScanService extends Service {
 		anchorConfiguration.append(65049, new Anchor(65049, new Position(32.20, 11.61, 3.00), 2));
 		anchorConfiguration.append(65048, new Anchor(65048, new Position(37.49, 12.27, 3.00), 2));
 
-		anchorConfiguration.append(65051, new Anchor(65051, new Position(24.60, 8.69, 3.00), 2));
-		anchorConfiguration.append(65044, new Anchor(65044, new Position(24.45, 1.97, 3.00), 2));
-		anchorConfiguration.append(65052, new Anchor(65052, new Position(29.91, 1.97, 3.00), 2));
-		anchorConfiguration.append(65043, new Anchor(65043, new Position(29.91, 9.09, 3.00), 2));
+		anchorConfiguration.append(65051, new Anchor(65051, new Position(24.60, 8.69, 3.00), 3));
+		anchorConfiguration.append(65044, new Anchor(65044, new Position(24.45, 1.97, 3.00), 3));
+		anchorConfiguration.append(65052, new Anchor(65052, new Position(29.91, 1.97, 3.00), 3));
+		anchorConfiguration.append(65043, new Anchor(65043, new Position(29.91, 9.09, 3.00), 3));
 
-		anchorConfiguration.append(65047, new Anchor(65047, new Position(34.61, 14.59, 3.00), 2));
-		anchorConfiguration.append(65046, new Anchor(65046, new Position(24.34, 14.41, 3.00), 2));
+		anchorConfiguration.append(65047, new Anchor(65047, new Position(34.61, 14.59, 3.00), 1));
+		anchorConfiguration.append(65046, new Anchor(65046, new Position(24.34, 14.41, 3.00), 1));
 	}
 }
