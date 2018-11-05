@@ -66,6 +66,14 @@ Allows to set navigation path colour
 inNavigation.setPathColor(Color.RED);
 ```
 
+### Change path width
+
+Allows to set navigation path width
+
+```java
+inNavigation.setPathWidth(7);
+```
+
 ### Change endpoints settings
 
 Allows setting colour, radius and opacity of the start and end of navigation points.
