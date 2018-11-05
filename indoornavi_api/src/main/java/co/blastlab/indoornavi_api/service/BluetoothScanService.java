@@ -84,6 +84,20 @@ public class BluetoothScanService extends Service {
 	private int maxDistance = 12;
 	private int actualFloorId = -1;
 
+	private class FloorPair {
+
+		private int floorId;
+		private int floorCounter;
+
+		private FloorPair(int floorId, int floorCounter) {
+			this.floorId = floorId;
+			this.floorCounter = floorCounter;
+		}
+
+	}
+
+	private FloorPair floorChangeCounter = new FloorPair(-1, -1);
+
 	private final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -416,15 +430,31 @@ public class BluetoothScanService extends Service {
 		}
 	}
 
+	private double calculateAverage(List<Integer> array) {
+		if (array == null || array.isEmpty()) {
+			return -100;
+		}
+		Integer sum = 0;
+		if (!array.isEmpty()) {
+			for (Integer mark : array) {
+				sum += mark;
+			}
+			return sum.doubleValue() / array.size();
+		}
+		return sum;
+	}
+
 	private void checkSuggestedFloor() {
 		Map<Integer, Pair<Integer, Double>> floorMap = new HashMap<>();
 
 		for (int i = 0; i < anchorMatrix.size(); i++) {
 			int floorId = anchorMatrix.valueAt(i).floorId;
+			if (anchorMatrix.valueAt(i).rssi_array.isEmpty()) continue;
+
 			if (!floorMap.containsKey(floorId)) {
-				floorMap.put(floorId, new Pair<>(1, algorithm.calculateAverage(anchorMatrix.valueAt(i).rssi_array)));
+				floorMap.put(floorId, new Pair<>(1, calculateAverage(anchorMatrix.valueAt(i).rssi_array)));
 			} else {
-				floorMap.put(floorId, new Pair<>(floorMap.get(floorId).first + 1, floorMap.get(floorId).second + algorithm.calculateAverage(anchorMatrix.valueAt(i).rssi_array)));
+				floorMap.put(floorId, new Pair<>(floorMap.get(floorId).first + 1, floorMap.get(floorId).second + calculateAverage(anchorMatrix.valueAt(i).rssi_array)));
 			}
 		}
 
@@ -432,12 +462,14 @@ public class BluetoothScanService extends Service {
 		for (Integer floorId : floorMap.keySet()) {
 			if (floorMap.get(floorId).first > (mostCommonFloor == -1 ? -1 : floorMap.get(mostCommonFloor).first)) {
 				mostCommonFloor = floorId;
-			} else if(floorMap.get(floorId).first == (mostCommonFloor == -1 ? -1 : floorMap.get(mostCommonFloor).first)) {
-				mostCommonFloor = floorMap.get(floorId).second > floorMap.get(mostCommonFloor).second ? floorId : mostCommonFloor;
+			} else if (floorMap.get(floorId).first == (mostCommonFloor == -1 ? -1 : floorMap.get(mostCommonFloor).first)) {
+				mostCommonFloor = floorMap.get(floorId).second > (floorMap.get(mostCommonFloor).second) ? floorId : mostCommonFloor;
 			}
 		}
 
 		if (mostCommonFloor != -1 && actualFloorId != mostCommonFloor) {
+			if (!incrementCounter(mostCommonFloor)) return;
+
 			actualFloorId = mostCommonFloor;
 			if (mHandler != null) {
 				mHandler.obtainMessage(ACTION_FLOOR_ID_CHANGE, actualFloorId).sendToTarget();
@@ -445,6 +477,23 @@ public class BluetoothScanService extends Service {
 			}
 		}
 	}
+
+	private boolean incrementCounter(int floorId) {
+		if (floorChangeCounter.floorId == floorId) {
+			floorChangeCounter.floorCounter += 1;
+		} else {
+			floorChangeCounter.floorId = floorId;
+			floorChangeCounter.floorCounter = 1;
+		}
+
+		if (floorChangeCounter.floorCounter >= 3) {
+			floorChangeCounter.floorCounter = -1;
+			floorChangeCounter.floorId = -1;
+			return true;
+	}
+	return false;
+
+}
 
 	private int getAnchorIdfromScanResult(ScanResult result) {
 		byte[] byteArray = result.getScanRecord().getBytes();

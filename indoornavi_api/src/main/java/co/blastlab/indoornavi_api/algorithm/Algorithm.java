@@ -168,7 +168,7 @@ public class Algorithm {
 		}
 	}
 
-	public double calculateAverage(List<Integer> marks) {
+	private double calculateAverage(List<Integer> marks) {
 		if (marks == null || marks.isEmpty()) return Double.NEGATIVE_INFINITY;
 		Integer sum = 0;
 		if (!marks.isEmpty()) {
