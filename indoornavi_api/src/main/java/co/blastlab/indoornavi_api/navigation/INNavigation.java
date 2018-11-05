@@ -123,6 +123,11 @@ public class INNavigation {
 		evaluate(javaScriptString, null);
 	}
 
+	public void setPathWidth(int width) {
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.setPathWidth(%d);", objectInstance, width);
+		evaluate(javaScriptString, null);
+	}
+
 	public void setStartPoint(NavigationPoint startPoint) {
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.setStartPoint(new NavigationPoint(%d, new Border(%d, '%s'), %s, '%s'));", objectInstance, startPoint.getRadius(), startPoint.getBorder().width, getStringColor(startPoint.getBorder().color), String.format(Locale.US, "%f", startPoint.getOpacity()), getStringColor(startPoint.getColor()));
 		evaluate(javaScriptString, null);

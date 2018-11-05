@@ -592,6 +592,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			inNavigation.setStartPoint(navigationPoint);
 			inNavigation.setEndPoint(navigationPoint);
 			inNavigation.disableStartpoint(false);
+			inNavigation.setPathWidth(10);
 			inNavigation.setPathColor(Color.RED);
 			inNavigation.startNavigation(new Point(3395, 123), new Point(2592, 170), 0);
 
