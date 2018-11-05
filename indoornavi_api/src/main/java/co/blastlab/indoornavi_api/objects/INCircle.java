@@ -10,6 +10,9 @@ import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.model.Border;
 
+/**
+ * Class represents circle, creates the INCircle object in iframe that communicates with frontend server and draws circle.
+ */
 public class INCircle extends INObject {
 
 	private INMap inMap;

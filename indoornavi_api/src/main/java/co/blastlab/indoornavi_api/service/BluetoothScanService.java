@@ -28,6 +28,7 @@ import android.support.annotation.NonNull;
 
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import android.util.Pair;
 import android.util.SparseArray;
 
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ public class BluetoothScanService extends Service {
 
 	public static final String TAG = "IndoorBluetoothService";
 	public static final String CALCULATE_POSITION = "calculated position";
+	public static final String FLOOR_CHANGE = "floor change";
 	public static final int ACTION_BLUETOOTH_READY = 0;
 	public static final int ACTION_BLUETOOTH_NOT_SUPPORTED = 1;
 	public static final int ACTION_BLUETOOTH_NOT_ENABLED = 2;
@@ -81,6 +83,20 @@ public class BluetoothScanService extends Service {
 	private boolean isFistPosition = true;
 	private int maxDistance = 12;
 	private int actualFloorId = -1;
+
+	private class FloorPair {
+
+		private int floorId;
+		private int floorCounter;
+
+		private FloorPair(int floorId, int floorCounter) {
+			this.floorId = floorId;
+			this.floorCounter = floorCounter;
+		}
+
+	}
+
+	private FloorPair floorChangeCounter = new FloorPair(-1, -1);
 
 	private final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
 		@Override
@@ -279,9 +295,9 @@ public class BluetoothScanService extends Service {
 				try {
 					Thread.sleep(6000);
 					if (getLastKnownPosition() == null && mHandler != null) {
-						if (mHandler != null) {
-							mHandler.obtainMessage(ACTION_NO_SCAN_RESULTS, null).sendToTarget();
-						}
+						mHandler.obtainMessage(ACTION_NO_SCAN_RESULTS, null).sendToTarget();
+						stopScanning();
+						startScanning();
 					}
 				} catch (InterruptedException e) {
 					Log.e("Indoor", "thread exception");
@@ -335,28 +351,19 @@ public class BluetoothScanService extends Service {
 
 
 	private void startScanning() {
-
 		if (btScanner != null) {
-			AsyncTask.execute(new Runnable() {
-				@Override
-				public void run() {
-					Log.i(TAG, "Start scanning");
-					DeviceAvailability();
-					btScanner.startScan(getScanFilters(), settings, mLeScanCallback);
-				}
-			});
+			DeviceAvailability();
+			AsyncTask.execute(() ->
+				btScanner.startScan(getScanFilters(), settings, mLeScanCallback)
+			);
 		}
 	}
 
 	private void stopScanning() {
 		if (btScanner != null) {
-			AsyncTask.execute(new Runnable() {
-				@Override
-				public void run() {
-					Log.i(TAG, "Stopping scanning");
-					btScanner.stopScan(mLeScanCallback);
-				}
-			});
+			AsyncTask.execute(() ->
+				btScanner.stopScan(mLeScanCallback)
+			);
 		}
 	}
 
@@ -423,32 +430,70 @@ public class BluetoothScanService extends Service {
 		}
 	}
 
+	private double calculateAverage(List<Integer> array) {
+		if (array == null || array.isEmpty()) {
+			return -100;
+		}
+		Integer sum = 0;
+		if (!array.isEmpty()) {
+			for (Integer mark : array) {
+				sum += mark;
+			}
+			return sum.doubleValue() / array.size();
+		}
+		return sum;
+	}
+
 	private void checkSuggestedFloor() {
-		Map<Integer, Integer> floorMap = new HashMap<>();
+		Map<Integer, Pair<Integer, Double>> floorMap = new HashMap<>();
 
 		for (int i = 0; i < anchorMatrix.size(); i++) {
 			int floorId = anchorMatrix.valueAt(i).floorId;
+			if (anchorMatrix.valueAt(i).rssi_array.isEmpty()) continue;
+
 			if (!floorMap.containsKey(floorId)) {
-				floorMap.put(floorId, 1);
+				floorMap.put(floorId, new Pair<>(1, calculateAverage(anchorMatrix.valueAt(i).rssi_array)));
 			} else {
-				floorMap.put(floorId, floorMap.get(floorId) + 1);
+				floorMap.put(floorId, new Pair<>(floorMap.get(floorId).first + 1, floorMap.get(floorId).second + calculateAverage(anchorMatrix.valueAt(i).rssi_array)));
 			}
 		}
 
 		int mostCommonFloor = -1;
 		for (Integer floorId : floorMap.keySet()) {
-			if (floorMap.get(floorId) >= (mostCommonFloor == -1 ? -1 : floorMap.get(mostCommonFloor))) {
+			if (floorMap.get(floorId).first > (mostCommonFloor == -1 ? -1 : floorMap.get(mostCommonFloor).first)) {
 				mostCommonFloor = floorId;
+			} else if (floorMap.get(floorId).first == (mostCommonFloor == -1 ? -1 : floorMap.get(mostCommonFloor).first)) {
+				mostCommonFloor = floorMap.get(floorId).second > (floorMap.get(mostCommonFloor).second) ? floorId : mostCommonFloor;
 			}
 		}
 
-		if (actualFloorId != mostCommonFloor) {
+		if (mostCommonFloor != -1 && actualFloorId != mostCommonFloor) {
+			if (!incrementCounter(mostCommonFloor)) return;
+
 			actualFloorId = mostCommonFloor;
 			if (mHandler != null) {
 				mHandler.obtainMessage(ACTION_FLOOR_ID_CHANGE, actualFloorId).sendToTarget();
+				sendBroadcastFloorChange(actualFloorId);
 			}
 		}
 	}
+
+	private boolean incrementCounter(int floorId) {
+		if (floorChangeCounter.floorId == floorId) {
+			floorChangeCounter.floorCounter += 1;
+		} else {
+			floorChangeCounter.floorId = floorId;
+			floorChangeCounter.floorCounter = 1;
+		}
+
+		if (floorChangeCounter.floorCounter >= 3) {
+			floorChangeCounter.floorCounter = -1;
+			floorChangeCounter.floorId = -1;
+			return true;
+	}
+	return false;
+
+}
 
 	private int getAnchorIdfromScanResult(ScanResult result) {
 		byte[] byteArray = result.getScanRecord().getBytes();
@@ -488,18 +533,30 @@ public class BluetoothScanService extends Service {
 		}
 	}
 
+	private void sendBroadcastFloorChange(int floorId) {
+		try {
+			Intent broadCastIntent = new Intent();
+			broadCastIntent.setAction(FLOOR_CHANGE);
+			broadCastIntent.putExtra("floorId", floorId);
+			sendBroadcast(broadCastIntent);
+
+		} catch (Exception e) {
+			Log.e("SendBroadcast Exception", e.getMessage());
+		}
+	}
+
 	private void addDefaultConf() {
 		anchorConfiguration.append(65050, new Anchor(65050, new Position(32.12, 2.46, 3.00), 2));
 		anchorConfiguration.append(65045, new Anchor(65045, new Position(36.81, 1.40, 3.00), 2));
 		anchorConfiguration.append(65049, new Anchor(65049, new Position(32.20, 11.61, 3.00), 2));
 		anchorConfiguration.append(65048, new Anchor(65048, new Position(37.49, 12.27, 3.00), 2));
 
-		anchorConfiguration.append(65051, new Anchor(65051, new Position(24.60, 8.69, 3.00), 2));
-		anchorConfiguration.append(65044, new Anchor(65044, new Position(24.45, 1.97, 3.00), 2));
-		anchorConfiguration.append(65052, new Anchor(65052, new Position(29.91, 1.97, 3.00), 2));
-		anchorConfiguration.append(65043, new Anchor(65043, new Position(29.91, 9.09, 3.00), 2));
+		anchorConfiguration.append(65051, new Anchor(65051, new Position(24.60, 8.69, 3.00), 3));
+		anchorConfiguration.append(65044, new Anchor(65044, new Position(24.45, 1.97, 3.00), 3));
+		anchorConfiguration.append(65052, new Anchor(65052, new Position(29.91, 1.97, 3.00), 3));
+		anchorConfiguration.append(65043, new Anchor(65043, new Position(29.91, 9.09, 3.00), 3));
 
-		anchorConfiguration.append(65047, new Anchor(65047, new Position(34.61, 14.59, 3.00), 2));
-		anchorConfiguration.append(65046, new Anchor(65046, new Position(24.34, 14.41, 3.00), 2));
+		anchorConfiguration.append(65047, new Anchor(65047, new Position(34.61, 14.59, 3.00), 1));
+		anchorConfiguration.append(65046, new Anchor(65046, new Position(24.34, 14.41, 3.00), 1));
 	}
 }

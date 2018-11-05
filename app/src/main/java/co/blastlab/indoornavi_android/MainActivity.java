@@ -236,6 +236,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			}
 		});
 
+		inMap.setAutoReload(true);
+
 		inMap.addLongClickListener(new OnEventListener<Point>() {
 			@Override
 			public void onEvent(Point point) {
@@ -509,7 +511,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		inData.getAreas(areas -> {
 				Log.i("Indoor", "Received areas: " + areas);
-				for(INArea area : areas) {
+				if(areas == null) return;
+				for (INArea area : areas) {
 					area.draw();
 				}
 			}
@@ -591,7 +594,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			inNavigation = new INNavigation(this, this.inMap);
 			inNavigation.setStartPoint(navigationPoint);
 			inNavigation.setEndPoint(navigationPoint);
-			inNavigation.disableStartpoint(false);
+			inNavigation.disableStartPoint(false);
 			inNavigation.setPathWidth(10);
 			inNavigation.setPathColor(Color.RED);
 			inNavigation.startNavigation(new Point(3395, 123), new Point(2592, 170), 0);
@@ -695,7 +698,6 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		super.onDestroy();
 		Log.e("Indoor", "OnDestroy");
 		if (BluetoothScanService.SERVICE_CONNECTED) {
-			unbindService(bluetoothConnection);
 			BluetoothScanService.SERVICE_CONNECTED = false;
 		}
 	}

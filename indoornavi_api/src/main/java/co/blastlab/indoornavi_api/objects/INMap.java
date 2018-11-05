@@ -1,14 +1,19 @@
 package co.blastlab.indoornavi_api.objects;
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Point;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.StringDef;
 import android.util.AttributeSet;
 import android.util.Log;
 
+import android.view.View;
 import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -32,6 +37,7 @@ import co.blastlab.indoornavi_api.interfaces.INObjectInterface;
 import co.blastlab.indoornavi_api.interfaces.INReportInterface;
 import co.blastlab.indoornavi_api.model.Complex;
 import co.blastlab.indoornavi_api.model.Scale;
+import co.blastlab.indoornavi_api.service.BluetoothScanService;
 import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.web_view.IndoorWebChromeClient;
 import co.blastlab.indoornavi_api.web_view.IndoorWebViewClient;
@@ -55,6 +61,7 @@ public class INMap extends WebView {
 	private String apiKey;
 	private int floorId;
 	private Scale scale;
+	private boolean isAutoReload = false;
 
 	public static final String AREA = "AREA";
 	public static final String COORDINATES = "COORDINATES";
@@ -125,10 +132,21 @@ public class INMap extends WebView {
 	 * @param onEventListener interface - trigger when the event occurs.
 	 */
 	public void addLongClickListener(OnEventListener onEventListener) {
+		INMap inMap = this;
 
 		waitUntilMapReady((object) -> {
-			int eventId = onEventListener.hashCode();
-			Controller.eventListenerMap.put(eventId, onEventListener);
+			OnEventListener<Point> innerOnEventListener = new OnEventListener<Point>() {
+				@Override
+				public void onEvent(Point point) {
+					Handler handler = new Handler(Looper.getMainLooper());
+					handler.post(() ->
+						onEventListener.onEvent(point == null ? null : MapUtil.pixelsToRealDimensions(inMap.getMapScale(), point))
+					);
+				}
+			};
+
+			int eventId = innerOnEventListener.hashCode();
+			Controller.eventListenerMap.put(eventId, innerOnEventListener);
 
 			String javaScriptString = String.format(Locale.US, "navi.addMapLongClickListener(res => eventInterface.onClickEvent(%s, JSON.stringify(res)));", eventId);
 			this.evaluate(javaScriptString, null);
@@ -219,16 +237,39 @@ public class INMap extends WebView {
 		return this.scale;
 	}
 
+	/**
+	 * @return returns the set target host
+	 */
 	public String getTargetHost() {
 		return this.targetHost;
 	}
 
+	/**
+	 * @return returns the set apiKey
+	 */
 	public String getApiKey() {
 		return apiKey;
 	}
 
+	/**
+	 * @return returns the set floor ID
+	 */
 	public int getFloorId() {
 		return this.floorId;
+	}
+
+	/**
+	 * Sets automatic reloading of the map when the detected floor is changed
+	 * @param state boolean value indicates whether it should be active.
+	 */
+	public void setAutoReload(boolean state) {
+		this.isAutoReload = state;
+
+		if (state) {
+			registerReceiver();
+		} else {
+			unregisterReceiver();
+		}
 	}
 
 	public void waitUntilMapReady(OnObjectReadyCallback onObjectReadyCallback) {
@@ -244,7 +285,6 @@ public class INMap extends WebView {
 		this.setWebViewClient(new IndoorWebViewClient());
 		this.setWebChromeClient(new IndoorWebChromeClient());
 
-		this.getSettings().setAppCacheMaxSize(500 * 1024 * 1024); // 500 MB
 		this.getSettings().setAppCachePath(this.context.getFilesDir().getAbsolutePath());
 		this.getSettings().setAllowFileAccess(true);
 		this.getSettings().setAppCacheEnabled(true);
@@ -259,6 +299,10 @@ public class INMap extends WebView {
 
 		this.getSettings().setAllowUniversalAccessFromFileURLs(true);
 		this.getSettings().setAllowContentAccess(true);
+		this.getSettings().setSaveFormData(true);
+		this.getSettings().setSupportZoom(true);
+		this.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+
 	}
 
 	/**
@@ -349,6 +393,42 @@ public class INMap extends WebView {
 		this.addJavascriptInterface(inNavigationInterface, "inNavigationInterface");
 
 	}
+
+	private final BroadcastReceiver serviceReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			switch (intent.getAction()) {
+				case BluetoothScanService.FLOOR_CHANGE:
+					int newFloorId = intent.getIntExtra("floorId", -1);
+					if (newFloorId != -1 && newFloorId != floorId && isAutoReload) {
+						load(newFloorId);
+						floorId = newFloorId;
+					}
+					break;
+			}
+		}
+	};
+
+	private void registerReceiver() {
+		try {
+			IntentFilter intentFilter = new IntentFilter();
+			intentFilter.addAction(BluetoothScanService.FLOOR_CHANGE);
+			this.context.registerReceiver(serviceReceiver, intentFilter);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	private void unregisterReceiver() {
+		try {
+			if (serviceReceiver != null) {
+				this.context.unregisterReceiver(serviceReceiver);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
 
 	private void evaluate(String javaScriptString, ValueCallback<String> valueCallback) {
 		if (Looper.myLooper() == Looper.getMainLooper()) {

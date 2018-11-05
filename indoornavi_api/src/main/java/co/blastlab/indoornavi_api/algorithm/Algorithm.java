@@ -126,7 +126,7 @@ public class Algorithm {
 	private List<Integer> Kalman_filter(List<Integer> input) {
 		if (input.isEmpty()) return null;
 
-		double K, P_prev, x_prev_estimated, x_estimated = calculateAverage(input) == Double.POSITIVE_INFINITY ? input.get(0) : calculateAverage(input);
+		double K, P_prev, x_prev_estimated, x_estimated = calculateAverage(input) == Double.NEGATIVE_INFINITY ? input.get(0) : calculateAverage(input);
 
 		double P = 0;
 		double Q = 0.065;
@@ -169,7 +169,7 @@ public class Algorithm {
 	}
 
 	private double calculateAverage(List<Integer> marks) {
-		if (marks == null || marks.isEmpty()) return Double.POSITIVE_INFINITY;
+		if (marks == null || marks.isEmpty()) return Double.NEGATIVE_INFINITY;
 		Integer sum = 0;
 		if (!marks.isEmpty()) {
 			for (Integer mark : marks) {
@@ -182,7 +182,7 @@ public class Algorithm {
 
 	private void getDistanceFromNode() {
 		for (int i = 0; i < anchorMatrix.size(); i++) {
-			if (anchorMatrix.valueAt(i).rssiAvg == Double.POSITIVE_INFINITY) {
+			if (anchorMatrix.valueAt(i).rssiAvg == Double.NEGATIVE_INFINITY) {
 				anchorMatrix.removeAt(i);
 				i -= 1;
 				continue;
