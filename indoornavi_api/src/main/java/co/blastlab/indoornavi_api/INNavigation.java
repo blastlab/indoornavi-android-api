@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import java.util.Locale;
 
 import co.blastlab.indoornavi_api.callback.OnNavigationMessageReceive;
+import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.service.BluetoothScanService;
 import co.blastlab.indoornavi_api.utils.MapUtil;
@@ -34,6 +35,7 @@ public class INNavigation {
 	private Point destinationPointInPixels;
 	private int accuracy = 1;
 	private int pathLength = -1;
+	private OnReceiveValueCallback<Integer> onPathLengthReceive;
 
 	private final BroadcastReceiver serviceReceiver = new BroadcastReceiver() {
 		@Override
@@ -77,10 +79,14 @@ public class INNavigation {
 
 					try {
 						String action = new JSONObject(message).getString("action");
+						onNavigationMessageReceive.onMessageReceive(action);
+
 						if (action.equals("created")) {
 							pathLength = new JSONObject(message).getInt("pathLength");
+							if(onPathLengthReceive != null) {
+								onPathLengthReceive.onReceiveValue(pathLength);
+							}
 						}
-						onNavigationMessageReceive.onMessageReceive(action);
 					} catch (Exception e) {
 						Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Invalid message content");
 					}
@@ -95,8 +101,13 @@ public class INNavigation {
 		evaluate(javaScriptString, null);
 	}
 
-	public int getPathLength() {
-		return this.pathLength;
+	public void getPathLength(OnReceiveValueCallback<Integer> onReceiveValueCallback) {
+
+		if(this.pathLength != -1) {
+			onReceiveValueCallback.onReceiveValue(this.pathLength);
+		} else {
+			this.onPathLengthReceive = onReceiveValueCallback;
+		}
 	}
 
 	private void updateActualLocation(Point position) {

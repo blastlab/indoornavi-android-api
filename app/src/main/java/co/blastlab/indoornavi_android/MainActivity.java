@@ -53,6 +53,7 @@ import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.model.Border;
 import co.blastlab.indoornavi_api.model.Complex;
 import co.blastlab.indoornavi_api.model.Coordinates;
+import co.blastlab.indoornavi_api.model.Path;
 import co.blastlab.indoornavi_api.objects.INArea;
 import co.blastlab.indoornavi_api.objects.INCircle;
 import co.blastlab.indoornavi_api.objects.INInfoWindow;
@@ -605,17 +606,23 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private void setNavigation() {
 		if (inNavigation == null) {
 			inNavigation = new INNavigation(this, this.inMap);
-			inNavigation.startNavigation(new Point(3395, 123), new Point(2592, 170), 0, new OnNavigationMessageReceive<String>() {
+			inNavigation.startNavigation(new Point(4000, 0), new Point(0, 2000), 0, new OnNavigationMessageReceive<String>() {
 				@Override
 				public void onMessageReceive(String message) {
 					Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
 					Log.e("indoor", "message: " + message);
-					Log.e("indoor", "path len: " + inNavigation.getPathLength());
 				}
 			});
 		} else {
 			inNavigation.restartNavigation();
 		}
+
+		inNavigation.getPathLength(new OnReceiveValueCallback<Integer>() {
+			@Override
+			public void onReceiveValue(Integer integer) {
+				Log.e("indoor", "path len: " + integer);
+			}
+		});
 
 	}
 
