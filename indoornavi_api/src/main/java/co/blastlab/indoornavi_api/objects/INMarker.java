@@ -187,19 +187,15 @@ public class INMarker extends INObject {
 			return this;
 		}
 
-		public INMarker build() {
-			try {
-				CountDownLatch latch = new CountDownLatch(1);
-				inMarker.ready(data -> latch.countDown());
+		public INMarker build() throws Exception {
+			CountDownLatch latch = new CountDownLatch(1);
+			inMarker.ready(data -> latch.countDown());
 
-				latch.await();
+			latch.await();
 
-				if (!inMarker.isTimeout) {
-					inMarker.draw();
-					return inMarker;
-				}
-			} catch (Exception e) {
-				Log.e("Create object exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			if (!inMarker.isTimeout) {
+				inMarker.draw();
+				return inMarker;
 			}
 			return null;
 		}

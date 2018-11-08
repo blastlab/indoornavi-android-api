@@ -208,7 +208,7 @@ public class INMap extends WebView {
 		int callbackId = innerReceiveValueCallback.hashCode();
 		Controller.ReceiveValueMap.put(callbackId, innerReceiveValueCallback);
 		Point positionInPixels = MapUtil.realDimensionsToPixels(inMap.getMapScale(), position);
-		String javaScriptString = String.format(Locale.US, "navi.pullToPath({x: %d, y: %d}, %d).then(pulledPoint => inMapInterface.pulledPoint(%d, JSON.stringify(pulledPoint)));", positionInPixels.x, positionInPixels.y, accuracy, callbackId);
+		String javaScriptString = String.format(Locale.US, "navi.pullToPath({x: %d, y: %d}, %d, pulledPoint => inMapInterface.pulledPoint(%d, JSON.stringify(pulledPoint)));", positionInPixels.x, positionInPixels.y, accuracy, callbackId);
 		inMap.evaluate(javaScriptString, null);
 	}
 
@@ -259,6 +259,7 @@ public class INMap extends WebView {
 
 		this.getSettings().setAllowUniversalAccessFromFileURLs(true);
 		this.getSettings().setAllowContentAccess(true);
+		this.setWebContentsDebuggingEnabled(true);
 	}
 
 	/**

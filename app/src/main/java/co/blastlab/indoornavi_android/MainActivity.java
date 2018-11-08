@@ -239,10 +239,14 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			@Override
 			public void onEvent(Point point) {
 				vibrator.vibrate(500);
-				new INMarker.INMarkerBuilder(inMap)
-					.setPosition(point)
-					.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
-					.build();
+				try {
+					new INMarker.INMarkerBuilder(inMap)
+						.setPosition(point)
+						.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
+						.build();
+				} catch (Exception e) {
+					Log.e("Create object exception", e.toString());
+				}
 			}
 		});
 
@@ -308,22 +312,30 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 					index = 2;
 					break;
 			}
-			inArea = new INArea.INAreaBuilder(inMap)
-				.setPoints(getPointsSetByIndex(index))
-				.setColor(Color.GREEN)
-				.setOpacity(0.1)
-				.setBorder(new Border(5, Color.GREEN))
-				.build();
+			try {
+				inArea = new INArea.INAreaBuilder(inMap)
+					.setPoints(getPointsSetByIndex(index))
+					.setColor(Color.GREEN)
+					.setOpacity(0.1)
+					.setBorder(new Border(5, Color.GREEN))
+					.build();
+			} catch (Exception e) {
+				Log.e("Create object exception", e.toString());
+			}
 		} else {
 			inArea.erase();
 		}
 	}
 
 	public void drawPoly(int index) {
+		try{
 		inPolyline = new INPolyline.INPolylineBuilder(inMap)
 			.setPoints(getPointsSetByIndex(index))
 			.setColor(Color.RED)
 			.build();
+		} catch (Exception e) {
+			Log.e("Create object exception",  e.toString());
+		}
 
 		if (inPolyline != null) {
 			inPolyline.getID(id -> {
@@ -335,6 +347,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	public void drawCircle(Point position) {
 		if (position == null) return;
 		if (inCircle == null) {
+			try{
 			inCircle = new INCircle.INCircleBuilder(inMap)
 				.setPosition(position)
 				.setRadius(8)
@@ -342,6 +355,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				.setColor(Color.RED)
 				.setBorder(new Border(30, Color.GREEN))
 				.build();
+			} catch (Exception e) {
+				Log.e("Create object exception",  e.toString());
+			}
 		} else {
 			inCircle.setPosition(position);
 			inCircle.draw();
@@ -349,12 +365,16 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void drawArea(int index) {
+		try {
 		inArea = new INArea.INAreaBuilder(inMap)
 			.setPoints(getPointsSetByIndex(index))
 			.setColor(Color.GREEN)
 			.setOpacity(0.1)
 			.setBorder(new Border(2, Color.GREEN))
 			.build();
+		} catch (Exception e) {
+			Log.e("Create object exception",  e.toString());
+		}
 		inArea.addEventListener(new OnINObjectClickListener() {
 			@Override
 			public void onClick() {
@@ -380,11 +400,15 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void drawMarker(int index) {
+		try {
 		inMarker1 = new INMarker.INMarkerBuilder(inMap)
 			.setPosition(getMarkerPoint(index))
 			.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
 			.setLabel(getMarkerLabel(index))
 			.build();
+		} catch (Exception e) {
+			Log.e("Create object exception",  e.toString());
+		}
 
 		if (inMarker1 != null) {
 			drawInfoWindow();
@@ -423,12 +447,16 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void drawInfoWindow() {
-		inInfoWindow = new INInfoWindow.INInfoWindowBuilder(inMap)
-			.setHeight(150)
-			.setWidth(150)
-			.setContent("<h3>Lorem ipsum dolor sit amet</h3>")
-			.setPositionAt(INInfoWindow.Position.TOP)
-			.build();
+		try {
+			inInfoWindow = new INInfoWindow.INInfoWindowBuilder(inMap)
+				.setHeight(150)
+				.setWidth(150)
+				.setContent("<h3>Lorem ipsum dolor sit amet</h3>")
+				.setPositionAt(INInfoWindow.Position.TOP)
+				.build();
+		} catch (Exception e) {
+			Log.e("Create object exception",  e.toString());
+		}
 	}
 
 	public void show_toast() {
@@ -582,6 +610,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				public void onMessageReceive(String message) {
 					Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
 					Log.e("indoor", "message: " + message);
+					Log.e("indoor", "path len: " + inNavigation.getPathLength());
 				}
 			});
 		} else {
@@ -741,6 +770,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	private void drawPulledCircle(Point position) {
 		if (inCirclePulled == null) {
+			try {
 			inCirclePulled = new INCircle.INCircleBuilder(inMap)
 				.setPosition(position)
 				.setRadius(30)
@@ -748,11 +778,15 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				.setColor(Color.parseColor("#007FFF"))
 				.setBorder(new Border(4, Color.parseColor("#007FFF")))
 				.build();
+			} catch (Exception e) {
+				Log.e("Create object exception",  e.toString());
+			}
 		} else {
 			inCirclePulled.setPosition(position);
 			inCirclePulled.draw();
 		}
 		if (inCirclePulledInner == null) {
+			try {
 			inCirclePulledInner = new INCircle.INCircleBuilder(inMap)
 				.setPosition(position)
 				.setRadius(8)
@@ -760,6 +794,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				.setColor(Color.parseColor("#007FFF"))
 				.setBorder(new Border(0, Color.parseColor("#007FFF")))
 				.build();
+			} catch (Exception e) {
+				Log.e("Create object exception",  e.toString());
+			}
 		} else {
 			inCirclePulledInner.setPosition(position);
 			inCirclePulledInner.draw();

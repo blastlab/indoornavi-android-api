@@ -17,7 +17,8 @@ public class INPolyline extends INObject {
 
 	private INMap inMap;
 	private List<Point> points;
-	private @ColorInt int color;
+	private @ColorInt
+	int color;
 
 	/**
 	 * INPolyline constructor.
@@ -82,7 +83,8 @@ public class INPolyline extends INObject {
 	/**
 	 * @return color of the polyline. Return color value represent as an Integer.
 	 */
-	public @ColorInt int getColor() {
+	public @ColorInt
+	int getColor() {
 		return this.color;
 	}
 
@@ -114,20 +116,16 @@ public class INPolyline extends INObject {
 			return this;
 		}
 
-		public INPolyline build() {
-			try {
-				CountDownLatch latch = new CountDownLatch(1);
-				inPolyline.ready(data -> latch.countDown());
+		public INPolyline build() throws Exception {
+			CountDownLatch latch = new CountDownLatch(1);
+			inPolyline.ready(data -> latch.countDown());
 
-				latch.await();
+			latch.await();
 
-				if (!inPolyline.isTimeout) {
+			if (!inPolyline.isTimeout) {
 
-					inPolyline.draw();
-					return inPolyline;
-				}
-			} catch (Exception e) {
-				Log.e("Create object exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+				inPolyline.draw();
+				return inPolyline;
 			}
 			return null;
 		}

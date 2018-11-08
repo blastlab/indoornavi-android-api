@@ -7,8 +7,10 @@ import android.content.IntentFilter;
 import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.webkit.ValueCallback;
+
+import org.json.JSONObject;
 
 import java.util.Locale;
 
@@ -19,7 +21,7 @@ import co.blastlab.indoornavi_api.utils.MapUtil;
 
 public class INNavigation {
 
-	private  String objectInstance;
+	private String objectInstance;
 	private Context context;
 	private INMap inMap;
 	private Point lastPosition;
@@ -31,7 +33,7 @@ public class INNavigation {
 	private Point startPointInPixels;
 	private Point destinationPointInPixels;
 	private int accuracy = 1;
-
+	private int pathLength = -1;
 
 	private final BroadcastReceiver serviceReceiver = new BroadcastReceiver() {
 		@Override
@@ -39,7 +41,7 @@ public class INNavigation {
 			switch (intent.getAction()) {
 				case BluetoothScanService.CALCULATE_POSITION:
 					Point position = intent.getParcelableExtra("position");
-					if(position != null) {
+					if (position != null) {
 						updateActualLocation(position);
 					}
 					break;
@@ -48,7 +50,7 @@ public class INNavigation {
 	};
 
 	public INNavigation(Context context, INMap inMap) {
-		this.objectInstance = String.format(Locale.US, "navigation%d",this.hashCode());
+		this.objectInstance = String.format(Locale.US, "navigation%d", this.hashCode());
 		this.context = context;
 		this.inMap = inMap;
 
@@ -67,11 +69,34 @@ public class INNavigation {
 
 		registerReceiver();
 
-		int eventId = onNavigationMessageReceive.hashCode();
-		Controller.navigationMessageMap.put(eventId, onNavigationMessageReceive);
+		OnNavigationMessageReceive<String> innerNavigationMessageReceive = new OnNavigationMessageReceive<String>() {
+			@Override
+			public void onMessageReceive(String message) {
+				Handler handler = new Handler(Looper.getMainLooper());
+				handler.post(() -> {
 
-		String javaScriptString = String.format(Locale.ENGLISH, "%s.start({x: %d, y: %d}, {x: %d, y: %d}, %d, action => inNavigationInterface.onMessageReceive(%d, JSON.stringify(action)));", objectInstance, this.startPointInPixels.x, this.startPointInPixels.y, this.destinationPointInPixels.x, this.destinationPointInPixels.y, accuracy, eventId);
+					try {
+						String action = new JSONObject(message).getString("action");
+						if (action.equals("created")) {
+							pathLength = new JSONObject(message).getInt("pathLength");
+						}
+						onNavigationMessageReceive.onMessageReceive(action);
+					} catch (Exception e) {
+						Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Invalid message content");
+					}
+				});
+			}
+		};
+
+		int eventId = innerNavigationMessageReceive.hashCode();
+		Controller.navigationMessageMap.put(eventId, innerNavigationMessageReceive);
+
+		String javaScriptString = String.format(Locale.ENGLISH, "%s.start({x: %d, y: %d}, {x: %d, y: %d}, %d, action => {inNavigationInterface.onMessageReceive(%d, JSON.stringify(action)); });", objectInstance, this.startPointInPixels.x, this.startPointInPixels.y, this.destinationPointInPixels.x, this.destinationPointInPixels.y, accuracy, eventId);
 		evaluate(javaScriptString, null);
+	}
+
+	public int getPathLength() {
+		return this.pathLength;
 	}
 
 	private void updateActualLocation(Point position) {
@@ -90,33 +115,27 @@ public class INNavigation {
 	}
 
 	public void restartNavigation() {
-		if(this.lastPosition == null || this.destinationPoint == null) return;
+		if (this.lastPosition == null || this.destinationPoint == null) return;
 		stopNavigation();
 		startNavigation(lastPosition, destinationPoint, accuracy, onNavigationMessageReceive);
 	}
 
 	private void registerReceiver() {
-		try
-		{
+		try {
 			IntentFilter intentFilter = new IntentFilter();
 			intentFilter.addAction(BluetoothScanService.CALCULATE_POSITION);
 			this.context.registerReceiver(serviceReceiver, intentFilter);
-		}
-		catch (Exception ex)
-		{
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
 
 	private void unregisterReceiver() {
-		try
-		{
-			if(serviceReceiver != null) {
+		try {
+			if (serviceReceiver != null) {
 				this.context.unregisterReceiver(serviceReceiver);
 			}
-		}
-		catch (Exception ex)
-		{
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
