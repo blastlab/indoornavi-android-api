@@ -1009,7 +1009,8 @@ class INMarker extends INMapObject {
         super(navi);
         this._type = 'MARKER';
         this._position = {x: 0, y: 0};
-        this._icon = null;
+        this._icon_url = null;
+        this._iconStringBase64 = null;
         this._infoWindow = {
             content: null,
             position: null
@@ -1064,9 +1065,27 @@ class INMarker extends INMapObject {
      * const marker = new INMarker(navi);
      * marker.ready().then(() => marker.setIcon(icon).draw(); );
      */
-    setIcon(path) {
+    setIconUrl(path) {
         Validation.isString(path, 'Invalid value supplied as an icon path argument');
-        this._icon = path;
+        this._iconUrl = path;
+        this._iconStringBase64 = null;
+        return this;
+    }
+
+    /**
+     * Sets marker icon. Use of this method is optional.
+     * @param {string} stringBase64 - image in base64 string format
+     * @return {INMarker} self to let you chain methods
+     * @example
+     * const urlToIcon = 'https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png'
+     * const marker = new INMarker(navi);
+     * marker.ready().then(() => marker.setIconUrl(urlToIcon).draw(); );
+     */
+
+    setIconImgFromBase64(stringBase64) {
+        Validation.isString(stringBase64, 'Invalid value supplied as an icon base64 string');
+        this._iconStringBase64 = stringBase64;
+        this._iconUrl = null;
         return this;
     }
 
@@ -1142,7 +1161,8 @@ class INMarker extends INMapObject {
                     object: {
                         id: this._id,
                         position: this._position,
-                        icon: this._icon,
+                        icon_url: this._icon_url,
+                        iconStringBase64: this._iconStringBase64,
                         label: this._label,
                         infoWindow: this._infoWindow,
                         events: this._events

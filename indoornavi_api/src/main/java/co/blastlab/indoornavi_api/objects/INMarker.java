@@ -1,8 +1,13 @@
 package co.blastlab.indoornavi_api.objects;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
+import android.graphics.drawable.Drawable;
+import android.util.Base64;
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
@@ -21,6 +26,7 @@ public class INMarker extends INObject {
 	private Point point;
 	private String label = "";
 	private String icon = "";
+	private int iconDrawable = -1;
 
 	/**
 	 * INMArker constructor.
@@ -146,6 +152,47 @@ public class INMarker extends INObject {
 	}
 
 	/**
+	 * Set marker icon. To apply this method it's necessary to call draw() after.
+	 *
+	 * @param iconDrawable String url path to your icon;
+	 */
+	public void setIcon(int iconDrawable) {
+		this.iconDrawable = iconDrawable;
+
+		Bitmap bmp = BitmapFactory.decodeResource(inMap.getResources(), iconDrawable);
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		bmp.compress(getIconFormat(inMap.getResources().getString(iconDrawable)), 100, stream);
+		byte[] byteArray = stream.toByteArray();
+		String imageString = Base64.encodeToString(byteArray, Base64.DEFAULT);
+
+		String javaScriptString = String.format("%s.setIconImgFromBase64(`%s`);", objectInstance, imageString);
+		evaluate(javaScriptString, null);
+	}
+
+	private Bitmap.CompressFormat getIconFormat(String imageName) {
+		switch (getFileExtension(imageName)) {
+			case ".jpeg":
+				return Bitmap.CompressFormat.JPEG;
+			case ".png":
+				return Bitmap.CompressFormat.PNG;
+			case ".webp":
+				return Bitmap.CompressFormat.WEBP;
+			default:
+				return Bitmap.CompressFormat.JPEG;
+		}
+	}
+
+
+	private String getFileExtension(String fileName) {
+		int lastIndexOf = fileName.lastIndexOf(".");
+		if (lastIndexOf == -1) {
+			return ""; // empty extension
+		}
+		return fileName.substring(lastIndexOf);
+	}
+
+
+	/**
 	 * @return icon set as a marker.
 	 */
 	public String getIcon() {
@@ -183,6 +230,11 @@ public class INMarker extends INObject {
 		}
 
 		public INMarkerBuilder setIcon(String icon) {
+			inMarker.setIcon(icon);
+			return this;
+		}
+
+		public INMarkerBuilder setIcon(int icon) {
 			inMarker.setIcon(icon);
 			return this;
 		}
