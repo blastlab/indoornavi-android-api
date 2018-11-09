@@ -378,9 +378,13 @@ public class BluetoothScanService extends Service {
 	private void calculateFirstPosition() {
 		isFistPosition = false;
 		new Handler().postDelayed(() -> {
-			checkSuggestedFloor();
-			Position position = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
-			if (position != null) {
+
+			Pair<Integer, Position> nextPosition = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
+
+			if (nextPosition != null) {
+				Position position = nextPosition.second;
+				checkSuggestedFloor(nextPosition.first);
+
 				position.timestamp = new Date();
 				positionsArray.add(position);
 				sendPositionToActivity(position);
@@ -420,9 +424,12 @@ public class BluetoothScanService extends Service {
 	}
 
 	private void getPosition() {
-		checkSuggestedFloor();
-		Position point = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
-		if (point != null) {
+		Pair<Integer, Position> nextPosition = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
+
+		if (nextPosition != null) {
+			Position point = nextPosition.second;
+			checkSuggestedFloor(nextPosition.first);
+
 			Position newPosition = algorithm.getIntersectionCircleLine(getLastKnownPosition(), point);
 			newPosition.timestamp = new Date();
 			positionsArray.add(newPosition);
@@ -430,42 +437,7 @@ public class BluetoothScanService extends Service {
 		}
 	}
 
-	private double calculateAverage(List<Integer> array) {
-		if (array == null || array.isEmpty()) {
-			return -100;
-		}
-		Integer sum = 0;
-		if (!array.isEmpty()) {
-			for (Integer mark : array) {
-				sum += mark;
-			}
-			return sum.doubleValue() / array.size();
-		}
-		return sum;
-	}
-
-	private void checkSuggestedFloor() {
-		Map<Integer, Pair<Integer, Double>> floorMap = new HashMap<>();
-
-		for (int i = 0; i < anchorMatrix.size(); i++) {
-			int floorId = anchorMatrix.valueAt(i).floorId;
-			if (anchorMatrix.valueAt(i).rssi_array.isEmpty()) continue;
-
-			if (!floorMap.containsKey(floorId)) {
-				floorMap.put(floorId, new Pair<>(1, calculateAverage(anchorMatrix.valueAt(i).rssi_array)));
-			} else {
-				floorMap.put(floorId, new Pair<>(floorMap.get(floorId).first + 1, floorMap.get(floorId).second + calculateAverage(anchorMatrix.valueAt(i).rssi_array)));
-			}
-		}
-
-		int mostCommonFloor = -1;
-		for (Integer floorId : floorMap.keySet()) {
-			if (floorMap.get(floorId).first > (mostCommonFloor == -1 ? -1 : floorMap.get(mostCommonFloor).first)) {
-				mostCommonFloor = floorId;
-			} else if (floorMap.get(floorId).first == (mostCommonFloor == -1 ? -1 : floorMap.get(mostCommonFloor).first)) {
-				mostCommonFloor = floorMap.get(floorId).second > (floorMap.get(mostCommonFloor).second) ? floorId : mostCommonFloor;
-			}
-		}
+	private void checkSuggestedFloor(int mostCommonFloor) {
 
 		if (mostCommonFloor != -1 && actualFloorId != mostCommonFloor) {
 			if (!incrementCounter(mostCommonFloor)) return;
@@ -556,7 +528,7 @@ public class BluetoothScanService extends Service {
 		anchorConfiguration.append(65052, new Anchor(65052, new Position(29.91, 1.97, 3.00), 3));
 		anchorConfiguration.append(65043, new Anchor(65043, new Position(29.91, 9.09, 3.00), 3));
 
-		anchorConfiguration.append(65047, new Anchor(65047, new Position(34.61, 14.59, 3.00), 1));
-		anchorConfiguration.append(65046, new Anchor(65046, new Position(24.34, 14.41, 3.00), 1));
+		anchorConfiguration.append(65047, new Anchor(65047, new Position(34.61, 14.59, 3.00), 2));
+		anchorConfiguration.append(65046, new Anchor(65046, new Position(24.34, 14.41, 3.00), 3));
 	}
 }
