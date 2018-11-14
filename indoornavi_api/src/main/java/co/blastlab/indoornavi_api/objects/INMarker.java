@@ -147,7 +147,7 @@ public class INMarker extends INObject {
 	 */
 	public void setIcon(String icon) {
 		this.icon = icon;
-		String javaScriptString = String.format("%s.setIconImgFromUrl('%s');", objectInstance, icon);
+		String javaScriptString = String.format("%s.setIconUrl(`%s`);", objectInstance, icon);
 		evaluate(javaScriptString, null);
 	}
 
@@ -165,7 +165,7 @@ public class INMarker extends INObject {
 		byte[] byteArray = stream.toByteArray();
 		String imageString = Base64.encodeToString(byteArray, Base64.DEFAULT);
 
-		String javaScriptString = String.format("%s.setIconImgFromBase64(`%s`);", objectInstance, imageString);
+		String javaScriptString = String.format("%s.setIconBase64(`%s`);", objectInstance, imageString);
 		evaluate(javaScriptString, null);
 	}
 

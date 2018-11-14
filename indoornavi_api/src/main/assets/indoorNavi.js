@@ -1065,7 +1065,7 @@ class INMarker extends INMapObject {
      * const marker = new INMarker(navi);
      * marker.ready().then(() => marker.setIcon(icon).draw(); );
      */
-    setIconImgFromUrl(path) {
+    setIconUrl(path) {
         Validation.isString(path, 'Invalid value supplied as an icon path argument');
         this._iconUrl = path;
         this._iconStringBase64 = null;
@@ -1082,7 +1082,7 @@ class INMarker extends INMapObject {
      * marker.ready().then(() => marker.setIconUrl(urlToIcon).draw(); );
      */
 
-    setIconImgFromBase64(stringBase64) {
+    setIconBase64(stringBase64) {
         Validation.isString(stringBase64, 'Invalid value supplied as an icon base64 string');
         this._iconStringBase64 = stringBase64;
         this._iconUrl = null;
@@ -1161,7 +1161,7 @@ class INMarker extends INMapObject {
                     object: {
                         id: this._id,
                         position: this._position,
-                        icon_url: this._icon_url,
+                        iconUrl: this._iconUrl,
                         iconStringBase64: this._iconStringBase64,
                         label: this._label,
                         infoWindow: this._infoWindow,

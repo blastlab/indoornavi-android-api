@@ -570,9 +570,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		expandableList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
 			@Override
 			public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
-				mDrawerLayout.closeDrawers();
 				switch (i) {
 					case 5:
+						mDrawerLayout.closeDrawers();
 						quit();
 						break;
 				}
