@@ -1065,7 +1065,7 @@ class INMarker extends INMapObject {
      * const marker = new INMarker(navi);
      * marker.ready().then(() => marker.setIcon(icon).draw(); );
      */
-    setIconUrl(path) {
+    setIconImgFromUrl(path) {
         Validation.isString(path, 'Invalid value supplied as an icon path argument');
         this._iconUrl = path;
         this._iconStringBase64 = null;

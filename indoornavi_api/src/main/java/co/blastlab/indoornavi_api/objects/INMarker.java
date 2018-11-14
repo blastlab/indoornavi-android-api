@@ -147,7 +147,7 @@ public class INMarker extends INObject {
 	 */
 	public void setIcon(String icon) {
 		this.icon = icon;
-		String javaScriptString = String.format("%s.setIcon('%s');", objectInstance, icon);
+		String javaScriptString = String.format("%s.setIconImgFromUrl('%s');", objectInstance, icon);
 		evaluate(javaScriptString, null);
 	}
 
