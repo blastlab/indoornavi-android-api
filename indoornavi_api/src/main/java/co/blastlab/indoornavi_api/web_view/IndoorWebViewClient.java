@@ -85,33 +85,33 @@ public class IndoorWebViewClient extends WebViewClient {
 	@Override
 	public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
 
-		String currentUrl = request.getUrl().toString();
-		String saveDir = view.getContext().getFilesDir().getAbsolutePath();
-		String requestHashCode = getRequestHashCode(request);
-
-		HttpDownloadResource httpDownloadResource = new HttpDownloadResource(currentUrl, saveDir, request, requestHashCode);
-
-		if (currentUrl == null || currentUrl.equals("about:blank") || currentUrl.contains("localhost")) {
-			return super.shouldInterceptRequest(view, request);
-		}
-
-		if (isAlreadyDownload(currentUrl + requestHashCode, saveDir + "/urlConfig.txt")) {
-			String fileUrl = getFileName(view.getContext().getFilesDir(), currentUrl.substring(currentUrl.lastIndexOf("/") + 1, currentUrl.length()), requestHashCode);
-			try {
-
-				File file = new File(saveDir + File.separator + fileUrl);
-				InputStream fileInputStream = new FileInputStream(file);
-
-				Map<String, String> responseHeaders = httpDownloadResource.getHeaderFile(saveDir, currentUrl + requestHashCode);
-
-				return new WebResourceResponse("", "UTF-8", 200, "OK", responseHeaders, fileInputStream);
-
-			} catch (IOException e) {
-				Log.e("LocalResourceException", e.toString());
-			}
-		}
-		ResourcesModule resourcesModule = new ResourcesModule(httpDownloadResource);
-		resourcesModule.execute(currentUrl);
+//		String currentUrl = request.getUrl().toString();
+//		String saveDir = view.getContext().getFilesDir().getAbsolutePath();
+//		String requestHashCode = getRequestHashCode(request);
+//
+//		HttpDownloadResource httpDownloadResource = new HttpDownloadResource(currentUrl, saveDir, request, requestHashCode);
+//
+//		if (currentUrl == null || currentUrl.equals("about:blank") || currentUrl.contains("localhost")) {
+//			return super.shouldInterceptRequest(view, request);
+//		}
+//
+//		if (isAlreadyDownload(currentUrl + requestHashCode, saveDir + "/urlConfig.txt")) {
+//			String fileUrl = getFileName(view.getContext().getFilesDir(), currentUrl.substring(currentUrl.lastIndexOf("/") + 1, currentUrl.length()), requestHashCode);
+//			try {
+//
+//				File file = new File(saveDir + File.separator + fileUrl);
+//				InputStream fileInputStream = new FileInputStream(file);
+//
+//				Map<String, String> responseHeaders = httpDownloadResource.getHeaderFile(saveDir, currentUrl + requestHashCode);
+//
+//				return new WebResourceResponse("", "UTF-8", 200, "OK", responseHeaders, fileInputStream);
+//
+//			} catch (IOException e) {
+//				Log.e("LocalResourceException", e.toString());
+//			}
+//		}
+//		ResourcesModule resourcesModule = new ResourcesModule(httpDownloadResource);
+//		resourcesModule.execute(currentUrl);
 
 		return super.shouldInterceptRequest(view, request);
 	}

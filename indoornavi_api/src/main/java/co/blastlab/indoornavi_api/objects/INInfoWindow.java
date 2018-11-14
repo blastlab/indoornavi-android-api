@@ -157,18 +157,14 @@ public class INInfoWindow extends INObject {
 			return this;
 		}
 
-		public INInfoWindow build() {
-			try {
-				CountDownLatch latch = new CountDownLatch(1);
-				inInfoWindow.ready(data -> latch.countDown());
+		public INInfoWindow build() throws Exception {
+			CountDownLatch latch = new CountDownLatch(1);
+			inInfoWindow.ready(data -> latch.countDown());
 
-				latch.await();
+			latch.await();
 
-				if (!inInfoWindow.isTimeout) {
-					return inInfoWindow;
-				}
-			} catch (Exception e) {
-				Log.e("Create object exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			if (!inInfoWindow.isTimeout) {
+				return inInfoWindow;
 			}
 			return null;
 		}

@@ -8,12 +8,16 @@ import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.ColorInt;
+import android.util.Log;
 import android.webkit.ValueCallback;
+
+import org.json.JSONObject;
 
 import java.util.Locale;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.callback.OnNavigationMessageReceive;
+import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.objects.INMap;
 import co.blastlab.indoornavi_api.service.BluetoothScanService;
 import co.blastlab.indoornavi_api.utils.MapUtil;
@@ -34,7 +38,8 @@ public class INNavigation {
 	private Point startPointInPixels;
 	private Point destinationPointInPixels;
 	private int accuracy = 1;
-	private boolean navigationIsRunning = false;
+	private int pathLength = -1;
+	private OnReceiveValueCallback<Integer> onPathLengthReceive;
 
 	private final BroadcastReceiver serviceReceiver = new BroadcastReceiver() {
 		@Override
@@ -82,7 +87,6 @@ public class INNavigation {
 		this.accuracy = accuracy;
 
 		registerReceiver();
-		navigationIsRunning = true;
 
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.start({x: %d, y: %d}, {x: %d, y: %d}, %d);", objectInstance, this.startPointInPixels.x, this.startPointInPixels.y, this.destinationPointInPixels.x, this.destinationPointInPixels.y, accuracy);
 		evaluate(javaScriptString, null);
@@ -96,8 +100,33 @@ public class INNavigation {
 	public void addEventListener(OnNavigationMessageReceive<String> onNavigationMessageReceive) {
 		this.onNavigationMessageReceive = onNavigationMessageReceive;
 
-		int eventId = onNavigationMessageReceive.hashCode();
-		Controller.navigationMessageMap.put(eventId, onNavigationMessageReceive);
+		registerReceiver();
+
+		OnNavigationMessageReceive<String> innerNavigationMessageReceive = new OnNavigationMessageReceive<String>() {
+			@Override
+			public void onMessageReceive(String message) {
+				Handler handler = new Handler(Looper.getMainLooper());
+				handler.post(() -> {
+
+					try {
+						String action = new JSONObject(message).getString("action");
+						onNavigationMessageReceive.onMessageReceive(action);
+
+						if (action.equals("created")) {
+							pathLength = new JSONObject(message).getInt("pathLength");
+							if(onPathLengthReceive != null) {
+								onPathLengthReceive.onReceiveValue(pathLength);
+							}
+						}
+					} catch (Exception e) {
+						Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Invalid message content");
+					}
+				});
+			}
+		};
+
+		int eventId = innerNavigationMessageReceive.hashCode();
+		Controller.navigationMessageMap.put(eventId, innerNavigationMessageReceive);
 
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.addEventListener(action => inNavigationInterface.onMessageReceive(%d, JSON.stringify(action)));", objectInstance, eventId);
 		evaluate(javaScriptString, null);
@@ -127,7 +156,6 @@ public class INNavigation {
 		String javaScriptString = String.format(Locale.ENGLISH, "%s.stop();", objectInstance);
 		evaluate(javaScriptString, null);
 		unregisterReceiver();
-		navigationIsRunning = false;
 	}
 
 	/**
@@ -135,7 +163,7 @@ public class INNavigation {
 	 */
 	public void restartNavigation() {
 		if (this.lastPosition == null || this.destinationPoint == null) return;
-		if (navigationIsRunning) stopNavigation();
+		stopNavigation();
 		startNavigation(lastPosition, destinationPoint, accuracy);
 	}
 
@@ -212,6 +240,15 @@ public class INNavigation {
 			this.context.registerReceiver(serviceReceiver, intentFilter);
 		} catch (Exception ex) {
 			ex.printStackTrace();
+		}
+	}
+
+	public void getPathLength(OnReceiveValueCallback<Integer> onReceiveValueCallback) {
+
+		if(this.pathLength != -1) {
+			onReceiveValueCallback.onReceiveValue(this.pathLength);
+		} else {
+			this.onPathLengthReceive = onReceiveValueCallback;
 		}
 	}
 
