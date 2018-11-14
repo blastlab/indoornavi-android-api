@@ -385,7 +385,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	public void drawMarker(int index) {
 		inMarker1 = new INMarker.INMarkerBuilder(inMap)
 			.setPosition(getMarkerPoint(index))
-			.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
+			.setIcon(R.drawable.cat)
 			.setLabel(getMarkerLabel(index))
 			.build();
 
