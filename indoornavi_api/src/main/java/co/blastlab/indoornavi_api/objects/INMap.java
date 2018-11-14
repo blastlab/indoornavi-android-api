@@ -212,6 +212,7 @@ public class INMap extends WebView {
 	 */
 	public void pullToPath(Point position, int accuracy, final OnReceiveValueCallback<Point> onReceiveValueCallback) {
 		final INMap inMap = this;
+		if(position == null) return;
 
 		OnReceiveValueCallback<Point> innerReceiveValueCallback = new OnReceiveValueCallback<Point>() {
 			@Override
