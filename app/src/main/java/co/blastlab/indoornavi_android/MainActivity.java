@@ -559,6 +559,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 					case 4:
 						getLocalization(itemIndex);
 						break;
+					case 5:
+						quit();
+						break;
 				}
 				expandableListView.collapseGroup(groupIndex);
 				return false;
@@ -567,9 +570,22 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		expandableList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
 			@Override
 			public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
+				mDrawerLayout.closeDrawers();
+				switch (i) {
+					case 5:
+						quit();
+						break;
+				}
 				return false;
 			}
 		});
+	}
+
+	public void quit() {
+		boolean isBound;
+		isBound = getApplicationContext().bindService( new Intent(getApplicationContext(), BluetoothScanService.class), bluetoothConnection, Context.BIND_AUTO_CREATE );
+		if (isBound)
+			getApplicationContext().unbindService(bluetoothConnection);
 	}
 
 	public void getPointPulledToPath() {
@@ -645,6 +661,11 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		item5.setIconName(getString(R.string.localization));
 		item5.setIconImg(R.drawable.localization);
 		listDataHeader.add(item5);
+
+		ExpandedMenuModel item6 = new ExpandedMenuModel();
+		item6.setIconName("Quit");
+		item6.setIconImg(R.drawable.localization);
+		listDataHeader.add(item6);
 
 		List<String> heading1 = new ArrayList<String>();
 		heading1.add("Office 1");

@@ -180,7 +180,14 @@ public class BluetoothScanService extends Service {
 		if (localization) {
 			stopScanning();
 		}
-		return BluetoothScanService.SERVICE_CONNECTED = true;
+
+		BluetoothScanService.SERVICE_CONNECTED = false;
+		stopScanning();
+		unregisterBluetoothReceiver();
+		unregisterLocationReceiver();
+
+		clearAll();
+		return true;
 	}
 
 	@Override
@@ -195,13 +202,15 @@ public class BluetoothScanService extends Service {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		Log.i(TAG, "Stopping Service");
-		BluetoothScanService.SERVICE_CONNECTED = false;
-		stopScanning();
-		unregisterBluetoothReceiver();
-		unregisterLocationReceiver();
+		if(SERVICE_CONNECTED) {
+			Log.i(TAG, "Stopping Service");
+			BluetoothScanService.SERVICE_CONNECTED = false;
+			stopScanning();
+			unregisterBluetoothReceiver();
+			unregisterLocationReceiver();
 
-		clearAll();
+			clearAll();
+		}
 	}
 
 	public void setHandler(Handler mHandler) {
