@@ -68,7 +68,6 @@ TODO
 
 When you want to use `IndoorNavi.framework`, first thing to do is to create and initialize an instance of `INMap`. You can do it either by adding to the Storyboard and creating an outlet or you can set it up fully in code. The code below is an example of a simple application using `IndoorNavi.framework`, where INMap view is initialized and added in code.
 
-___Swift___
 ```swift
 import UIKit
 import IndoorNavi
@@ -85,24 +84,4 @@ class YourViewController: UIViewController {
     view = map
   }
 }
-```
-
-___Objective-C___
-```objc
-#import "YourViewController.h"
-@import IndoorNavi;
-
-// Replace YourViewController with the name of your View Controller
-@implementation YourViewController
-
-- (void)loadView {
-  // Create an INMap
-  INMap* map = [[INMap alloc] initWithFrame:mapFrame targetHost:@"http://mybuilding.com" apiKey:@"apiKey"];
-  // Load map with floor specified by floorID
-  [map load:floorID];
-  // Set map as View Controller's view
-  self.view = map;
-}
-
-@end
 ```

@@ -8,9 +8,9 @@ Based on the drawn paths and starting and ending points, the shortest path to th
 
 Initializes the navigation from point A to B with the given accuracy.
 INNavigation object has to be created after the floor is loaded.
-The accuracy of the navigation means in what radius the position should be pulled to the path. 
+The accuracy of the navigation means in what radius the position should be pulled to the path.
 
-- `0` indicates that no accuracy shouldn't be taken and all calculated position will be pulled to the path. 
+- `0` indicates that no accuracy shouldn't be taken and all calculated position will be pulled to the path.
 
 ```java
 INNavigation inNavigation = new INNavigation(this, this.inMap);
@@ -31,9 +31,9 @@ After initiation navigation, you can handle a message, containing info about nav
 
 ### Update position  
 
-The position update is fully automatic at the next calculated position is available.
+The position update is fully automatic if the next calculated position is available.
 
-### Stop 
+### Stop
 
 It stops the navigation immediately.
 
@@ -58,9 +58,9 @@ inNavigation.disableStartpoint(true);
 inNavigation.disableEndPoint(false);
 ```
 
-### Change path colour
+### Change path color
 
-Allows to set navigation path colour
+Allows to set navigation path color
 
 ```java
 inNavigation.setPathColor(Color.RED);
@@ -76,7 +76,7 @@ inNavigation.setPathWidth(7);
 
 ### Change endpoints settings
 
-Allows setting colour, radius and opacity of the start and end of navigation points.
+Allows setting color, radius and opacity of the start and end of navigation points.
 Additionally, it's possible to change border settings.
 
 ```java

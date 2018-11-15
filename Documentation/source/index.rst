@@ -42,7 +42,12 @@ API was created to trace and control tag movements.
 .. toctree::
 	:caption: iOS API
 
-	iOS-API/map
 	iOS-API/start
+	iOS-API/map
 	iOS-API/obj
 	iOS-API/inter
+	iOS-API/data
+	iOS-API/algo
+	iOS-API/navi
+	iOS-API/event
+	iOS-API/phone

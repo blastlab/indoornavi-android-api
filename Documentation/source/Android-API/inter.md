@@ -60,7 +60,7 @@ Two types of events are distinguished:
 - Coordinates Events (```inMap.Coordinates```)
 
 After adding an area in frontend server, you can listen to events on entering or exit from the area.
-This will allow you to control movements of the tag,
+This will allow you to control movements of the tag.
 
 ```java
         inMap.addEventListener(INMap.AREA, new OnEventListener<List<AreaEvent>>() {
@@ -83,5 +83,3 @@ This will allow full control of the tag's movements.
             }
         });
 ```
-
-

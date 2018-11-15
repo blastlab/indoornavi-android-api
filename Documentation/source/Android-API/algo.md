@@ -1,7 +1,7 @@
 # __Localization__
 
-One of the functionality of the library is the possibility of user location via Bluetooth. 
-This allows display lockaly current position of the phone and allows the recording of definite 
+One of the functionality of the library is the possibility of user localization via Bluetooth.
+This allows to locally display current position of the user's device and allows the recording of definite
 coordinates to the database for later analysis of the history coordinates.
 
 ## __Service__
@@ -13,7 +13,7 @@ a service was created, which is responsible for handling events related to the l
 
 ### __AndroidManifest__
 
-Is necessary to add Bluetooth permissions to your AndroidManifest file.
+It is necessary to add Bluetooth permissions to your AndroidManifest file.
 ```xml
 <uses-permission android:name="android.permission.BLUETOOTH"/>
 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
@@ -36,13 +36,13 @@ Adding service.
 ### __Handle response from Service__
 
 Available responses:
-- `ACTION_BLUETOOTH_READY` - Bluetooth is enable and ready to use. 
+- `ACTION_BLUETOOTH_READY` - Bluetooth is enable and ready to use.
 - `ACTION_BLUETOOTH_NOT_SUPPORTED` - Bluetooth is not supported on this device.
 - `ACTION_BLUETOOTH_NOT_ENABLED` - Bluetooth is not enable.
 - `ACTION_LOCATION_NOT_ENABLED` - Location is not enable
 - `ACTION_BLUETOOTH_PERMISSION_NOT_GRANTED` - Bluetooth permission not granted.
 - `ACTION_LOCATION_PERMISSION_NOT_GRANTED` - Location permission not granted.
-- `ACTION_LOCATION_STATUS_CHANGE` - Location status change (set on/set off) 
+- `ACTION_LOCATION_STATUS_CHANGE` - Location status change (set on/set off)
 - `ACTION_FLOOR_ID_CHANGE`- Return Integer with acctual floor ID, if no scan result available return `-1`
     The message is invoked after start scanning and when most available devices are on the different floor (someone goes to the different floor)
 - `ACTION_NO_SCAN_RESULTS` - No available devices or Scunner error occurred.
@@ -56,7 +56,7 @@ This is an example of Activity with `BluetoothScanService` with proper handling.
 public class MainActivity extends AppCompatActivity {
 
 private BluetoothScanService bluetoothScanService;
-	
+
 private MyHandler mHandler;
 	private final ServiceConnection bluetoothConnection = new ServiceConnection() {
 		@Override
@@ -70,30 +70,30 @@ private MyHandler mHandler;
 			bluetoothScanService = null;
 		}
 	};
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
+
 		startService(BluetoothScanService.class, bluetoothConnection);
 	}
-	
+
 	private void startService(Class<?> service, ServiceConnection serviceConnection) {
 		if (!BluetoothScanService.SERVICE_CONNECTED) {
 			Intent bindingIntent = new Intent(getApplicationContext(), service);
 			getApplicationContext().bindService(bindingIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 		}
 	}
-	
+
 	public void startLocalization() {
 		bluetoothScanService.startLocalization();
 	}
-	
+
 	public void stopLocalization() {
 		bluetoothScanService.stopLocalization();
 	}
-	
+
 	private static class MyHandler extends Handler {
 		private final WeakReference<MainActivity> mActivity;
 
@@ -145,4 +145,3 @@ private MyHandler mHandler;
 	}
 }
 ```
-

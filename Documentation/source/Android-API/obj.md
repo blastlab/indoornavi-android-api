@@ -1,7 +1,7 @@
 # __Map Objects__
 
 To create an object you have to use object builder pattern.
-All properties has native getters. 
+All properties has native getters.
 
 ## __INPolyline__
 
@@ -50,7 +50,7 @@ Additionaly you can check if given coordinates are located inside area.
 inArea.isWithin(new Coordinates(200, 800, (short)109999, new Date()), bool -> Log.i("Indoor", "Is within: " + bool));
 ```
 
-Optional you can receive middle point of the area by colling:
+Optional you can retrieve middle point of the area by calling:
 ```java
 inArea.getCenterPoint();
 ```
@@ -68,7 +68,7 @@ Additionally, you can a add click event on the marker and proper actions.
 INMarker inMarker = new INMarker.INMarkerBuilder(inMap)
     .setPosition(new Point(600, 600))
     .setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
-    .setLabel("This is label")
+    .setLabel("This is a label")
     .build();
 ```
 
@@ -109,7 +109,7 @@ inMarker.addInfoWindow(inInfoWindow);
 
 ## INCircle
 
-An INCircle object represents a circle which can map a specific location. 
+An INCircle object represents a circle which can map a specific location.
 It has the ability to change the color and radius of the circle and customize the border set on the circle.
 
 ```java

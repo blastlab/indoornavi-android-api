@@ -1,12 +1,12 @@
 # __Data handle__
 
-Library have a possibility to retrive data directly from the backend server. 
-It gives the user the possibility to download historical events of tag entry to areas or to download all coordinates that have been saved in the database. 
-Additionaly, you can download elements assigned globally to the map, such as a list of areas or paths added to the map.
+Library have a possibility to retrieve data directly from the backend server.
+It gives the user possibility to download historical events of tag entry to areas or to download all coordinates that have been saved in the database.
+Additionally, you can download elements assigned globally to the map, such as a list of areas or paths added to the map.
 
 ## __INData__
 
-INData object is used to receive elements set on the map in fronted server editor. 
+INData object is used to receive elements set on the map in fronted server editor.
 Returns elements for the floor with is currently loaded.
 
 ### Paths
@@ -35,7 +35,7 @@ INData inData = new INData(inMap, backendServer, apiKey);
 
 ## __INReport__
 
-INReport object is used to retrive hitorical data from the database.
+INReport object is used to retrieve historical data from the database.
 It allows to get archived Area events or tag coordinates.
 To enable simpler data processing, the utils class was created.
 Utils class allows to convert data to CSV format.
