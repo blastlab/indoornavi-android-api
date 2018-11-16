@@ -81,9 +81,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	INCircle inCirclePulledInner;
 
 
-	private int floorId = 2;
-	private String frontendServer = "http://172.16.170.50:4200";
-	private String backendServer = "http://172.16.170.50:90";
+	private int floorId = 5;
+	private String frontendServer = "https://indoornavi-frontend.azurewebsites.net";
+	private String backendServer = "https://indoornavi-backend.azurewebsites.net";
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
 	private static final int REQUEST_INTERNET = 1;
 	private static final int REQUEST_ENABLE_BT = 1;
@@ -537,12 +537,31 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void getAreas() {
+		INMap inMap = this.inMap;
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		inData.getAreas(areas -> {
 				Log.i("Indoor", "Received areas: " + areas);
 				if(areas == null) return;
 				for (INArea area : areas) {
 					area.draw();
+					area.addEventListener(new OnINObjectClickListener() {
+						@Override
+						public void onClick() {
+							Point position = area.getCenterPoint();
+							if (inNavigation != null) {
+								inNavigation.stopNavigation();
+							}
+							inNavigation = new INNavigation(getApplicationContext(), inMap);
+							inNavigation.startNavigation(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1233, 517)), position, 0);
+							inNavigation.addEventListener(new OnNavigationMessageReceive<String>() {
+								@Override
+								public void onMessageReceive(String message) {
+									Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+									Log.e("indoor", "message: " + message);
+								}
+							});
+						}
+					});
 				}
 			}
 		);
