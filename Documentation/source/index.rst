@@ -27,17 +27,27 @@ API was created to trace and control tag movements.
 ============
 
 .. toctree::
-    :caption: Android API
+	:caption: Android API
 
-    map
-    start
-    obj
-    inter
+	Android-API/start
+	Android-API/map
+	Android-API/obj
+	Android-API/inter
+	Android-API/data
+	Android-API/algo
+	Android-API/navi
+	Android-API/event
+	Android-API/phone
 
 .. toctree::
-    :caption: iOS API
+	:caption: iOS API
 
-    iOS-API/map
-    iOS-API/start
-    iOS-API/obj
-    iOS-API/inter
+	iOS-API/start
+	iOS-API/map
+	iOS-API/obj
+	iOS-API/inter
+	iOS-API/data
+	iOS-API/algo
+	iOS-API/navi
+	iOS-API/event
+	iOS-API/phone

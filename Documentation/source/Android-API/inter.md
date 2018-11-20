@@ -24,6 +24,19 @@ inMarker.addEventListener(new OnMarkerClickListener() {
     });
 ```
 
+### __Area click events__
+
+You can listen and react to area click events.  
+
+```java
+inArea.addEventListener(new OnINObjectClickListener() {
+	@Override
+	public void onClick() {
+		Toast.makeText(this, "Event!", Toast.LENGTH_LONG).show();
+	}
+});
+```
+
 ### __Long Click Events__
 
 You can apply listener on the map which reacts on long touch.
@@ -47,7 +60,7 @@ Two types of events are distinguished:
 - Coordinates Events (```inMap.Coordinates```)
 
 After adding an area in frontend server, you can listen to events on entering or exit from the area.
-This will allow you to control movements of the tag,
+This will allow you to control movements of the tag.
 
 ```java
         inMap.addEventListener(INMap.AREA, new OnEventListener<List<AreaEvent>>() {
@@ -70,5 +83,3 @@ This will allow full control of the tag's movements.
             }
         });
 ```
-
-
