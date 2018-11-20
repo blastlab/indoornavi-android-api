@@ -1,9 +1,12 @@
 package co.blastlab.indoornavi_api.algorithm;
 
+import android.util.Pair;
 import android.util.SparseArray;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import co.blastlab.indoornavi_api.algorithm.model.Anchor;
@@ -33,9 +36,7 @@ public class Algorithm {
 
 	public enum LocalizationMethod {TRILATERATION, CROSSING_CIRCLE}
 
-	//public Localization() {}
-
-	public Position getPosition(LocalizationMethod localizationMethod, SparseArray<Anchor> anchorMatrix, double maxDistanceFromAnchor) {
+	public Pair<Integer, Position> getPosition(LocalizationMethod localizationMethod, SparseArray<Anchor> anchorMatrix, double maxDistanceFromAnchor) {
 		if (anchorMatrix == null || anchorMatrix.size() == 0) return null;
 
 		this.anchorMatrix = anchorMatrix;
@@ -43,7 +44,7 @@ public class Algorithm {
 
 		switch (localizationMethod) {
 			case TRILATERATION:
-				return trilatationMethod(this.anchorMatrix);
+				//return trilatationMethod(this.anchorMatrix);
 			case CROSSING_CIRCLE:
 				return crossingCirclesMethod(this.anchorMatrix);
 		}
@@ -126,7 +127,7 @@ public class Algorithm {
 	private List<Integer> Kalman_filter(List<Integer> input) {
 		if (input.isEmpty()) return null;
 
-		double K, P_prev, x_prev_estimated, x_estimated = calculateAverage(input) == Double.POSITIVE_INFINITY ? input.get(0) : calculateAverage(input);
+		double K, P_prev, x_prev_estimated, x_estimated = calculateAverage(input) == Double.NEGATIVE_INFINITY ? input.get(0) : calculateAverage(input);
 
 		double P = 0;
 		double Q = 0.065;
@@ -169,7 +170,7 @@ public class Algorithm {
 	}
 
 	private double calculateAverage(List<Integer> marks) {
-		if (marks == null || marks.isEmpty()) return Double.POSITIVE_INFINITY;
+		if (marks == null || marks.isEmpty()) return Double.NEGATIVE_INFINITY;
 		Integer sum = 0;
 		if (!marks.isEmpty()) {
 			for (Integer mark : marks) {
@@ -182,7 +183,7 @@ public class Algorithm {
 
 	private void getDistanceFromNode() {
 		for (int i = 0; i < anchorMatrix.size(); i++) {
-			if (anchorMatrix.valueAt(i).rssiAvg == Double.POSITIVE_INFINITY) {
+			if (anchorMatrix.valueAt(i).rssiAvg == Double.NEGATIVE_INFINITY) {
 				anchorMatrix.removeAt(i);
 				i -= 1;
 				continue;
@@ -220,7 +221,7 @@ public class Algorithm {
 		return new Position(res.data[0][0], res.data[1][0], 0.0);
 	}
 
-	private Position crossingCirclesMethod(SparseArray<Anchor> anchorMatrix) {
+	private Pair<Integer, Position> crossingCirclesMethod(SparseArray<Anchor> anchorMatrix) {
 
 		rssiFilter();
 		getDistanceFromNode();
@@ -232,6 +233,8 @@ public class Algorithm {
 		for (Anchor anchor : bestThreeAnchors) {
 			if (anchor.distanceXY < maxDistanceFromAnchor) closeAnchors.add(anchor);
 		}
+		int floorId = checkSuggestedFloor(closeAnchors);
+
 		if (closeAnchors.size() > 1) {
 			for (int i = 0; i < closeAnchors.size(); ++i) {
 				for (int j = i + 1; j < closeAnchors.size(); ++j) {
@@ -245,7 +248,7 @@ public class Algorithm {
 		} else {
 			return null;
 		}
-		return getMeanPointFromPointsList(getThreeClosesPoints(nearestPointArray));
+		return new Pair<>(floorId, getMeanPointFromPointsList(getThreeClosesPoints(nearestPointArray)));
 	}
 
 	private List<Position> getThreeClosesPoints(List<Position> points) {
@@ -328,6 +331,31 @@ public class Algorithm {
 		} else {
 			return pointB;
 		}
+	}
+
+	private int checkSuggestedFloor(List<Anchor> anchors) {
+		if(anchors == null) return -1;
+
+		Map<Integer, Pair<Integer, Double>> floor_rssi_avg = new HashMap<>();
+
+		for (Anchor anchor: anchors) {
+			int floorId = anchor.floorId;
+			if (anchor.rssiAvg < -100) continue;
+
+			if (!floor_rssi_avg.containsKey(floorId)) {
+				floor_rssi_avg.put(floorId, new Pair<>(1, anchor.rssiAvg));
+			} else {
+				floor_rssi_avg.put(floorId, new Pair<>(floor_rssi_avg.get(floorId).first + 1, floor_rssi_avg.get(floorId).second + anchor.rssiAvg));
+			}
+		}
+
+		int mostCommonFloor = -1;
+		for (Integer floorId : floor_rssi_avg.keySet()) {
+			if ((floor_rssi_avg.get(floorId).second / floor_rssi_avg.get(floorId).first)> (mostCommonFloor == -1 ? Double.NEGATIVE_INFINITY : (floor_rssi_avg.get(mostCommonFloor).second / floor_rssi_avg.get(mostCommonFloor).first))) {
+				mostCommonFloor = floorId;
+			}
+		}
+		return mostCommonFloor;
 	}
 
 }

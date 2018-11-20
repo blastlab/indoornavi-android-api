@@ -66,6 +66,11 @@ public class MapUtil {
 	public static Scale stringToScale(String scaleString) {
 		try {
 			JSONObject jsonObject = new JSONObject(scaleString);
+			if (!jsonObject.isNull("error")) {
+				JSONObject jsonError = jsonObject.getJSONObject("error");
+				Log.e("MapLoadException", jsonError.getString("error"));
+				return null;
+			}
 			if (jsonObject.has("scale")) {
 				jsonObject = jsonObject.getJSONObject("scale");
 			}

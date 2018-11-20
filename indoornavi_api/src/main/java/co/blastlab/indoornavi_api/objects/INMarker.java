@@ -147,7 +147,7 @@ public class INMarker extends INObject {
 	 */
 	public void setIcon(String icon) {
 		this.icon = icon;
-		String javaScriptString = String.format("%s.setIconImgFromUrl('%s');", objectInstance, icon);
+		String javaScriptString = String.format("%s.setIconUrl(`%s`);", objectInstance, icon);
 		evaluate(javaScriptString, null);
 	}
 
@@ -165,7 +165,7 @@ public class INMarker extends INObject {
 		byte[] byteArray = stream.toByteArray();
 		String imageString = Base64.encodeToString(byteArray, Base64.DEFAULT);
 
-		String javaScriptString = String.format("%s.setIconImgFromBase64(`%s`);", objectInstance, imageString);
+		String javaScriptString = String.format("%s.setIconBase64(`%s`);", objectInstance, imageString);
 		evaluate(javaScriptString, null);
 	}
 
@@ -239,19 +239,15 @@ public class INMarker extends INObject {
 			return this;
 		}
 
-		public INMarker build() {
-			try {
-				CountDownLatch latch = new CountDownLatch(1);
-				inMarker.ready(data -> latch.countDown());
+		public INMarker build() throws Exception {
+			CountDownLatch latch = new CountDownLatch(1);
+			inMarker.ready(data -> latch.countDown());
 
-				latch.await();
+			latch.await();
 
-				if (!inMarker.isTimeout) {
-					inMarker.draw();
-					return inMarker;
-				}
-			} catch (Exception e) {
-				Log.e("Create object exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			if (!inMarker.isTimeout) {
+				inMarker.draw();
+				return inMarker;
 			}
 			return null;
 		}

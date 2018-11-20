@@ -7,6 +7,8 @@ import android.webkit.JavascriptInterface;
 
 import org.json.JSONObject;
 
+import java.lang.reflect.Executable;
+
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.utils.ComplexUtils;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
@@ -26,17 +28,20 @@ public class INMapInterface {
 	public void pulledPoint(int promiseId, String jsonPoint) {
 		Handler handler = new Handler(Looper.getMainLooper());
 		handler.post(() -> {
-			if (!jsonPoint.equals("null")) {
-				try {
+			try {
+				if (!jsonPoint.equals("null")) {
 					JSONObject jsonObject = new JSONObject(jsonPoint);
 					String point = jsonObject.getString("calculatedPosition");
+					if(point == null || point.equals("null")) {
+						throw new NullPointerException("Calculate position is null");
+					}
 					Controller.ReceiveValueMap.get(promiseId).onReceiveValue(PointsUtil.stringToPoint(point));
-				} catch (Exception e) {
+				} else {
 					Controller.ReceiveValueMap.get(promiseId).onReceiveValue(null);
-					Log.e("Data receive error: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 				}
-			} else {
+			} catch (Exception e) {
 				Controller.ReceiveValueMap.get(promiseId).onReceiveValue(null);
+				Log.e("Data receive error: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 			}
 			Controller.ReceiveValueMap.remove(promiseId);
 		});

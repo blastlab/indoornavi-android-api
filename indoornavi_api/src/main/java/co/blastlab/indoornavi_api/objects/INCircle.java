@@ -10,13 +10,18 @@ import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.model.Border;
 
+/**
+ * Class represents circle, creates the INCircle object in iframe that communicates with frontend server and draws circle.
+ */
 public class INCircle extends INObject {
 
 	private INMap inMap;
 	private Point position;
 	private int radius;
-	private @ColorInt int color;
-	private @FloatRange(from = 0.0, to = 1.0) double opacity;
+	private @ColorInt
+	int color;
+	private @FloatRange(from = 0.0, to = 1.0)
+	double opacity;
 	private Border border;
 
 	/**
@@ -95,7 +100,8 @@ public class INCircle extends INObject {
 	/**
 	 * @return color of the circle represent as an Integer.
 	 */
-	public @ColorInt int getColor() {
+	public @ColorInt
+	int getColor() {
 		return this.color;
 	}
 
@@ -113,7 +119,8 @@ public class INCircle extends INObject {
 	/**
 	 * @return opacity of the circle. Return Float value.
 	 */
-	@FloatRange(from = 0.0, to = 1.0) public  double getOpacity() {
+	@FloatRange(from = 0.0, to = 1.0)
+	public double getOpacity() {
 		return this.opacity;
 	}
 
@@ -182,19 +189,15 @@ public class INCircle extends INObject {
 			return this;
 		}
 
-		public INCircle build() {
-			try {
-				CountDownLatch latch = new CountDownLatch(1);
-				inCircle.ready(data -> latch.countDown());
+		public INCircle build() throws Exception {
+			CountDownLatch latch = new CountDownLatch(1);
+			inCircle.ready(data -> latch.countDown());
 
-				latch.await();
+			latch.await();
 
-				if (!inCircle.isTimeout) {
-					inCircle.draw();
-					return inCircle;
-				}
-			} catch (Exception e) {
-				Log.e("Create object exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			if (!inCircle.isTimeout) {
+				inCircle.draw();
+				return inCircle;
 			}
 			return null;
 		}

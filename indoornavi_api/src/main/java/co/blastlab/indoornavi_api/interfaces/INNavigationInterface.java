@@ -17,12 +17,27 @@ public class INNavigationInterface {
 		handler.post(() -> {
 			if (Controller.navigationMessageMap.indexOfKey(promiseId) >= 0) {
 				try {
-					Controller.navigationMessageMap.get(promiseId).onMessageReceive(new JSONObject(action).getString("action"));
+					Controller.navigationMessageMap.get(promiseId).onMessageReceive(action);
 				} catch (Exception e) {
 					Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Invalid message content");
 				}
 			}
 		});
 	}
+
+	@JavascriptInterface
+	public void onShortestPathLength(final int promiseId, String length) {
+		Handler handler = new Handler(Looper.getMainLooper());
+		handler.post(() -> {
+			if (Controller.navigationMessageMap.indexOfKey(promiseId) >= 0) {
+				try {
+					Controller.navigationMessageMap.get(promiseId).onMessageReceive(new JSONObject(length).getString("action"));
+				} catch (Exception e) {
+					Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Invalid message content");
+				}
+			}
+		});
+	}
+
 }
 
