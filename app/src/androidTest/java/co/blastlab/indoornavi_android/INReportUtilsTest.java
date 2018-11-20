@@ -31,7 +31,7 @@ public class INReportUtilsTest {
 
 		String eventString = "[{\"tagId\":10999,\"date\":\"2017-04-03T22:00:00.000Z\",\"areaId\":1,\"areaName\":\"test\",\"mode\":\"ON_ENTER\"},{\"tagId\":10999,\"date\":\"2017-04-03T22:00:00.000Z\",\"areaId\":1,\"areaName\":\"test\",\"mode\":\"ON_LEAVE\"}]";
 
-		List<AreaEvent> events2 = ReportUtil.jsonToAreaEvent(eventString);
+		List<AreaEvent> events2 = ReportUtil.jsonToAreaEventArray(eventString);
 
 		for(AreaEvent event : events){
 			AreaEvent e = events2.get(events.indexOf(event));
@@ -52,23 +52,23 @@ public class INReportUtilsTest {
 
 		List<Coordinates> coords = new ArrayList<>();
 		try{
-			coords.add(new Coordinates(200,800,(short)10999, dt.parse("2017-04-03T22:00:00.000")));
-			coords.add(new Coordinates(100,700,(short)10999, dt.parse("2017-04-03T22:00:00.000")));
-			coords.add(new Coordinates(500,500,(short)10999, dt.parse("2017-04-03T22:00:00.000")));
+			coords.add(new Coordinates(200,800, 200, (short)10999, dt.parse("2017-04-03T22:00:00.000")));
+			coords.add(new Coordinates(100,700,200, (short)10999, dt.parse("2017-04-03T22:00:00.000")));
+			coords.add(new Coordinates(500,500, 200, (short)10999, dt.parse("2017-04-03T22:00:00.000")));
 		}
 		catch (Exception e) {
 			throw new AssertionError("Parse error, cloud not parse 2017-04-03T22:00:00.000 to Date() format");
 		}
 
 		String coordsString = "[{\"x\":200,\"y\":800,\"tagId\":10999,\"date\":\"2017-04-03T22:00:00.000Z\"},{\"x\":100,\"y\":700,\"tagId\":10999,\"date\":\"2017-04-03T22:00:00.000Z\"},{\"x\":500,\"y\":500,\"tagId\":10999,\"date\":\"2017-04-03T22:00:00.000Z\"}]";
-		List<Coordinates> coords2 = ReportUtil.jsonToCoordinates(coordsString);
+		List<Coordinates> coords2 = ReportUtil.jsonToCoordinatesArray(coordsString);
 
 		for(Coordinates coord : coords){
 			Coordinates c = coords2.get(coords.indexOf(coord));
 
 			Assert.assertEquals(coord.x, c.x);
 			Assert.assertEquals(coord.y, c.y);
-			Assert.assertEquals(coord.tagId, c.tagId);
+			Assert.assertEquals(coord.deviceId, c.deviceId);
 			Assert.assertEquals(coord.date, c.date);
 
 		}

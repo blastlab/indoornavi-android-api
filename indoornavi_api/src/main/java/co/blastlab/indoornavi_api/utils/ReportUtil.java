@@ -17,6 +17,7 @@ import java.util.Locale;
 
 import co.blastlab.indoornavi_api.model.AreaEvent;
 import co.blastlab.indoornavi_api.model.Coordinates;
+
 /**
  * Utility class for parsing {@link AreaEvent} and {@link Coordinates} from String representation.
  * It allows to generate CSV files.
@@ -43,9 +44,8 @@ public class ReportUtil {
 				events.add(new AreaEvent(jsonObject.getInt("tagId"), dt.parse(date), jsonObject.getInt("areaId"), jsonObject.getString("areaName"), jsonObject.getString("mode")));
 			}
 			return events;
-		}
-		catch(Exception e) {
-				Log.e("Json parse exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
+		} catch (Exception e) {
+			Log.e("Json parse exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 		}
 		return null;
 	}
@@ -67,11 +67,10 @@ public class ReportUtil {
 				JSONObject jsonObject = jsonArray.getJSONObject(i);
 				date = jsonObject.getString("date");
 				date = date.substring(0, date.length() - 1);
-				coordinates.add(new Coordinates(jsonObject.getInt("x"), jsonObject.getInt("y"), (short)jsonObject.getInt("tagId"), dt.parse(date)));
+				coordinates.add(new Coordinates(jsonObject.getInt("x"), jsonObject.getInt("y"), jsonObject.getInt("z"), (short) jsonObject.getInt("tagId"), dt.parse(date)));
 			}
 			return coordinates;
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			Log.e("Json parse exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 		}
 		return null;
@@ -92,18 +91,16 @@ public class ReportUtil {
 			FileWriter file = new FileWriter(dir + "/AreaEvents-" + new Date().toString() + ".csv");
 			BufferedWriter CSV_Output = new BufferedWriter(file);
 
-			String header = "tagId" + "," + "date" + "," +"areaId" + "," +"areaName" + "," +"mode" + "\n";
+			String header = "tagId" + "," + "date" + "," + "areaId" + "," + "areaName" + "," + "mode" + "\n";
 			CSV_Output.write(header);
 
 			String line;
-			for(AreaEvent event : events)
-			{
+			for (AreaEvent event : events) {
 				line = event.tagId + "," + event.date.toString() + "," + event.areaId + "," + event.areaName + "," + event.mode + "\n";
 				CSV_Output.write(line);
 			}
 			CSV_Output.close();
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			Log.e("CSV create exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 		}
 	}
@@ -123,18 +120,16 @@ public class ReportUtil {
 			FileWriter file = new FileWriter(dir + "/Coordinates-" + new Date().toString() + ".csv");
 			BufferedWriter CSV_Output = new BufferedWriter(file);
 
-			String header = "x" + "," + "y" + "," +"tagId" + "," +"date" + "\n";
+			String header = "x" + "," + "y" + "," + "tagId" + "," + "date" + "\n";
 			CSV_Output.write(header);
 
 			String line;
-			for(Coordinates coordinate : coordinates)
-			{
-				line = coordinate.x + "," + coordinate.y + "," + coordinate.tagId + "," + coordinate.date.toString() + "\n";
+			for (Coordinates coordinate : coordinates) {
+				line = coordinate.x + "," + coordinate.y + "," + coordinate.deviceId + "," + coordinate.date.toString() + "\n";
 				CSV_Output.write(line);
 			}
 			CSV_Output.close();
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			Log.e("CSV create exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 		}
 	}

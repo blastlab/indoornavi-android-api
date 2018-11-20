@@ -8,7 +8,9 @@ public class INObjectInterface {
 
 	@JavascriptInterface
 	public void ready(final int promiseId) {
-		Controller.promiseCallbackMap.get(promiseId).onReady(null);
-		Controller.promiseCallbackMap.remove(promiseId);
+		if(Controller.promiseCallbackMap.indexOfKey(promiseId) >= 0) {
+			Controller.promiseCallbackMap.get(promiseId).onReady(null);
+			Controller.promiseCallbackMap.remove(promiseId);
+		}
 	}
 }

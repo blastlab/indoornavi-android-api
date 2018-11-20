@@ -1,12 +1,11 @@
 package co.blastlab.indoornavi_api.objects;
 
-import android.support.annotation.IntDef;
 import android.util.Log;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
+
+import static co.blastlab.indoornavi_api.objects.INInfoWindow.Position.TOP;
 
 /**
  * Class represents an info window, creates the INInfoWindow object in iframe that communicates with frontend server and adds info window to a given INObject child.
@@ -14,19 +13,11 @@ import java.util.concurrent.CountDownLatch;
 public class INInfoWindow extends INObject {
 
 	private INMap inMap;
-	public static final int TOP = 0;
-	public static final int RIGHT = 1;
-	public static final int BOTTOM = 2;
-	public static final int LEFT = 3;
-	public static final int TOP_RIGHT = 4;
-	public static final int TOP_LEFT = 5;
-	public static final int BOTTOM_RIGHT = 6;
-	public static final int BOTTOM_LEFT = 7;
+	private String content = "";
+	private int height = 250, width = 250;
+	private Position position = TOP;
 
-	@IntDef({TOP, RIGHT, BOTTOM, LEFT, TOP_RIGHT, TOP_LEFT, BOTTOM_RIGHT, BOTTOM_LEFT})
-
-	@Retention(RetentionPolicy.SOURCE)
-	public @interface Position {}
+	public enum Position {TOP, RIGHT, BOTTOM, LEFT, TOP_RIGHT, TOP_LEFT, BOTTOM_RIGHT, BOTTOM_LEFT}
 
 	/**
 	 * INInfoWindow constructor
@@ -47,16 +38,23 @@ public class INInfoWindow extends INObject {
 	 *
 	 * @param height info window height given in pixels, min available dimension is 50px.
 	 */
-	public void height(int height) {
-		if(height >= 50) {
-			String javaScriptString = String.format(Locale.US, "%s.height(%d);", objectInstance, height);
+	public void setHeight(int height) {
+		if (height >= 50) {
+			this.height = height;
+			String javaScriptString = String.format(Locale.US, "%s.setHeight(%d);", objectInstance, height);
 			evaluate(javaScriptString, null);
-		}
-		else {
-			String javaScriptString = String.format(Locale.US, "%s.height(%d);", objectInstance, 50);
+		} else {
+			String javaScriptString = String.format(Locale.US, "%s.setHeight(%d);", objectInstance, 50);
 			evaluate(javaScriptString, null);
 			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Height must be greater then 50px");
 		}
+	}
+
+	/**
+	 * @return height of the info window
+	 */
+	public int getHeight() {
+		return this.height;
 	}
 
 	/**
@@ -64,27 +62,41 @@ public class INInfoWindow extends INObject {
 	 *
 	 * @param width infoWindow width given in pixels, min available dimension is 50px.
 	 */
-	public void width(int width) {
-		if(width >= 50) {
-			String javaScriptString = String.format(Locale.US, "%s.width(%d);", objectInstance, width);
+	public void setWidth(int width) {
+		if (width >= 50) {
+			this.width = width;
+			String javaScriptString = String.format(Locale.US, "%s.setWidth(%d);", objectInstance, width);
 			evaluate(javaScriptString, null);
-		}
-		else {
-			String javaScriptString = String.format(Locale.US, "%s.width(%d);", objectInstance, 50);
+		} else {
+			String javaScriptString = String.format(Locale.US, "%s.setWidth(%d);", objectInstance, 50);
 			evaluate(javaScriptString, null);
 			Log.e("Exception ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Width must be greater then 50px");
 		}
 	}
 
 	/**
+	 * @return width of the info window
+	 */
+	public int getWidth() {
+		return width;
+	}
+
+	/**
 	 * Sets info window content.
 	 *
-	 * @param html String contains text or html template. To reset info window content it is indispensable to call draw() method again.
+	 * @param content String contains text or html template. To reset info window content it is indispensable to call draw() method again.
 	 */
-	public void setInnerHTML(String html)
-	{
-		String javaScriptString = String.format("%s.setInnerHTML('%s');", objectInstance, html);
+	public void setContent(String content) {
+		this.content = content;
+		String javaScriptString = String.format("%s.setContent('%s');", objectInstance, content);
 		evaluate(javaScriptString, null);
+	}
+
+	/**
+	 * @return info window content as a text or html template.
+	 */
+	public String getContent() {
+		return this.content;
 	}
 
 	/**
@@ -92,67 +104,69 @@ public class INInfoWindow extends INObject {
 	 *
 	 * @param position {@link Position}
 	 */
-	public void setPosition(@Position int position) {
-		String javaScriptString = String.format(Locale.US, "%s.setPosition(%d);", objectInstance, position);
+	public void setPositionAt(Position position) {
+		this.position = position;
+		String javaScriptString = String.format(Locale.US, "%s.setPositionAt(%d);", objectInstance, position.ordinal());
 		evaluate(javaScriptString, null);
 	}
 
-	public static class INInfoWindowBuilder  {
+	/**
+	 * @return {@link Position} of the info window
+	 */
+	public Position getPositionAt() {
+		return this.position;
+	}
 
-		private INMap inMap;
-		private String html = "";
-		private int height = 250, width = 250;
-		private @Position int position = TOP;
+	/**
+	 * Erase object and its instance from frontend server, but do not destroys object class instance in your app.
+	 */
+	public void erase() {
+		super.erase();
+		this.inMap = null;
+		this.position = null;
+		this.content = null;
+		this.height = 0;
+		this.width = 0;
+	}
 
-		public INInfoWindowBuilder(INMap inMap){
-			this.inMap = inMap;
+	public static class INInfoWindowBuilder {
+
+		private INInfoWindow inInfoWindow;
+
+		public INInfoWindowBuilder(INMap inMap) {
+			inInfoWindow = new INInfoWindow(inMap);
 		}
 
-		public INInfoWindowBuilder setPosition(@Position int position)
-		{
-			this.position = position;
+		public INInfoWindowBuilder setPositionAt(Position position) {
+			inInfoWindow.setPositionAt(position);
 			return this;
 		}
 
-		public INInfoWindowBuilder setInnerHTML(String html)
-		{
-			this.html = html;
+		public INInfoWindowBuilder setContent(String content) {
+			inInfoWindow.setContent(content);
 			return this;
 		}
 
-		public INInfoWindowBuilder height(int height)
-		{
-			this.height = height;
+		public INInfoWindowBuilder setHeight(int height) {
+			inInfoWindow.setHeight(height);
 			return this;
 		}
 
-		public INInfoWindowBuilder width(int width)
-		{
-			this.width = width;
+		public INInfoWindowBuilder setWidth(int width) {
+			inInfoWindow.setWidth(width);
 			return this;
 		}
 
-		public INInfoWindow build() {
-			final CountDownLatch latch = new CountDownLatch(1);
-			INInfoWindow inInfoWindow = new INInfoWindow(inMap);
-			inInfoWindow.ready(object -> latch.countDown());
+		public INInfoWindow build() throws Exception {
+			CountDownLatch latch = new CountDownLatch(1);
+			inInfoWindow.ready(data -> latch.countDown());
 
-			try{
-				latch.await();
+			latch.await();
 
-				if(!inInfoWindow.isTimeout) {
-					inInfoWindow.setInnerHTML(html);
-					inInfoWindow.setPosition(position);
-					inInfoWindow.height(height);
-					inInfoWindow.width(width);
-					return inInfoWindow;
-				}
-			}
-			catch (Exception e) {
-				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			if (!inInfoWindow.isTimeout) {
+				return inInfoWindow;
 			}
 			return null;
 		}
 	}
-
 }

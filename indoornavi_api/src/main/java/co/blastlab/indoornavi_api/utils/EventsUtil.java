@@ -27,12 +27,17 @@ public class EventsUtil {
 		String date;
 
 		try {
-			JSONObject jsonObject = new JSONObject(new JSONObject(jsonString).getString("area"));
-			date = jsonObject.getString("date");
-			event = new AreaEvent(jsonObject.getInt("tagId"), date.equals("null") ? null : dt.parse(date), jsonObject.getInt("areaId"), jsonObject.getString("areaName"), jsonObject.getString("mode"));
+			JSONObject jsonObject = new JSONObject(jsonString);
+			JSONObject areaJsonObject = new JSONObject(jsonObject.getString("area"));
+
+			if (areaJsonObject.has("tagId")) {
+				date = areaJsonObject.getString("date");
+				event = new AreaEvent(areaJsonObject.getInt("tagId"), date.equals("null") ? null : dt.parse(date), areaJsonObject.getInt("areaId"), areaJsonObject.getString("areaName"), areaJsonObject.getString("mode"));
+			} else {
+				event = new AreaEvent(dt.parse(jsonObject.getString("date")), areaJsonObject.getInt("id"), areaJsonObject.getString("name"), jsonObject.getString("mode"));
+			}
 			return event;
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			Log.e("Json parse exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
 		}
 		return null;
@@ -47,17 +52,16 @@ public class EventsUtil {
 	public static Coordinates jsonEventToCoordinates(String jsonString) {
 		Coordinates coordinates;
 		try {
-			String  string= convertStandardJSONString(jsonString);
+			String string = convertStandardJSONString(jsonString);
 			JSONObject jo = new JSONObject(string);
 
 			JSONObject jsonObject = new JSONObject(jo.getString("coordinates"));
 
 			Date date = new Date(jsonObject.getInt("date"));
 			Point point = new Point(PointsUtil.stringToPoint(jsonObject.getString("point")));
-			coordinates = new Coordinates(point.x, point.y, (short)jsonObject.getInt("tagShortId"), date);
+			coordinates = new Coordinates(point.x, point.y, 0, (short) jsonObject.getInt("tagShortId"), date);
 			return coordinates;
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			Log.e("Json parse exception: ", "(" + Thread.currentThread().getStackTrace()[2].getFileName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber() + "): " + e.toString());
 		}
 		return null;

@@ -40,4 +40,20 @@ public class AreaEvent {
 		this.areaName = areaName;
 		this.mode = mode;
 	}
+
+	/**
+	 * AreaEvent constructor
+	 *
+	 * @param date when tag appeared on given area
+	 * @param areaId area id
+	 * @param areaName name of the area
+	 * @param mode {@link AreaEventMode}
+	 */
+	public AreaEvent(Date date, int areaId, String areaName, @AreaEventMode String mode)
+	{
+		this.date = date;
+		this.areaId = areaId;
+		this.areaName = areaName;
+		this.mode = mode;
+	}
 }

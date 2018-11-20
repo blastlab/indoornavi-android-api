@@ -61,7 +61,7 @@ public class MarkerClassTest {
 					inMarker = new INMarker.INMarkerBuilder(inMap)
 						.setLabel("Label")
 						.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
-						.point(point)
+						.setPosition(point)
 						.build();
 
 					Assert.assertNotNull(inMarker);
@@ -73,19 +73,6 @@ public class MarkerClassTest {
 						}
 					});
 
-					inMarker.getPoints(new OnReceiveValueCallback<List<Point>>() {
-						@Override
-						public void onReceiveValue(List<Point> points) {
-							Assert.assertNotNull(points);
-						}
-					});
-
-					inMarker.isWithin(new Coordinates(200, 400, (short) 10999, new Date()), new ValueCallback<Boolean>() {
-						@Override
-						public void onReceiveValue(Boolean value) {
-							Assert.assertNotNull(value);
-						}
-					});
 				}
 			});
 

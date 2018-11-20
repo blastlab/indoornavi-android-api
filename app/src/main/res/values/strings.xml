@@ -5,5 +5,10 @@
 	<string name="add_marker">Add marker</string>
 	<string name="create_report">Create report</string>
 	<string name="indoornavi">IndoorNavi</string>
+	<string name="localization">Localization</string>
+	<string name="start_localization">Start localization</string>
+	<string name="stop_localization">Stop localization</string>
+	<string name="stop_navigation">Stop navigation</string>
+	<string name="start_navigation">Start navigation</string>
 
 </resources>

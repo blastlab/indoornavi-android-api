@@ -16,6 +16,9 @@ import co.blastlab.indoornavi_api.utils.PointsUtil;
 public class INPolyline extends INObject {
 
 	private INMap inMap;
+	private List<Point> points;
+	private @ColorInt
+	int color;
 
 	/**
 	 * INPolyline constructor.
@@ -36,8 +39,7 @@ public class INPolyline extends INObject {
 	 * There is necessity to use points() method before draw() method to indicate where polyline should be located.
 	 * Using this method is indispensable to draw polyline with set configuration in the WebView.
 	 */
-	public void draw()
-	{
+	public void draw() {
 		String javaScriptString = String.format("%s.draw();", objectInstance);
 		evaluate(javaScriptString, null);
 	}
@@ -48,12 +50,12 @@ public class INPolyline extends INObject {
 	 *
 	 * @param points List of points
 	 */
-	public void points(List<Point> points)
-	{
-		if(points != null) {
+	public void setPoints(List<Point> points) {
+		if (points != null) {
+			this.points = points;
 			String javaScriptPoints = String.format("var points = %s;", PointsUtil.pointsToString(points));
 			evaluate(javaScriptPoints, null);
-			String javaScriptString1 = String.format("%s.points(points);", objectInstance);
+			String javaScriptString1 = String.format("%s.setPoints(points);", objectInstance);
 			evaluate(javaScriptString1, null);
 		} else {
 			Log.e("NullPointerException ", "(" + Thread.currentThread().getStackTrace()[4].getFileName() + ":" + Thread.currentThread().getStackTrace()[4].getLineNumber() + "): Points must be provided!");
@@ -61,57 +63,71 @@ public class INPolyline extends INObject {
 	}
 
 	/**
+	 * @return coordinates of the polyline as a list of {@link Point} object.
+	 */
+	public List<Point> getPoints() {
+		return this.points;
+	}
+
+	/**
 	 * Set color of points and lines in polyline object. To apply this method it's necessary to call draw() after.
 	 *
 	 * @param color String that specifies the color. Supports color in hex format #AABBCC and rgb format rgb(255,255,255).
 	 */
-	public void setLineColor(@ColorInt int color)
-	{
-		String javaScriptString = String.format("%s.setLineColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
+	public void setColor(@ColorInt int color) {
+		this.color = color;
+		String javaScriptString = String.format("%s.setColor('%s');", objectInstance, String.format("#%06X", (0xFFFFFF & color)));
 		evaluate(javaScriptString, null);
 	}
 
-	public static class INPolylineBuilder  {
+	/**
+	 * @return color of the polyline. Return color value represent as an Integer.
+	 */
+	public @ColorInt
+	int getColor() {
+		return this.color;
+	}
 
-		private List<Point> points;
-		private INMap inMap;
-		private @ColorInt int color;
+	/**
+	 * Erase object and its instance from frontend server, but do not destroys object class instance in your app.
+	 */
+	public void erase() {
+		super.erase();
+		this.inMap = null;
+		this.points = null;
+		this.color = 0;
+	}
 
-		public INPolylineBuilder(INMap inMap){
-			this.inMap = inMap;
+	public static class INPolylineBuilder {
+
+		private INPolyline inPolyline;
+
+		public INPolylineBuilder(INMap inMap) {
+			inPolyline = new INPolyline(inMap);
 		}
 
-		public INPolylineBuilder points(List<Point> points)
-		{
-			this.points = points;
+		public INPolylineBuilder setPoints(List<Point> points) {
+			inPolyline.setPoints(points);
 			return this;
 		}
 
-		public INPolylineBuilder setLineColor(@ColorInt int color)
-		{
-			this.color = color;
+		public INPolylineBuilder setColor(@ColorInt int color) {
+			inPolyline.setColor(color);
 			return this;
 		}
 
-		public INPolyline build() {
-			final CountDownLatch latch = new CountDownLatch(1);
-			INPolyline inPolyline = new INPolyline(inMap);
-			inPolyline.ready(object -> latch.countDown());
+		public INPolyline build() throws Exception {
+			CountDownLatch latch = new CountDownLatch(1);
+			inPolyline.ready(data -> latch.countDown());
 
-			try{
-				latch.await();
-				if(!inPolyline.isTimeout) {
-					inPolyline.points(this.points);
-					inPolyline.setLineColor(this.color);
-					inPolyline.draw();
-					return inPolyline;
-				}
-			}
-			catch (Exception e) {
-				Log.e("Create object exception","(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
+			latch.await();
+
+			if (!inPolyline.isTimeout) {
+
+				inPolyline.draw();
+				return inPolyline;
 			}
 			return null;
-
 		}
 	}
 }

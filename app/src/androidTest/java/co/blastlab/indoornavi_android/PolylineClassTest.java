@@ -71,8 +71,8 @@ public class PolylineClassTest {
 			Thread thread = new Thread(new Runnable() {
 				public void run() {
 					inPolyline = new INPolyline.INPolylineBuilder(inMap)
-						.setLineColor(Color.GREEN)
-						.points(points)
+						.setColor(Color.GREEN)
+						.setPoints(points)
 						.build();
 
 					Assert.assertNotNull(inPolyline);
@@ -84,19 +84,6 @@ public class PolylineClassTest {
 						}
 					});
 
-					inPolyline.getPoints(new OnReceiveValueCallback<List<Point>>() {
-						@Override
-						public void onReceiveValue(List<Point> points) {
-							Assert.assertNotNull(points);
-						}
-					});
-
-					inPolyline.isWithin(new Coordinates(200, 400, (short) 10999, new Date()), new ValueCallback<Boolean>() {
-						@Override
-						public void onReceiveValue(Boolean value) {
-							Assert.assertNotNull(value);
-						}
-					});
 				}
 			});
 
