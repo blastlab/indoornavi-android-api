@@ -22,7 +22,7 @@ public class Algorithm {
 
 	public SparseArray<Anchor> anchorMatrix = new SparseArray<>();
 	private int distance_reference = 1;
-	private double circleRange = 2;
+	private double circleRange = 2; // maksymalne przejście pomiędzy pozycjami (w metrach) TODO jako parametr
 	private double maxDistanceFromAnchor;
 
 	private double[] exp = new double[]{
