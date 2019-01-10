@@ -395,7 +395,7 @@ public class BluetoothScanService extends Service {
 		isFistPosition = false;
 		new Handler().postDelayed(() -> {
 
-			Pair<Integer, Position> nextPosition = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
+			Pair<Integer, Position> nextPosition = algorithm.getPosition(this, Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
 
 			if (nextPosition != null && nextPosition.second != null) {
 				Position position = nextPosition.second;
@@ -441,7 +441,7 @@ public class BluetoothScanService extends Service {
 	}
 
 	private void getPosition() {
-		Pair<Integer, Position> nextPosition = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
+		Pair<Integer, Position> nextPosition = algorithm.getPosition(this, Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
 
 		if (nextPosition != null) {
 			Position point = nextPosition.second;

@@ -89,7 +89,7 @@ public class INData {
 	}
 
 	private List<INArea> getAreasFromJSON(String jsonString) {
-		if(jsonString == null) return null;
+		if (jsonString == null) return null;
 
 		List<INArea> areas = new ArrayList<>();
 
@@ -97,16 +97,18 @@ public class INData {
 			JSONArray jsonAreasList = new JSONArray(jsonString);
 
 			for (int i = 0; i < jsonAreasList.length(); i++) {
-				List<Point> points = new ArrayList<>();
 				INArea inArea = INArea.createDefault(this.inMap);
 
 				JSONObject area = jsonAreasList.getJSONObject(i);
 				inArea.setName(area.getString("name"));
 				inArea.setDatabaseId(area.getInt("id"));
 
-				for(Point point : PointsUtil.stringToPoints(area.getString("points"))) {
+				List<Point> points = PointsUtil.stringToPoints(area.getString("points"));
+
+				/*List<Point> points = new ArrayList<>();
+				for(Point point : PointsUtil.stringToPoints(area.getString("pointsInPixels"))) {
 					points.add(MapUtil.pixelsToRealDimensions(this.inMap.getMapScale(), point));
-				}
+				}*/
 
 				inArea.setPoints(points);
 				inArea.setOpacity(0.2);
