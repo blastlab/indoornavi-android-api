@@ -25,12 +25,17 @@ public class ComplexUtils {
 	 */
 	public static List<Complex> getComplexesFromJSON(String jsonString) {
 		List<Complex> complexes = new ArrayList<>();
+		JSONArray jsonComplexList;
 
 		try {
-			JSONObject jo = new JSONObject(jsonString);
-			JSONArray jsonComplexList = new JSONArray(jo.getString("complexes"));
+			if (jsonString.contains("complexes")) {
+				JSONObject jo = new JSONObject(jsonString);
+				jsonComplexList = new JSONArray(jo.getString("complexes"));
+			} else {
+				jsonComplexList = new JSONArray(jsonString);
+			}
 
-			if(jsonComplexList.length() == 0) {
+			if (jsonComplexList.length() == 0) {
 				return null;
 			}
 
@@ -48,7 +53,7 @@ public class ComplexUtils {
 	private static List<Floor> getFloorsFromJSON(JSONArray jsonFloorsList) {
 		List<Floor> floors = new ArrayList<>();
 
-		try{
+		try {
 			for (int i = 0; i < jsonFloorsList.length(); i++) {
 				JSONObject floor = jsonFloorsList.getJSONObject(i);
 				floors.add(new Floor(floor.getInt("id"), floor.getString("name"), floor.getInt("level")));
@@ -64,7 +69,7 @@ public class ComplexUtils {
 	private static List<Building> getBuildingsFromJSON(JSONArray jsonBuildingList) {
 		List<Building> buildings = new ArrayList<>();
 
-		try{
+		try {
 			for (int i = 0; i < jsonBuildingList.length(); i++) {
 				JSONObject building = jsonBuildingList.getJSONObject(i);
 				buildings.add(new Building(building.getInt("id"), building.getString("name"), getFloorsFromJSON(building.getJSONArray("floors"))));

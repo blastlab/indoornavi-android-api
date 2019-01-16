@@ -18,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
 import co.blastlab.indoornavi_api.model.Border;
+import co.blastlab.indoornavi_api.model.Complex;
 import co.blastlab.indoornavi_api.model.Path;
 import co.blastlab.indoornavi_api.objects.INArea;
 import co.blastlab.indoornavi_api.objects.INMap;
@@ -85,6 +86,20 @@ public class INData {
 		Controller.ReceiveValueMap.put(promiseId, innerReceiveValueCallback);
 
 		String javaScriptString = String.format(Locale.US, "%s.getAreas(%d).then(areas => inDataInterface.onAreas(%d, JSON.stringify(areas)));", objectInstance, this.inMap.getFloorId(), promiseId);
+		evaluate(javaScriptString, null);
+	}
+
+	/**
+	 * Retrieve list of complexes.
+	 *
+	 * @param onReceiveValueCallback - callback interface invoke when {@link Complex} list is ready
+	 */
+	public void getComplexes(OnReceiveValueCallback<List<Complex>> onReceiveValueCallback) {
+
+		int promiseId = onReceiveValueCallback.hashCode();
+		Controller.ReceiveValueMap.put(promiseId, onReceiveValueCallback);
+
+		String javaScriptString = String.format(Locale.US, "%s.getComplexes().then(res => inDataInterface.onComplexes(%d, JSON.stringify(res)));", objectInstance, promiseId);
 		evaluate(javaScriptString, null);
 	}
 

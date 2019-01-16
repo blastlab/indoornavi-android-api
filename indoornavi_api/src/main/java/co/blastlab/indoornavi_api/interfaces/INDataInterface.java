@@ -13,6 +13,7 @@ import java.util.List;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.model.Path;
+import co.blastlab.indoornavi_api.utils.ComplexUtils;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 public class INDataInterface {
@@ -41,13 +42,25 @@ public class INDataInterface {
 		});
 	}
 
-
 	@JavascriptInterface
 	public void onAreas(final int eventId, final String response) {
 		Handler handler = new Handler(Looper.getMainLooper());
 		handler.post(() -> {
 			if (!response.equals("[]") && !response.equals("null")) {
 				Controller.ReceiveValueMap.get(eventId).onReceiveValue(response);
+			} else {
+				Controller.ReceiveValueMap.get(eventId).onReceiveValue(null);
+			}
+			Controller.ReceiveValueMap.remove(eventId);
+		});
+	}
+
+	@JavascriptInterface
+	public void onComplexes(final int eventId, final String response) {
+		Handler handler = new Handler(Looper.getMainLooper());
+		handler.post(() -> {
+			if (!response.equals("[]") && !response.equals("null")) {
+				Controller.ReceiveValueMap.get(eventId).onReceiveValue(ComplexUtils.getComplexesFromJSON(response));
 			} else {
 				Controller.ReceiveValueMap.get(eventId).onReceiveValue(null);
 			}

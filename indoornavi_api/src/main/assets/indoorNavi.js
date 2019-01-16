@@ -1390,6 +1390,7 @@ class INMap {
      */
     pullToPath(point, accuracy, callback) {
         const self = this;
+        this._setIFrame();
         return new Promise(resolve => {
             Communication.listenOnce(`getPointOnPath`, callback, resolve);
             Communication.send(self.iFrame, self.targetHost, {
@@ -1409,6 +1410,7 @@ class INMap {
     getComplexes(callback) {
         Validation.isFunction(callback);
         const self = this;
+        this._setIFrame();
         return new Promise(resolve => {
             Communication.listenOnce(`getComplexes`, callback, resolve);
             Communication.send(self.iFrame, self.targetHost, {
@@ -1531,6 +1533,19 @@ class INData {
     getPaths(floorId) {
         return new Promise((function(resolve) {
             this._http.doGet(`${this._targetHost}${this._baseUrl}paths/${floorId}`, function(data) {
+                resolve(JSON.parse(data));
+            });
+        }).bind(this));
+    }
+
+     /**
+     * Get list of paths
+     * @param {number} floorId id of the floor you want to get paths from
+     * @return {Promise} promise that will be resolved when {@link Path} list is retrieved
+     */
+    getComplexes() {
+        return new Promise((function(resolve) {
+            this._http.doGet(`${this._targetHost}${this._baseUrl}complexes`, function(data) {
                 resolve(JSON.parse(data));
             });
         }).bind(this));
