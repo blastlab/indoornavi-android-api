@@ -5,20 +5,21 @@ import org.json.JSONObject;
 import co.blastlab.indoornavi_api.connection.CoordinatesConnection;
 import co.blastlab.indoornavi_api.connection.PhoneConnection;
 import co.blastlab.indoornavi_api.model.Coordinates;
-import co.blastlab.indoornavi_api.objects.INMap;
 
 public class PhoneModule {
 
 	private String backendServer;
-	private INMap inMap;
+	private String apiKey;
+	private String floorId;
 
 	/**
 	 * @param backendServer backend server address
-	 * @param inMap         INMap object instance
+	 * @param apiKey        apiKey to IndoorNavi
 	 */
-	public PhoneModule(String backendServer, INMap inMap) {
+	public PhoneModule(String backendServer, String apiKey, String floorId) {
 		this.backendServer = backendServer;
-		this.inMap = inMap;
+		this.apiKey = apiKey;
+		this.floorId = floorId;
 	}
 
 	/**
@@ -28,7 +29,7 @@ public class PhoneModule {
 	 * @return Integer represent id assigned to specific user data
 	 */
 	public short registerPhone(String userData) throws Exception {
-		PhoneConnection phoneConnection = new PhoneConnection(inMap.getApiKey(), this.backendServer);
+		PhoneConnection phoneConnection = new PhoneConnection(apiKey, this.backendServer);
 		String id = phoneConnection.execute(userData).get();
 		if (id != null) {
 			return (short) new JSONObject(id).getInt("id");
@@ -41,11 +42,8 @@ public class PhoneModule {
 	 * @return Response data.
 	 */
 	public Boolean saveCoordinates(Coordinates coordinates) throws Exception {
-		CoordinatesConnection dataConnection = new CoordinatesConnection(this.inMap, backendServer, coordinates);
+		CoordinatesConnection dataConnection = new CoordinatesConnection(this.apiKey, this.floorId, backendServer, coordinates);
 		String data = dataConnection.execute().get();
-		if (data != null) {
-			return true;
-		}
-		return false;
+		return data != null;
 	}
 }
