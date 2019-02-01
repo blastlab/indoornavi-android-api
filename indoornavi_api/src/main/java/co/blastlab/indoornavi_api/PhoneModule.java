@@ -10,13 +10,13 @@ public class PhoneModule {
 
 	private String backendServer;
 	private String apiKey;
-	private String floorId;
+	private int floorId;
 
 	/**
 	 * @param backendServer backend server address
 	 * @param apiKey        apiKey to IndoorNavi
 	 */
-	public PhoneModule(String backendServer, String apiKey, String floorId) {
+	public PhoneModule(String backendServer, String apiKey, int floorId) {
 		this.backendServer = backendServer;
 		this.apiKey = apiKey;
 		this.floorId = floorId;

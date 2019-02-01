@@ -14,12 +14,12 @@ public class CoordinatesConnection extends Connection {
 
 	private String payload;
 
-	public CoordinatesConnection(String apiKey, String floorId, String backendServer, Coordinates coordinates) {
+	public CoordinatesConnection(String apiKey, int floorId, String backendServer, Coordinates coordinates) {
 		super(apiKey, backendServer);
 		this.payload = String.format(Locale.ENGLISH, "[{\"floorId\": %d, \"point\": {\"x\": %d, \"y\": %d, \"z\": %d}, \"date\": \"%s\", \"phoneId\": %d}]", floorId, coordinates.x, coordinates.y, coordinates.z, getFormattedDate(coordinates.date), coordinates.deviceId);
 	}
 
-	public CoordinatesConnection(String apiKey, String floorId, String backendServer, List<Coordinates> coordinatesList) {
+	public CoordinatesConnection(String apiKey, int floorId, String backendServer, List<Coordinates> coordinatesList) {
 		super(apiKey, backendServer);
 
 		StringBuilder stringBuilder = new StringBuilder();
