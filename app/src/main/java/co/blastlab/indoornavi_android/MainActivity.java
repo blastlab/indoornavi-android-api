@@ -82,8 +82,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 
 	private int floorId = 5;
-	private String frontendServer = "https://indoornavi-frontend.azurewebsites.net";
-	private String backendServer = "https://indoornavi-backend.azurewebsites.net";
+	private String frontendServer = "https://expoxxi-indoornavi.azurewebsites.net";
+	private String backendServer = "https://expoxxi-indoornavi.azurewebsites.net";
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
 	private static final int REQUEST_INTERNET = 1;
 	private static final int REQUEST_ENABLE_BT = 1;
@@ -151,6 +151,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		setNavigationViewListener();
 
 		startService(BluetoothScanService.class, bluetoothConnection);
+
+		sendCoords();
 	}
 
 	public void createPointsArrayForOffice1() {
@@ -274,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void saveCoordinates(Position position) {
 		try {
-			PhoneModule phoneModule = new PhoneModule(backendServer, inMap);
+			PhoneModule phoneModule = new PhoneModule(backendServer, "TestAdmin", 11);
 
 			if (this.phoneID == -1) {
 				String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
@@ -288,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void sendCoords() {
 		try {
-			PhoneModule phoneModule = new PhoneModule(backendServer, inMap);
+			PhoneModule phoneModule = new PhoneModule(backendServer, "TestAdmin", 11);
 
 			if (this.phoneID == -1) {
 				String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);

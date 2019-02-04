@@ -33,7 +33,7 @@ public class CoordinatesConnection extends Connection {
 	}
 
 	private String getFormattedDate(Date date) {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZZ");
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 		return simpleDateFormat.format(date);
 	}
 

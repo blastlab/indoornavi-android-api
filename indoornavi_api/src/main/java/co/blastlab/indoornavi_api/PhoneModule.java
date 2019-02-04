@@ -2,6 +2,8 @@ package co.blastlab.indoornavi_api;
 
 import org.json.JSONObject;
 
+import java.util.List;
+
 import co.blastlab.indoornavi_api.connection.CoordinatesConnection;
 import co.blastlab.indoornavi_api.connection.PhoneConnection;
 import co.blastlab.indoornavi_api.model.Coordinates;
@@ -46,4 +48,15 @@ public class PhoneModule {
 		String data = dataConnection.execute().get();
 		return data != null;
 	}
+
+	/**
+	 * @param coordinates Coordinates saved in database.
+	 * @return Response data.
+	 */
+	public Boolean saveCoordinates(List<Coordinates> coordinates) throws Exception {
+		CoordinatesConnection dataConnection = new CoordinatesConnection(this.apiKey, this.floorId, backendServer, coordinates);
+		String data = dataConnection.execute().get();
+		return data != null;
+	}
+
 }
