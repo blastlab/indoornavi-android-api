@@ -60,7 +60,7 @@ public class IndoorWebViewClient extends WebViewClient {
 
 	@Override
 	public void onReceivedError(WebView view, int errorCode,
-	                          String description, String failingUrl){
+	                            String description, String failingUrl) {
 		super.onReceivedError(view, errorCode, description, failingUrl);
 	}
 
@@ -112,6 +112,8 @@ public class IndoorWebViewClient extends WebViewClient {
 //		}
 //		ResourcesModule resourcesModule = new ResourcesModule(httpDownloadResource);
 //		resourcesModule.execute(currentUrl);
+
+		Log.e("IndoornaviTAG", request.getUrl().toString());
 
 		return super.shouldInterceptRequest(view, request);
 	}
