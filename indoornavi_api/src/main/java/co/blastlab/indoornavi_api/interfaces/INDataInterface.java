@@ -54,18 +54,5 @@ public class INDataInterface {
 			Controller.ReceiveValueMap.remove(eventId);
 		});
 	}
-
-	@JavascriptInterface
-	public void onComplexes(final int eventId, final String response) {
-		Handler handler = new Handler(Looper.getMainLooper());
-		handler.post(() -> {
-			if (!response.equals("[]") && !response.equals("null")) {
-				Controller.ReceiveValueMap.get(eventId).onReceiveValue(ComplexUtils.getComplexesFromJSON(response));
-			} else {
-				Controller.ReceiveValueMap.get(eventId).onReceiveValue(null);
-			}
-			Controller.ReceiveValueMap.remove(eventId);
-		});
-	}
 }
 

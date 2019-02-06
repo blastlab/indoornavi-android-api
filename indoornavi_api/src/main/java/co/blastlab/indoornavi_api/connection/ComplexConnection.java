@@ -4,22 +4,18 @@ import android.util.Log;
 
 import java.net.HttpURLConnection;
 
-public class PhoneConnection extends Connection {
+public class ComplexConnection extends Connection {
 
-	public PhoneConnection(String apiKey, String backendServer) {
+	public ComplexConnection(String apiKey, String backendServer) {
 		super(apiKey, backendServer);
 	}
 
 	@Override
 	protected String doInBackground(String... params) {
-
-		String userData = String.format("{ \"userData\": \"%s\"}", params[0]);
-
 		try {
-			HttpURLConnection httpConnection = openConnection(Connection.AUTH);
+			HttpURLConnection httpConnection = openConnection(Connection.COMPLEXES);
 
-			setConnectionProperties(Method.POST);
-			sendData(userData);
+			setConnectionProperties(Method.GET);
 			httpConnection.connect();
 
 			int responseCode = httpConnection.getResponseCode();

@@ -81,9 +81,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	INCircle inCirclePulledInner;
 
 
-	private int floorId = 5;
-	private String frontendServer = "https://expoxxi-indoornavi.azurewebsites.net";
-	private String backendServer = "https://expoxxi-indoornavi.azurewebsites.net";
+	private int floorId = 11;
+	private String frontendServer = /*"http://172.16.170.50:90";*/"https://expoxxi-indoornavi.azurewebsites.net";
+	private String backendServer = /*"http://172.16.170.50:90";*/"https://expoxxi-indoornavi.azurewebsites.net";
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
 	private static final int REQUEST_INTERNET = 1;
 	private static final int REQUEST_ENABLE_BT = 1;
@@ -230,6 +230,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
+		getComplexes();
+
 		inMap.createMap(frontendServer, "TestAdmin");
 		inMap.load(floorId, new OnObjectReadyCallback() {
 			@Override
@@ -276,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void saveCoordinates(Position position) {
 		try {
-			PhoneModule phoneModule = new PhoneModule(backendServer, "TestAdmin", 11);
+			PhoneModule phoneModule = new PhoneModule(backendServer, "TestAdmin", floorId);
 
 			if (this.phoneID == -1) {
 				String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
@@ -290,13 +292,13 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void sendCoords() {
 		try {
-			PhoneModule phoneModule = new PhoneModule(backendServer, "TestAdmin", 11);
+			PhoneModule phoneModule = new PhoneModule(backendServer, "TestAdmin", floorId);
 
 			if (this.phoneID == -1) {
 				String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-				Log.e("IndoorNavi", "Id: " + androidId);
 				this.phoneID = phoneModule.registerPhone("Android" + androidId);
 			}
+			Log.e("IndoorNavi", "Id: " + phoneID);
 			phoneModule.saveCoordinates(new Coordinates(23, 23, 23, this.phoneID, new Date()));
 		} catch (Exception e) {
 			Log.e("IndoorNavi", "Exception");
@@ -334,13 +336,13 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void drawPoly(int index) {
-		try{
-		inPolyline = new INPolyline.INPolylineBuilder(inMap)
-			.setPoints(getPointsSetByIndex(index))
-			.setColor(Color.RED)
-			.build();
+		try {
+			inPolyline = new INPolyline.INPolylineBuilder(inMap)
+				.setPoints(getPointsSetByIndex(index))
+				.setColor(Color.RED)
+				.build();
 		} catch (Exception e) {
-			Log.e("Create object exception",  e.toString());
+			Log.e("Create object exception", e.toString());
 		}
 
 		if (inPolyline != null) {
@@ -353,16 +355,16 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	public void drawCircle(Point position) {
 		if (position == null) return;
 		if (inCircle == null) {
-			try{
-			inCircle = new INCircle.INCircleBuilder(inMap)
-				.setPosition(position)
-				.setRadius(8)
-				.setOpacity(0.3)
-				.setColor(Color.RED)
-				.setBorder(new Border(30, Color.GREEN))
-				.build();
+			try {
+				inCircle = new INCircle.INCircleBuilder(inMap)
+					.setPosition(position)
+					.setRadius(8)
+					.setOpacity(0.3)
+					.setColor(Color.RED)
+					.setBorder(new Border(30, Color.GREEN))
+					.build();
 			} catch (Exception e) {
-				Log.e("Create object exception",  e.toString());
+				Log.e("Create object exception", e.toString());
 			}
 		} else {
 			inCircle.setPosition(position);
@@ -372,14 +374,14 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void drawArea(int index) {
 		try {
-		inArea = new INArea.INAreaBuilder(inMap)
-			.setPoints(getPointsSetByIndex(index))
-			.setColor(Color.GREEN)
-			.setOpacity(0.1)
-			.setBorder(new Border(2, Color.GREEN))
-			.build();
+			inArea = new INArea.INAreaBuilder(inMap)
+				.setPoints(getPointsSetByIndex(index))
+				.setColor(Color.GREEN)
+				.setOpacity(0.1)
+				.setBorder(new Border(2, Color.GREEN))
+				.build();
 		} catch (Exception e) {
-			Log.e("Create object exception",  e.toString());
+			Log.e("Create object exception", e.toString());
 		}
 		inArea.addEventListener(new OnINObjectClickListener() {
 			@Override
@@ -407,13 +409,13 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void drawMarker(int index) {
 		try {
-		inMarker1 = new INMarker.INMarkerBuilder(inMap)
-			.setPosition(getMarkerPoint(index))
-			.setIcon(R.drawable.cat)
-			.setLabel(getMarkerLabel(index))
-			.build();
+			inMarker1 = new INMarker.INMarkerBuilder(inMap)
+				.setPosition(getMarkerPoint(index))
+				.setIcon(R.drawable.cat)
+				.setLabel(getMarkerLabel(index))
+				.build();
 		} catch (Exception e) {
-			Log.e("Create object exception",  e.toString());
+			Log.e("Create object exception", e.toString());
 		}
 
 		if (inMarker1 != null) {
@@ -461,7 +463,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				.setPositionAt(INInfoWindow.Position.TOP)
 				.build();
 		} catch (Exception e) {
-			Log.e("Create object exception",  e.toString());
+			Log.e("Create object exception", e.toString());
 		}
 	}
 
@@ -522,12 +524,11 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void getComplexes() {
-		inMap.getComplex(new OnReceiveValueCallback<List<Complex>>() {
-			@Override
-			public void onReceiveValue(List<Complex> complexes) {
-				Log.e("Indoor", "Complex: " + complexes.get(0).name);
-			}
-		});
+		INData inData = new INData(inMap, backendServer, "TestAdmin");
+		List<Complex> complexes = inData.getComplexes();
+		if(complexes != null) {
+			Log.e("Indoor", "Complex: " + complexes.get(0).name);
+		}
 	}
 
 	public void getPaths() {
@@ -543,7 +544,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		inData.getAreas(areas -> {
 				Log.i("Indoor", "Received areas: " + areas);
-				if(areas == null) return;
+				if (areas == null) return;
 				for (INArea area : areas) {
 					area.draw();
 					area.addEventListener(new OnINObjectClickListener() {
@@ -633,7 +634,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void quit() {
 		boolean isBound;
-		isBound = getApplicationContext().bindService( new Intent(getApplicationContext(), BluetoothScanService.class), bluetoothConnection, Context.BIND_AUTO_CREATE );
+		isBound = getApplicationContext().bindService(new Intent(getApplicationContext(), BluetoothScanService.class), bluetoothConnection, Context.BIND_AUTO_CREATE);
 		if (isBound)
 			getApplicationContext().unbindService(bluetoothConnection);
 	}
@@ -852,15 +853,15 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private void drawPulledCircle(Point position) {
 		if (inCirclePulled == null) {
 			try {
-			inCirclePulled = new INCircle.INCircleBuilder(inMap)
-				.setPosition(position)
-				.setRadius(30)
-				.setOpacity(0.3)
-				.setColor(Color.parseColor("#007FFF"))
-				.setBorder(new Border(4, Color.parseColor("#007FFF")))
-				.build();
+				inCirclePulled = new INCircle.INCircleBuilder(inMap)
+					.setPosition(position)
+					.setRadius(30)
+					.setOpacity(0.3)
+					.setColor(Color.parseColor("#007FFF"))
+					.setBorder(new Border(4, Color.parseColor("#007FFF")))
+					.build();
 			} catch (Exception e) {
-				Log.e("Create object exception",  e.toString());
+				Log.e("Create object exception", e.toString());
 			}
 		} else {
 			inCirclePulled.setPosition(position);
@@ -868,15 +869,15 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		}
 		if (inCirclePulledInner == null) {
 			try {
-			inCirclePulledInner = new INCircle.INCircleBuilder(inMap)
-				.setPosition(position)
-				.setRadius(8)
-				.setOpacity(1.0)
-				.setColor(Color.parseColor("#007FFF"))
-				.setBorder(new Border(0, Color.parseColor("#007FFF")))
-				.build();
+				inCirclePulledInner = new INCircle.INCircleBuilder(inMap)
+					.setPosition(position)
+					.setRadius(8)
+					.setOpacity(1.0)
+					.setColor(Color.parseColor("#007FFF"))
+					.setBorder(new Border(0, Color.parseColor("#007FFF")))
+					.build();
 			} catch (Exception e) {
-				Log.e("Create object exception",  e.toString());
+				Log.e("Create object exception", e.toString());
 			}
 		} else {
 			inCirclePulledInner.setPosition(position);

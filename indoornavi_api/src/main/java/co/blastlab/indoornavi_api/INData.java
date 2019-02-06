@@ -17,12 +17,14 @@ import java.util.concurrent.CountDownLatch;
 
 
 import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
+import co.blastlab.indoornavi_api.connection.ComplexConnection;
 import co.blastlab.indoornavi_api.model.Border;
 import co.blastlab.indoornavi_api.model.Complex;
 import co.blastlab.indoornavi_api.model.Path;
 import co.blastlab.indoornavi_api.objects.INArea;
 import co.blastlab.indoornavi_api.objects.INMap;
 
+import co.blastlab.indoornavi_api.utils.ComplexUtils;
 import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
@@ -91,16 +93,18 @@ public class INData {
 
 	/**
 	 * Retrieve list of complexes.
-	 *
-	 * @param onReceiveValueCallback - callback interface invoke when {@link Complex} list is ready
 	 */
-	public void getComplexes(OnReceiveValueCallback<List<Complex>> onReceiveValueCallback) {
-
-		int promiseId = onReceiveValueCallback.hashCode();
-		Controller.ReceiveValueMap.put(promiseId, onReceiveValueCallback);
-
-		String javaScriptString = String.format(Locale.US, "%s.getComplexes().then(res => inDataInterface.onComplexes(%d, JSON.stringify(res)));", objectInstance, promiseId);
-		evaluate(javaScriptString, null);
+	public List<Complex> getComplexes() {
+		try {
+			ComplexConnection complexConnection = new ComplexConnection(apiKey, this.targetHost);
+			String complexes = complexConnection.execute().get();
+			if (complexes != null || !complexes.isEmpty()) {
+				return ComplexUtils.getComplexesFromJSON(complexes);
+			}
+		} catch (Exception e) {
+			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Complex json parse error.");
+		}
+		return null;
 	}
 
 	private List<INArea> getAreasFromJSON(String jsonString) {

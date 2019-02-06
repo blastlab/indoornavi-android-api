@@ -13,8 +13,9 @@ import java.net.URL;
 
 public class Connection extends AsyncTask<String, String, String> {
 
-	protected final static String AUTH = "/auth";
-	protected final static String COORDINATES = "/coordinates";
+	protected final static String AUTH = "/phones/auth";
+	protected final static String COORDINATES = "/phones/coordinates";
+	protected final static String COMPLEXES = "/complexes";
 
 	private String apiKey;
 	private String baseURL;
@@ -22,7 +23,7 @@ public class Connection extends AsyncTask<String, String, String> {
 
 	protected Connection(String apiKey, String backendServer) {
 		this.apiKey = apiKey;
-		this.baseURL = backendServer + "/rest/v1/phones";
+		this.baseURL = backendServer + "/rest/v1";
 	}
 
 	@Override
@@ -41,9 +42,9 @@ public class Connection extends AsyncTask<String, String, String> {
 		return null;
 	}
 
-	protected void setConnectionProperties() {
+	protected void setConnectionProperties(Method method) {
 		try {
-			httpConnection.setRequestMethod("POST");
+			httpConnection.setRequestMethod(method.name);
 			httpConnection.setRequestProperty("Authorization", "Token " + apiKey);
 			httpConnection.setRequestProperty("Content-Type", "application/json");
 			httpConnection.setRequestProperty("Accept", "application/json");
@@ -53,7 +54,6 @@ public class Connection extends AsyncTask<String, String, String> {
 			httpConnection.setConnectTimeout(10000);
 			httpConnection.setReadTimeout(10000);
 			httpConnection.setDoInput(true);
-			httpConnection.setDoOutput(true);
 		} catch (Exception e) {
 			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Http Connection error.");
 
@@ -91,6 +91,21 @@ public class Connection extends AsyncTask<String, String, String> {
 		} catch (Exception e) {
 			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e);
 
+		}
+	}
+
+	enum Method {
+		POST("POST"),
+		GET("GET");
+
+		private final String name;
+
+		Method(String s) {
+			name = s;
+		}
+
+		public String toString() {
+			return this.name;
 		}
 	}
 }

@@ -43,7 +43,7 @@ public class CoordinatesConnection extends Connection {
 		try {
 			HttpURLConnection httpConnection = openConnection(Connection.COORDINATES);
 
-			setConnectionProperties();
+			setConnectionProperties(Method.POST);
 			sendData(payload);
 			httpConnection.connect();
 
