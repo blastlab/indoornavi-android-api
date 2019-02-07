@@ -84,6 +84,8 @@ public class BluetoothScanService extends Service {
 	private int maxDistance = 12;
 	private int actualFloorId = -1;
 
+	private boolean isFileLoggingEnabled = false;
+
 	private class FloorPair {
 
 		private int floorId;
@@ -219,6 +221,10 @@ public class BluetoothScanService extends Service {
 
 	public void setAnchorConfiguration(SparseArray<Anchor> anchorConfiguration) {
 		this.anchorConfiguration = anchorConfiguration;
+	}
+
+	public void setIsFileLoggingEnabled(Boolean fileLoggingEnabled) {
+		isFileLoggingEnabled = fileLoggingEnabled;
 	}
 
 	public void setHandler(Handler mHandler) {
@@ -395,7 +401,7 @@ public class BluetoothScanService extends Service {
 		isFistPosition = false;
 		new Handler().postDelayed(() -> {
 
-			Pair<Integer, Position> nextPosition = algorithm.getPosition(this, Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
+			Pair<Integer, Position> nextPosition = algorithm.getPosition(this, Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance, isFileLoggingEnabled);
 
 			if (nextPosition != null && nextPosition.second != null) {
 				Position position = nextPosition.second;
@@ -441,7 +447,7 @@ public class BluetoothScanService extends Service {
 	}
 
 	private void getPosition() {
-		Pair<Integer, Position> nextPosition = algorithm.getPosition(this, Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
+		Pair<Integer, Position> nextPosition = algorithm.getPosition(this, Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance, isFileLoggingEnabled);
 
 		if (nextPosition != null) {
 			Position point = nextPosition.second;

@@ -526,7 +526,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	public void getComplexes() {
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		List<Complex> complexes = inData.getComplexes();
-		if(complexes != null) {
+		if (complexes != null) {
 			Log.e("Indoor", "Complex: " + complexes.get(0).name);
 		}
 	}
@@ -834,6 +834,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 					break;
 				case BluetoothScanService.ACTION_POSITION:
 					Point position = (Point) msg.obj;
+
 					Log.e(BluetoothScanService.TAG, "Position: x:" + position.x + ", y: " + position.y);
 					mActivity.get().drawCircle(position);
 

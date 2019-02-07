@@ -113,8 +113,6 @@ public class IndoorWebViewClient extends WebViewClient {
 //		ResourcesModule resourcesModule = new ResourcesModule(httpDownloadResource);
 //		resourcesModule.execute(currentUrl);
 
-		Log.e("IndoornaviTAG", request.getUrl().toString());
-
 		return super.shouldInterceptRequest(view, request);
 	}
 

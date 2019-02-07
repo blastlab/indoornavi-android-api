@@ -14,6 +14,7 @@ import co.blastlab.indoornavi_api.algorithm.model.Anchor;
 import co.blastlab.indoornavi_api.algorithm.model.PairOfPoints;
 import co.blastlab.indoornavi_api.algorithm.utils.Matrix;
 import co.blastlab.indoornavi_api.algorithm.model.Position;
+import co.blastlab.indoornavi_api.service.BluetoothScanService;
 import co.blastlab.indoornavi_api.utils.LogUtils;
 
 import static java.lang.Math.abs;
@@ -38,19 +39,22 @@ public class Algorithm {
 
 	public enum LocalizationMethod {TRILATERATION, CROSSING_CIRCLE}
 
-	public Pair<Integer, Position> getPosition(Context context, LocalizationMethod localizationMethod, SparseArray<Anchor> anchorMatrix, double maxDistanceFromAnchor) {
+	public Pair<Integer, Position> getPosition(Context context, LocalizationMethod localizationMethod, SparseArray<Anchor> anchorMatrix, double maxDistanceFromAnchor, boolean isFileLoggingEnabled) {
 		if (anchorMatrix == null || anchorMatrix.size() == 0) return null;
 
 		this.anchorMatrix = anchorMatrix;
 		this.maxDistanceFromAnchor = maxDistanceFromAnchor;
 
-		for (int i = 0; i < anchorMatrix.size(); i++) {
-			Anchor anchor = anchorMatrix.valueAt(i);
+		if (isFileLoggingEnabled) {
+			for (int i = 0; i < anchorMatrix.size(); i++) {
+				Anchor anchor = anchorMatrix.valueAt(i);
 
-			LogUtils.logToFile(context,
-				"IndoorNaviLog.txt",
-				"Anchor " + anchor.id + " - Rssi ref: " + anchor.rssiRef + " Rssi avg: " + anchor.rssiAvg + ", Rssi Array: " + anchor.rssi_array.toString());
+				LogUtils.logToFile(context,
+					"IndoorNaviLog.txt",
+					"Anchor " + anchor.id + " - Rssi ref: " + anchor.rssiRef + " Rssi avg: " + anchor.rssiAvg + ", Rssi Array: " + anchor.rssi_array.toString());
+			}
 		}
+
 
 		switch (localizationMethod) {
 			case TRILATERATION:
