@@ -16,6 +16,7 @@ public class Connection extends AsyncTask<String, String, String> {
 	protected final static String AUTH = "/phones/auth";
 	protected final static String COORDINATES = "/phones/coordinates";
 	protected final static String COMPLEXES = "/complexes";
+	protected final static String AREAS = "/areas";
 
 	private String apiKey;
 	private String baseURL;
@@ -94,7 +95,7 @@ public class Connection extends AsyncTask<String, String, String> {
 		}
 	}
 
-	enum Method {
+	public enum Method {
 		POST("POST"),
 		GET("GET");
 

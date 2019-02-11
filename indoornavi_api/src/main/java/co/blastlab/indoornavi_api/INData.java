@@ -15,9 +15,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
-
-import co.blastlab.indoornavi_api.callback.OnReceiveValueCallback;
-import co.blastlab.indoornavi_api.connection.ComplexConnection;
+import co.blastlab.indoornavi_api.connection.Connection;
+import co.blastlab.indoornavi_api.connection.ConnectionHandler;
 import co.blastlab.indoornavi_api.model.Border;
 import co.blastlab.indoornavi_api.model.Complex;
 import co.blastlab.indoornavi_api.model.Path;
@@ -25,7 +24,6 @@ import co.blastlab.indoornavi_api.objects.INArea;
 import co.blastlab.indoornavi_api.objects.INMap;
 
 import co.blastlab.indoornavi_api.utils.ComplexUtils;
-import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -33,7 +31,7 @@ import co.blastlab.indoornavi_api.utils.PointsUtil;
  */
 public class INData {
 
-	private String objectInstance, targetHost, apiKey;
+	private String targetHost, apiKey;
 	private INMap inMap;
 
 	/**
@@ -44,51 +42,43 @@ public class INData {
 	 * @param apiKey     the API key created on INMap server
 	 */
 	public INData(INMap inMap, String targetHost, String apiKey) {
-		this.objectInstance = String.format(Locale.US, "data%d", this.hashCode());
 		this.targetHost = targetHost;
 		this.apiKey = apiKey;
 		this.inMap = inMap;
-
-		String javaScriptString = String.format("var %s = new INData('%s', '%s');", objectInstance, targetHost, apiKey);
-		evaluate(javaScriptString, null);
 	}
 
 	/**
 	 * Retrieve list of paths.
-	 *
-	 * @param onReceiveValueCallback - callback interface invoke when {@link Path} list is ready
 	 */
-	public void getPaths(OnReceiveValueCallback<List<Path>> onReceiveValueCallback) {
+	public List<Path> getPaths(int floorId) {
 
-		int promiseId = onReceiveValueCallback.hashCode();
-		Controller.ReceiveValueMap.put(promiseId, onReceiveValueCallback);
-
-		String javaScriptString = String.format(Locale.US, "%s.getPaths(%d).then(res => inDataInterface.pathsData(%d, JSON.stringify(res)));", objectInstance, this.inMap.getFloorId(), promiseId);
-		evaluate(javaScriptString, null);
+		try {
+			ConnectionHandler pathConnection = new ConnectionHandler(apiKey, this.targetHost, Connection.Method.GET);
+			String path = pathConnection.execute(String.format(Locale.ENGLISH, ConnectionHandler.PATH + "/%d", floorId)).get();
+			if (path != null || !path.isEmpty()) {
+				return getPathsFromJson(path);
+			}
+		} catch (Exception e) {
+			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Path json parse error.");
+		}
+		return null;
 	}
 
 	/**
 	 * Returns the list of global areas for given floor.
-	 *
-	 * @param onReceiveValueCallback interface - invoked when list of areas is available. Return {@link List< INArea >} or null if unsuccessful.
 	 */
-	public void getAreas(final OnReceiveValueCallback<List<INArea>> onReceiveValueCallback) {
+	public List<INArea> getAreas() {
 
-		OnReceiveValueCallback<String> innerReceiveValueCallback = new OnReceiveValueCallback<String>() {
-			@Override
-			public void onReceiveValue(String stringAreasJson) {
-				Handler handler = new Handler(Looper.getMainLooper());
-				handler.post(() ->
-					onReceiveValueCallback.onReceiveValue(getAreasFromJSON(stringAreasJson))
-				);
+		try {
+			ConnectionHandler complexConnection = new ConnectionHandler(apiKey, this.targetHost, Connection.Method.GET);
+			String areas = complexConnection.execute(ConnectionHandler.AREAS).get();
+			if (areas != null || !areas.isEmpty()) {
+				return getAreasFromJSON(areas);
 			}
-		};
-
-		int promiseId = innerReceiveValueCallback.hashCode();
-		Controller.ReceiveValueMap.put(promiseId, innerReceiveValueCallback);
-
-		String javaScriptString = String.format(Locale.US, "%s.getAreas(%d).then(areas => inDataInterface.onAreas(%d, JSON.stringify(areas)));", objectInstance, this.inMap.getFloorId(), promiseId);
-		evaluate(javaScriptString, null);
+		} catch (Exception e) {
+			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Areas json parse error.");
+		}
+		return null;
 	}
 
 	/**
@@ -96,13 +86,30 @@ public class INData {
 	 */
 	public List<Complex> getComplexes() {
 		try {
-			ComplexConnection complexConnection = new ComplexConnection(apiKey, this.targetHost);
-			String complexes = complexConnection.execute().get();
+			ConnectionHandler complexConnection = new ConnectionHandler(apiKey, this.targetHost, Connection.Method.GET);
+			String complexes = complexConnection.execute(ConnectionHandler.COMPLEXES).get();
 			if (complexes != null || !complexes.isEmpty()) {
 				return ComplexUtils.getComplexesFromJSON(complexes);
 			}
 		} catch (Exception e) {
 			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Complex json parse error.");
+		}
+		return null;
+	}
+
+	private List<Path> getPathsFromJson(String paths) {
+		if (!paths.equals("[]") && !paths.equals("null")) {
+			List<Path> pathList = new ArrayList<>();
+			try {
+				JSONArray jsonArray = new JSONArray(paths);
+				for (int i = 0; i < jsonArray.length(); i++) {
+					JSONObject jsonObject = jsonArray.getJSONObject(i);
+					pathList.add(new Path(PointsUtil.stringToPoint(jsonObject.getString("startPoint")), PointsUtil.stringToPoint(jsonObject.getString("endPoint"))));
+				}
+				return pathList;
+			} catch (Exception e) {
+				Log.e("Json parse exception: ", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): " + e.toString());
+			}
 		}
 		return null;
 	}
@@ -123,11 +130,6 @@ public class INData {
 				inArea.setDatabaseId(area.getInt("id"));
 
 				List<Point> points = PointsUtil.stringToPoints(area.getString("points"));
-
-				/*List<Point> points = new ArrayList<>();
-				for(Point point : PointsUtil.stringToPoints(area.getString("pointsInPixels"))) {
-					points.add(MapUtil.pixelsToRealDimensions(this.inMap.getMapScale(), point));
-				}*/
 
 				inArea.setPoints(points);
 				inArea.setOpacity(0.2);

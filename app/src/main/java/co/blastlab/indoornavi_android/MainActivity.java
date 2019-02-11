@@ -232,7 +232,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 		getComplexes();
 
-		inMap.createMap(frontendServer, "TestAdmin");
+		inMap.createMap(frontendServer, "TestAdmin", null);
 		inMap.load(floorId, new OnObjectReadyCallback() {
 			@Override
 			public void onReady(Object o) {
@@ -533,41 +533,39 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void getPaths() {
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
-		inData.getPaths(paths -> {
-				Log.i("Indoor", "Received path: " + paths);
-			}
-		);
+		List<Path> paths = inData.getPaths(floorId);
+		Log.i("Indoor", "Received path: " + paths);
 	}
 
 	public void getAreas() {
 		INMap inMap = this.inMap;
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
-		inData.getAreas(areas -> {
-				Log.i("Indoor", "Received areas: " + areas);
-				if (areas == null) return;
-				for (INArea area : areas) {
-					area.draw();
-					area.addEventListener(new OnINObjectClickListener() {
-						@Override
-						public void onClick() {
-							Point position = area.getCenterPoint();
-							if (inNavigation != null) {
-								inNavigation.stopNavigation();
-							}
-							inNavigation = new INNavigation(getApplicationContext(), inMap);
-							inNavigation.startNavigation(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1233, 517)), position, 0);
-							inNavigation.addEventListener(new OnNavigationMessageReceive<String>() {
-								@Override
-								public void onMessageReceive(String message) {
-									Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-									Log.e("indoor", "message: " + message);
-								}
-							});
+		areas = inData.getAreas();
+
+		Log.i("Indoor", "Received areas: " + areas);
+		if (areas != null) {
+			for (INArea area : areas) {
+				area.draw();
+				area.addEventListener(new OnINObjectClickListener() {
+					@Override
+					public void onClick() {
+						Point position = area.getCenterPoint();
+						if (inNavigation != null) {
+							inNavigation.stopNavigation();
 						}
-					});
-				}
+						inNavigation = new INNavigation(getApplicationContext(), inMap);
+						inNavigation.startNavigation(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1233, 517)), position, 0);
+						inNavigation.addEventListener(new OnNavigationMessageReceive<String>() {
+							@Override
+							public void onMessageReceive(String message) {
+								Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+								Log.e("indoor", "message: " + message);
+							}
+						});
+					}
+				});
 			}
-		);
+		}
 	}
 
 	public void getLocalization(int index) {
