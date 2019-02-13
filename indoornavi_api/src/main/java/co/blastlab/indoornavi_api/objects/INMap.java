@@ -304,6 +304,7 @@ public class INMap extends WebView {
 		this.getSettings().setSaveFormData(true);
 		this.getSettings().setSupportZoom(true);
 		this.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+		setWebContentsDebuggingEnabled(true);
 
 	}
 

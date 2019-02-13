@@ -82,8 +82,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 
 	private int floorId = 11;
-	private String frontendServer = /*"http://172.16.170.50:90";*/"https://expoxxi-indoornavi.azurewebsites.net";
-	private String backendServer = /*"http://172.16.170.50:90";*/"https://expoxxi-indoornavi.azurewebsites.net";
+	private String frontendServer = "http://13.95.225.230:90" /*"http://172.16.170.50:90";"https://expoxxi-indoornavi.azurewebsites.net"*/;
+	private String backendServer = "http://13.95.225.230:90" /*"http://172.16.170.50:90";"https://expoxxi-indoornavi.azurewebsites.net"*/;
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
 	private static final int REQUEST_INTERNET = 1;
 	private static final int REQUEST_ENABLE_BT = 1;
@@ -250,7 +250,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				try {
 					new INMarker.INMarkerBuilder(inMap)
 						.setPosition(point)
-						.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
+						//.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
+						.setIcon(R.drawable.przezroczysta)
+						.setLabel("bl bla bla")
 						.build();
 				} catch (Exception e) {
 					Log.e("Create object exception", e.toString());

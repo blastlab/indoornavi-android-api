@@ -259,24 +259,6 @@ class AreaEvent {
         this.mode = mode;
     }
 }
-/**
- * Class representing an NavigationPoint
- */
-class NavigationPoint {
-    /**
-     * Navigation point
-     *  @param {number} radius of the circle
-     *  @param {Border} Border object
-     *  @param {number} opacity of the circle
-     *  @param {String} color of the circle
-     */
-     constructor(radius, border, opacity, color) {
-             this.radius = radius;
-             this.border = border;
-             this.opacity = opacity
-             this.color = color;
-         }
-}
 
 /**
  * Class representing an AreaPayload
@@ -368,6 +350,24 @@ const Event = {
     }
 };
 
+/**
+ * Class representing an NavigationPoint
+ */
+class NavigationPoint {
+    /**
+     * Navigation point parameters
+     *  @param {number} radius of the circle
+     *  @param {Border} Border object
+     *  @param {number} opacity of the circle
+     *  @param {String} color of the circle
+     */
+    constructor(radius, border, opacity, color) {
+        this.radius = radius;
+        this.border = border;
+        this.opacity = opacity
+        this.color = color;
+    }
+}
 /**
  * Class representing a Path
  */
@@ -492,12 +492,13 @@ class INMapObject {
     }
 
     /**
-     * Removes object and destroys its instance in the frontend server, but do not destroys object class instance in your app.
+     * Erase drawn object and destroys its instance in the frontend server, but do not destroys object class instance in your app.
      * inheritedObjectFromINMapObject is a child object of abstract class INMapObject
+     * To redrawn erased object usage of ready() method is needed again
      * @example
-     * 'inheritedObjectFromINMapObject'.ready().then(() => 'inheritedObjectFromINMapObject'.remove(); );
+     * 'inheritedObjectFromINMapObject'.ready().then(() => 'inheritedObjectFromINMapObject'.erase(); );
      */
-    remove() {
+    erase() {
         if (!!this._id) {
             Communication.send(this._navi.iFrame, this._navi.targetHost, {
                 command: 'removeObject',
@@ -610,7 +611,7 @@ class INArea extends INMapObject {
     /**
      * Sets border of the area
      * @param {Border} border of the area
-     * @return {INCircle} self to let you chain methods
+     * @return {INArea} self to let you chain methods
      */
     setBorder(border) {
         Validation.requiredAny(border, ['color', 'width'], 'Border must have at least color and/or width');
@@ -1009,8 +1010,8 @@ class INMarker extends INMapObject {
         super(navi);
         this._type = 'MARKER';
         this._position = {x: 0, y: 0};
-        this._icon_url = null;
-        this._iconStringBase64 = null;
+        this._isUrl = null;
+        this._icon = null;
         this._infoWindow = {
             content: null,
             position: null
@@ -1057,35 +1058,34 @@ class INMarker extends INMapObject {
     }
 
     /**
-     * Sets marker icon. Use of this method is optional.
+     * Sets marker icon by passing url. Use of this method is optional.
      * @param {string} path - url path to your icon;
      * @return {INMarker} self to let you chain methods
      * @example
-     * const path = 'https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png'
+     * const iconUrl = 'https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png'
      * const marker = new INMarker(navi);
-     * marker.ready().then(() => marker.setIcon(icon).draw(); );
+     * marker.ready().then(() => marker.setIconUrl(iconUrl).draw(); );
      */
     setIconUrl(path) {
         Validation.isString(path, 'Invalid value supplied as an icon path argument');
-        this._iconUrl = path;
-        this._iconStringBase64 = null;
+        this._isUrl = true;
+        this._icon = path;
         return this;
     }
 
     /**
-     * Sets marker icon. Use of this method is optional.
+     * Sets marker icon by passing image as base64 string. Use of this method is optional.
      * @param {string} stringBase64 - image in base64 string format
      * @return {INMarker} self to let you chain methods
      * @example
-     * const urlToIcon = 'https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png'
+     * const stringBase64 = 'ImageInStringBase64format';
      * const marker = new INMarker(navi);
-     * marker.ready().then(() => marker.setIconUrl(urlToIcon).draw(); );
+     * marker.ready().then(() => marker.setIconBase64(stringBase64).draw(); );
      */
-
     setIconBase64(stringBase64) {
         Validation.isString(stringBase64, 'Invalid value supplied as an icon base64 string');
-        this._iconStringBase64 = stringBase64;
-        this._iconUrl = null;
+        this._isUrl = false;
+        this._icon = stringBase64;
         return this;
     }
 
@@ -1161,8 +1161,8 @@ class INMarker extends INMapObject {
                     object: {
                         id: this._id,
                         position: this._position,
-                        iconUrl: this._iconUrl,
-                        iconStringBase64: this._iconStringBase64,
+                        isUrl: this._isUrl,
+                        icon: this._icon,
                         label: this._label,
                         infoWindow: this._infoWindow,
                         events: this._events
@@ -1191,6 +1191,7 @@ class INPolyline extends INMapObject {
         this._type = 'POLYLINE';
         this._color = '#111';
         this._lineType = 'solid';
+
     }
 
     /**
@@ -1386,11 +1387,11 @@ class INMap {
      * Get closest coordinates on floor path for given point
      * @param {@link Point} point coordinates
      * @param {number} accuracy of path pull
+     * @param {function} callback that will be resolved when {Promise} is resolved
      * @return {Promise} promise that will be resolved when {@link Point} is retrieved
      */
     pullToPath(point, accuracy, callback) {
         const self = this;
-        this._setIFrame();
         return new Promise(resolve => {
             Communication.listenOnce(`getPointOnPath`, callback, resolve);
             Communication.send(self.iFrame, self.targetHost, {
@@ -1405,18 +1406,39 @@ class INMap {
 
     /**
      * Get list of complex, buildings and floors.
-     * @returns {Promise} promise that will be resolved when complex list is retrieved.
+     * @param {function} callback that will be resolved when {Promise} is resolved
+     * @return {Promise} promise that will be resolved when complex list is retrieved.
      */
     getComplexes(callback) {
         Validation.isFunction(callback);
         const self = this;
-        this._setIFrame();
         return new Promise(resolve => {
             Communication.listenOnce(`getComplexes`, callback, resolve);
             Communication.send(self.iFrame, self.targetHost, {
                 command: 'getComplexes'
             });
         });
+    }
+
+    /**
+     * Set Object with error message
+     * @param data { height, width, scale }
+     * @return { error: message | null }
+     */
+    setErrorMessage(data) {
+        if (!data.width) {
+            return { error: 'No width. Check if the map is loaded.' };
+        }
+
+        if (!data.height) {
+            return { error: 'No height. Check if the map is loaded.' };
+        }
+
+        if (!data.scale) {
+            return { error: 'No scale. Set the scale on the map and publish.' };
+        }
+
+        return null;
     }
 
     _checkIsReady() {
@@ -1440,26 +1462,6 @@ class INMap {
         }
     }
 
-    /**
-     * Set Object with error message
-     * @param data { height, width, scale }
-     * @return { error: message | null }
-     */
-    setErrorMessage(data) {
-        if (!data.width) {
-            return { error: 'No width. Check if the map is loaded.' };
-        }
-
-        if (!data.height) {
-            return { error: 'No height. Check if the map is loaded.' };
-        }
-
-        if (!data.scale) {
-            return { error: 'No scale. Set the scale on the map and publish.' };
-        }
-
-        return null;
-    }
 }
 
 class INReport {
@@ -1533,19 +1535,6 @@ class INData {
     getPaths(floorId) {
         return new Promise((function(resolve) {
             this._http.doGet(`${this._targetHost}${this._baseUrl}paths/${floorId}`, function(data) {
-                resolve(JSON.parse(data));
-            });
-        }).bind(this));
-    }
-
-     /**
-     * Get list of paths
-     * @param {number} floorId id of the floor you want to get paths from
-     * @return {Promise} promise that will be resolved when {@link Path} list is retrieved
-     */
-    getComplexes() {
-        return new Promise((function(resolve) {
-            this._http.doGet(`${this._targetHost}${this._baseUrl}complexes`, function(data) {
                 resolve(JSON.parse(data));
             });
         }).bind(this));
@@ -1716,7 +1705,8 @@ class INNavigation {
         return this;
     }
 
-     /**
+
+    /**
      * Sets width of the navigation path
      * @param pathWidth desired width
      * @returns {INNavigation} self to let you chain methods
@@ -1750,6 +1740,7 @@ class INNavigation {
  * Class representing a BLE,
  * creates the INBle object to handle Bluetooth related events
  */
+
 class INBle {
     /**
      * @constructor
@@ -1765,6 +1756,7 @@ class INBle {
         this._floor = floor;
         this._areaEventsMap = new Map();
     }
+
     /**
      * Sets callback function to react for position update event
      * @param {function} callback - function that will be executed when new area event is triggered, callback takes {@link AreaPayload} as argument
@@ -1792,43 +1784,23 @@ class INBle {
      * ble.updatePosition((areaPayload) => console.log(areaPayload)).then(ble.updatePosition({x: 1, y: 1}));
      */
     updatePosition(position) {
-            Validation.isPoint(position, 'Updated position is not a Point');
-            if (!!this._areas && this._areas.length > 0) {
-                this._areas.forEach(area => {
-                    if (MapUtils.pointIsWithinGivenArea(position, area.points)) {
-                        if (this._shouldSendOnEnterEvent(area)) {
-                            this._areaEventsMap.set(area, new Date());
-                            this._sendAreaEvent(area, 'ON_ENTER');
-                        } else {
-                            this._updateTime(area)
-                        }
-                    } else if (this._shouldSendOnLeaveEvent(area)) {
-                        this._areaEventsMap.delete(area);
-                        this._sendAreaEvent(area, 'ON_LEAVE');
+        Validation.isPoint(position, 'Updated position is not a Point');
+        if (!!this._areas && this._areas.length > 0) {
+            this._areas.forEach(area => {
+                if (MapUtils.pointIsWithinGivenArea(position, area.points)) {
+                    if (this._shouldSendOnEnterEvent(area)) {
+                        this._areaEventsMap.set(area, new Date());
+                        this._sendAreaEvent(area, 'ON_ENTER');
+                    } else {
+                        this._updateTime(area)
                     }
-                });
-            }
-        }
-
-        _sendAreaEvent(area, mode) {
-            this._callback({
-                area: area,
-                date: new Date(),
-                mode: mode
+                } else if (this._shouldSendOnLeaveEvent(area)) {
+                    this._areaEventsMap.delete(area);
+                    this._sendAreaEvent(area, 'ON_LEAVE');
+                }
             });
         }
-
-        _shouldSendOnEnterEvent(area) {
-            return !this._areaEventsMap.has(area);
-        }
-
-        _shouldSendOnLeaveEvent(area) {
-            return this._areaEventsMap.has(area);
-        }
-
-        _updateTime(area) {
-            this._areaEventsMap.set(area, new Date());
-        }
+    }
 
     /**
      * Returns areas that are checked for Bluetooth events
@@ -1839,5 +1811,25 @@ class INBle {
             return this._areas;
         }
         return null;
+    }
+
+    _sendAreaEvent(area, mode) {
+        this._callback({
+            area: area,
+            date: new Date(),
+            mode: mode
+        });
+    }
+
+    _shouldSendOnEnterEvent(area) {
+        return !this._areaEventsMap.has(area);
+    }
+
+    _shouldSendOnLeaveEvent(area) {
+        return this._areaEventsMap.has(area);
+    }
+
+    _updateTime(area) {
+        this._areaEventsMap.set(area, new Date());
     }
 }
