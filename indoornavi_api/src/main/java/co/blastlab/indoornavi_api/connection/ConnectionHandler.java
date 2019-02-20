@@ -9,7 +9,7 @@ public class ConnectionHandler extends Connection {
 	public final static String AUTH = "/phones/auth";
 	public final static String COORDINATES = "/phones/coordinates";
 	public final static String COMPLEXES = "/complexes";
-	public final static String AREAS = "/areas";
+	public final static String AREAS = "/areas/";
 	public final static String PATH = "/paths";
 
 	private String data = "";

@@ -59,7 +59,7 @@ public class INData {
 				return getPathsFromJson(path);
 			}
 		} catch (Exception e) {
-			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Path json parse error.");
+			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): path download error.");
 		}
 		return null;
 	}
@@ -67,16 +67,19 @@ public class INData {
 	/**
 	 * Returns the list of global areas for given floor.
 	 */
-	public List<INArea> getAreas() {
-
+	public List<INArea> getAreas(int floorId) {
 		try {
+			if(inMap.getMapScale() == null) {
+				throw new Exception("INMap is not ready or undefined. Call load() first and then INMap will be ready.");
+			}
+
 			ConnectionHandler complexConnection = new ConnectionHandler(apiKey, this.targetHost, Connection.Method.GET);
-			String areas = complexConnection.execute(ConnectionHandler.AREAS).get();
+			String areas = complexConnection.execute(ConnectionHandler.AREAS + floorId).get();
 			if (areas != null || !areas.isEmpty()) {
 				return getAreasFromJSON(areas);
 			}
 		} catch (Exception e) {
-			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Areas json parse error.");
+			Log.e("Exception", "(" + Thread.currentThread().getStackTrace()[3].getFileName() + ":" + Thread.currentThread().getStackTrace()[3].getLineNumber() + "): Areas download error. " + e);
 		}
 		return null;
 	}
@@ -135,6 +138,7 @@ public class INData {
 				inArea.setOpacity(0.2);
 				inArea.setColor(Color.GREEN);
 				inArea.setBorder(new Border(4, Color.GREEN));
+
 				try {
 					CountDownLatch latch = new CountDownLatch(1);
 					inArea.ready(data -> latch.countDown());

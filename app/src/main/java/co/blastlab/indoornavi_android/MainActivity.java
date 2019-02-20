@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,6 +40,7 @@ import java.util.List;
 
 import co.blastlab.indoornavi_api.INBle;
 import co.blastlab.indoornavi_api.INData;
+import co.blastlab.indoornavi_api.algorithm.model.Anchor;
 import co.blastlab.indoornavi_api.navigation.INNavigation;
 import co.blastlab.indoornavi_api.INReport;
 import co.blastlab.indoornavi_api.PhoneModule;
@@ -115,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			Log.e("Indoor", "Service connected");
 			BluetoothScanService.SERVICE_CONNECTED = true;
 			bluetoothScanService = ((BluetoothScanService.BluetoothBinder) arg1).getService();
+			bluetoothScanService.setAnchorConfiguration(getAnchorConfiguration());
 			bluetoothScanService.setHandler(mHandler);
 		}
 
@@ -123,6 +126,21 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			bluetoothScanService = null;
 		}
 	};
+
+	@Override
+	public void onPause() {
+		inMap.onPause();
+		inMap.pauseTimers();
+		super.onPause();
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		inMap.resumeTimers();
+		inMap.onResume();
+	}
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -230,14 +248,14 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-		getComplexes();
+		int flrID = getComplexes();
 
 		inMap.createMap(frontendServer, "TestAdmin", null);
-		inMap.load(floorId, new OnObjectReadyCallback() {
+		inMap.load(flrID, new OnObjectReadyCallback() {
 			@Override
 			public void onReady(Object o) {
 				setBleAreaListener();
-				getAreas();
+				drawDownloadAreas();
 			}
 		});
 
@@ -525,12 +543,21 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		});
 	}
 
-	public void getComplexes() {
+	public int getComplexes() {
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		List<Complex> complexes = inData.getComplexes();
 		if (complexes != null) {
-			Log.e("Indoor", "Complex: " + complexes.get(0).name);
+			for (Complex complex : complexes) {
+				if(complex.name.equals("GPNT")) {
+					int floorID = complex.buildings.get(0).floors.get(0).id;
+					inMap.waitUntilMapReady(oj ->
+						getAreas(floorID)
+					);
+					return floorID;
+				}
+			}
 		}
+		return -1;
 	}
 
 	public void getPaths() {
@@ -539,12 +566,15 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		Log.i("Indoor", "Received path: " + paths);
 	}
 
-	public void getAreas() {
+	public void getAreas(int floorId) {
 		INMap inMap = this.inMap;
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
-		areas = inData.getAreas();
-
+		areas = inData.getAreas(floorId);
 		Log.i("Indoor", "Received areas: " + areas);
+		drawDownloadAreas();
+	}
+
+	public void drawDownloadAreas() {
 		if (areas != null) {
 			for (INArea area : areas) {
 				area.draw();
@@ -895,5 +925,24 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
 		}
+	}
+
+	public SparseArray<Anchor> getAnchorConfiguration() {
+		SparseArray<Anchor> anchorConfiguration = new SparseArray<>();
+
+		anchorConfiguration.append(65042, new Anchor(65042, new Position(32.12, 2.46, 3.00), 11));
+		anchorConfiguration.append(65000, new Anchor(65000, new Position(36.81, 1.40, 3.00), 11));
+		anchorConfiguration.append(65049, new Anchor(65049, new Position(32.20, 11.61, 3.00), 11));
+		anchorConfiguration.append(65048, new Anchor(65048, new Position(37.49, 12.27, 3.00), 11));
+
+		anchorConfiguration.append(65051, new Anchor(65051, new Position(24.60, 8.69, 3.00), 11));
+		anchorConfiguration.append(65054, new Anchor(65054, new Position(24.45, 1.97, 3.00), 11));
+		anchorConfiguration.append(65052, new Anchor(65052, new Position(29.91, 1.97, 3.00), 11));
+		anchorConfiguration.append(65043, new Anchor(65043, new Position(29.91, 9.09, 3.00), 11));
+
+		anchorConfiguration.append(65047, new Anchor(65047, new Position(34.61, 14.59, 3.00), 11));
+		anchorConfiguration.append(65046, new Anchor(65046, new Position(24.34, 14.41, 3.00), 11));
+
+		return anchorConfiguration;
 	}
 }
