@@ -25,7 +25,7 @@ public class Algorithm {
 
 	public SparseArray<Anchor> anchorMatrix = new SparseArray<>();
 	private int distance_reference = 1;
-	private double circleRange = 2; // maksymalne przejście pomiędzy pozycjami (w metrach) TODO jako parametr
+	private double circleRange = 2; // maksymalne przejście pomiędzy pozycjami (w metrach)
 	private double maxDistanceFromAnchor;
 
 	private double[] exp = new double[]{
@@ -39,8 +39,10 @@ public class Algorithm {
 
 	public enum LocalizationMethod {TRILATERATION, CROSSING_CIRCLE}
 
-	public Pair<Integer, Position> getPosition(Context context, LocalizationMethod localizationMethod, SparseArray<Anchor> anchorMatrix, double maxDistanceFromAnchor, boolean isFileLoggingEnabled) {
-		if (anchorMatrix == null || anchorMatrix.size() == 0) return null;
+	public Pair<Integer, Position> getPosition(Context context, LocalizationMethod localizationMethod, SparseArray<Anchor> anchorMatrix, double maxDistanceFromAnchor, boolean isFileLoggingEnabled) throws Exception{
+		if (anchorMatrix == null || anchorMatrix.size() == 0) {
+			throw new NullPointerException("Scan results are null");
+		}
 
 		this.anchorMatrix = anchorMatrix;
 		this.maxDistanceFromAnchor = maxDistanceFromAnchor;
@@ -235,7 +237,7 @@ public class Algorithm {
 		return new Position(res.data[0][0], res.data[1][0], 0.0);
 	}
 
-	private Pair<Integer, Position> crossingCirclesMethod(SparseArray<Anchor> anchorMatrix) {
+	private Pair<Integer, Position> crossingCirclesMethod(SparseArray<Anchor> anchorMatrix) throws Exception{
 
 		rssiFilter();
 		getDistanceFromNode();
@@ -260,7 +262,7 @@ public class Algorithm {
 		} else if (closeAnchors.size() == 1) {
 			nearestPointArray.add(new Position(closeAnchors.get(0).position.x, closeAnchors.get(0).position.y, 0));
 		} else {
-			return null;
+			throw new Exception("their's no anchor at range " + maxDistanceFromAnchor + "m");
 		}
 		return new Pair<>(floorId, getMeanPointFromPointsList(getThreeClosesPoints(nearestPointArray)));
 	}
@@ -296,8 +298,8 @@ public class Algorithm {
 		return bestThreePoints;
 	}
 
-	private Position getMeanPointFromPointsList(List<Position> nearestPointArray) {
-		if (nearestPointArray.isEmpty()) return null;
+	private Position getMeanPointFromPointsList(List<Position> nearestPointArray) throws Exception {
+		if (nearestPointArray.isEmpty()) throw new Exception("It's impossible to determine the next position, nearestPointArray is empty");
 
 		double x = 0, y = 0;
 		for (int i = 0; i < nearestPointArray.size(); ++i) {
@@ -309,6 +311,9 @@ public class Algorithm {
 
 
 	public Position getIntersectionCircleLine(Position circlePosition, Position nextPosition) {
+		if(circlePosition == null) {
+			return nextPosition;
+		}
 		double distance = getDistance(circlePosition, nextPosition);
 
 		if (distance < circleRange) {

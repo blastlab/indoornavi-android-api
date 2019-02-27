@@ -67,6 +67,8 @@ import co.blastlab.indoornavi_api.service.BluetoothScanService;
 import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.utils.ReportUtil;
 
+import static android.webkit.WebView.setWebContentsDebuggingEnabled;
+
 public class MainActivity extends AppCompatActivity implements OnINMapReadyCallback {
 
 	private INMap inMap;
@@ -83,9 +85,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	INCircle inCirclePulledInner;
 
 
-	private int floorId = 11;
-	private String frontendServer = "http://13.95.225.230:90" /*"http://172.16.170.50:90";"https://expoxxi-indoornavi.azurewebsites.net"*/;
-	private String backendServer = "http://13.95.225.230:90" /*"http://172.16.170.50:90";"https://expoxxi-indoornavi.azurewebsites.net"*/;
+	private int floorId = 12;
+	private String frontendServer = "http://expoxxi-indoornavi.westeurope.cloudapp.azure.com"; /*"http://13.95.225.230:90" "http://172.16.170.50:90";"https://expoxxi-indoornavi.azurewebsites.net"*/;
+	private String backendServer = "http://expoxxi-indoornavi.westeurope.cloudapp.azure.com"; /*"http://13.95.225.230:90" "http://172.16.170.50:90";"https://expoxxi-indoornavi.azurewebsites.net"*/;
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
 	private static final int REQUEST_INTERNET = 1;
 	private static final int REQUEST_ENABLE_BT = 1;
@@ -119,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			bluetoothScanService = ((BluetoothScanService.BluetoothBinder) arg1).getService();
 			bluetoothScanService.setAnchorConfiguration(getAnchorConfiguration());
 			bluetoothScanService.setHandler(mHandler);
+			bluetoothScanService.setMaxScanDistance(14);
 		}
 
 		@Override
@@ -155,6 +158,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		mDrawerLayout = findViewById(R.id.drawer_layout);
 		vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 		expandableList = (ExpandableListView) findViewById(R.id.navigationmenu);
+
+		floorId = getComplexes();
+		setWebContentsDebuggingEnabled(true);
 
 
 		NavigationView navigationView = findViewById(R.id.nav_view);
@@ -244,14 +250,18 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		});
 	}
 
+	@Override
+	public void onReceivedError(int errorCode, String description) {
+		Log.e("WebView error: ", description);
+	}
+
+	@Override
 	public void onINMapReady(INMap mapView) {
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-		int flrID = getComplexes();
-
 		inMap.createMap(frontendServer, "TestAdmin", null);
-		inMap.load(flrID, new OnObjectReadyCallback() {
+		inMap.load(floorId, new OnObjectReadyCallback() {
 			@Override
 			public void onReady(Object o) {
 				setBleAreaListener();
@@ -547,6 +557,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
 		List<Complex> complexes = inData.getComplexes();
 		if (complexes != null) {
+			Log.e("Indoor", "Received complex: " + complexes.get(0).name);
 			for (Complex complex : complexes) {
 				if(complex.name.equals("GPNT")) {
 					int floorID = complex.buildings.get(0).floors.get(0).id;
@@ -868,14 +879,14 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 					Log.e(BluetoothScanService.TAG, "Position: x:" + position.x + ", y: " + position.y);
 					mActivity.get().drawCircle(position);
 
-					mActivity.get().inMap.pullToPath(position, 1, new OnReceiveValueCallback<Point>() {
-						@Override
-						public void onReceiveValue(Point point) {
-							if (point != null) {
-								mActivity.get().drawPulledCircle(point);
-							}
-						}
-					});
+//					mActivity.get().inMap.pullToPath(position, 1, new OnReceiveValueCallback<Point>() {
+//						@Override
+//						public void onReceiveValue(Point point) {
+//							if (point != null) {
+//								mActivity.get().drawPulledCircle(point);
+//							}
+//						}
+//					});
 					break;
 			}
 		}
@@ -931,17 +942,60 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		SparseArray<Anchor> anchorConfiguration = new SparseArray<>();
 
 		anchorConfiguration.append(65042, new Anchor(65042, new Position(32.12, 2.46, 3.00), 11));
-		anchorConfiguration.append(65000, new Anchor(65000, new Position(36.81, 1.40, 3.00), 11));
+		anchorConfiguration.append(65054, new Anchor(65054, new Position(36.81, 1.40, 3.00), 11));
 		anchorConfiguration.append(65049, new Anchor(65049, new Position(32.20, 11.61, 3.00), 11));
 		anchorConfiguration.append(65048, new Anchor(65048, new Position(37.49, 12.27, 3.00), 11));
 
 		anchorConfiguration.append(65051, new Anchor(65051, new Position(24.60, 8.69, 3.00), 11));
-		anchorConfiguration.append(65054, new Anchor(65054, new Position(24.45, 1.97, 3.00), 11));
+		anchorConfiguration.append(65044, new Anchor(65044, new Position(24.45, 1.97, 3.00), 11));
 		anchorConfiguration.append(65052, new Anchor(65052, new Position(29.91, 1.97, 3.00), 11));
 		anchorConfiguration.append(65043, new Anchor(65043, new Position(29.91, 9.09, 3.00), 11));
 
 		anchorConfiguration.append(65047, new Anchor(65047, new Position(34.61, 14.59, 3.00), 11));
 		anchorConfiguration.append(65046, new Anchor(65046, new Position(24.34, 14.41, 3.00), 11));
+
+
+//
+//		anchorConfiguration.append(65014, new Anchor(65014, new Position(5.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65002, new Anchor(65002, new Position(5.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65003, new Anchor(65003, new Position(5.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65012, new Anchor(65012, new Position(5.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65009, new Anchor(65009, new Position(5.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65004, new Anchor(65004, new Position(15.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65021, new Anchor(65021, new Position(15.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65007, new Anchor(65007, new Position(15.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65017, new Anchor(65017, new Position(15.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65005, new Anchor(65005, new Position(15.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65020, new Anchor(65020, new Position(25.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65013, new Anchor(65013, new Position(25.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65006, new Anchor(65006, new Position(25.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65019, new Anchor(65019, new Position(25.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65016, new Anchor(65016, new Position(25.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65015, new Anchor(65015, new Position(35.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65010, new Anchor(65010, new Position(35.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65008, new Anchor(65008, new Position(35.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65018, new Anchor(65018, new Position(35.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65011, new Anchor(65011, new Position(35.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65036, new Anchor(65036, new Position(45.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65041, new Anchor(65041, new Position(45.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65039, new Anchor(65039, new Position(45.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65033, new Anchor(65033, new Position(45.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65032, new Anchor(65032, new Position(45.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65034, new Anchor(65034, new Position(55.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65035, new Anchor(65035, new Position(55.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65037, new Anchor(65037, new Position(55.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65038, new Anchor(65038, new Position(55.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65029, new Anchor(65029, new Position(55.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65040, new Anchor(65040, new Position(65.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65026, new Anchor(65026, new Position(65.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65024, new Anchor(65024, new Position(65.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65027, new Anchor(65027, new Position(65.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65028, new Anchor(65028, new Position(65.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65025, new Anchor(65025, new Position(70.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65022, new Anchor(65022, new Position(70.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65030, new Anchor(65030, new Position(70.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65023, new Anchor(65023, new Position(70.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65031, new Anchor(65031, new Position(70.00, 43.00, 8.00), 12));
 
 		return anchorConfiguration;
 	}

@@ -399,22 +399,7 @@ public class BluetoothScanService extends Service {
 
 	private void calculateFirstPosition() {
 		isFistPosition = false;
-		new Handler().postDelayed(() -> {
-
-			Pair<Integer, Position> nextPosition = algorithm.getPosition(this, Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance, isFileLoggingEnabled);
-
-			if (nextPosition != null && nextPosition.second != null) {
-				Position position = nextPosition.second;
-				checkSuggestedFloor(nextPosition.first);
-
-				position.timestamp = new Date();
-				positionsArray.add(position);
-				sendPositionToActivity(position);
-				executePeriodicTask();
-			} else {
-				isFistPosition = true;
-			}
-		}, 3000);
+		new Handler().postDelayed(() -> executePeriodicTask(), 3000);
 	}
 
 	private void sendPositionToActivity(Position position) {
@@ -443,13 +428,13 @@ public class BluetoothScanService extends Service {
 			}
 		};
 		timer = new Timer();
-		timer.schedule(doAsynchronousTask, 1500, 1500);
+		timer.scheduleAtFixedRate(doAsynchronousTask, 0, 1500);
 	}
 
-	private void getPosition() {
+	private void getPosition() throws Exception{
 		Pair<Integer, Position> nextPosition = algorithm.getPosition(this, Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance, isFileLoggingEnabled);
 
-		if (nextPosition != null) {
+		if (nextPosition != null && nextPosition.second != null) {
 			Position point = nextPosition.second;
 			checkSuggestedFloor(nextPosition.first);
 

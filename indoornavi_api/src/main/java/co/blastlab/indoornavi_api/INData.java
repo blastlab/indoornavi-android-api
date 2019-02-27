@@ -2,10 +2,7 @@ package co.blastlab.indoornavi_api;
 
 import android.graphics.Color;
 import android.graphics.Point;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
-import android.webkit.ValueCallback;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,7 +10,12 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import co.blastlab.indoornavi_api.connection.Connection;
 import co.blastlab.indoornavi_api.connection.ConnectionHandler;
@@ -33,6 +35,7 @@ public class INData {
 
 	private String targetHost, apiKey;
 	private INMap inMap;
+	private Executor threadPoolExecutor;
 
 	/**
 	 * Data object constructor.
@@ -45,16 +48,26 @@ public class INData {
 		this.targetHost = targetHost;
 		this.apiKey = apiKey;
 		this.inMap = inMap;
+
+		setExecutorInAsyncTask();
+	}
+
+	private void setExecutorInAsyncTask() {
+		int corePoolSize = 60;
+		int maximumPoolSize = 80;
+		int keepAliveTime = 10;
+
+		BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(maximumPoolSize);
+		threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, workQueue);
 	}
 
 	/**
 	 * Retrieve list of paths.
 	 */
 	public List<Path> getPaths(int floorId) {
-
 		try {
 			ConnectionHandler pathConnection = new ConnectionHandler(apiKey, this.targetHost, Connection.Method.GET);
-			String path = pathConnection.execute(String.format(Locale.ENGLISH, ConnectionHandler.PATH + "/%d", floorId)).get();
+			String path = pathConnection.executeOnExecutor(threadPoolExecutor, String.format(Locale.ENGLISH, ConnectionHandler.PATH + "/%d", floorId)).get();
 			if (path != null || !path.isEmpty()) {
 				return getPathsFromJson(path);
 			}
@@ -69,12 +82,12 @@ public class INData {
 	 */
 	public List<INArea> getAreas(int floorId) {
 		try {
-			if(inMap.getMapScale() == null) {
+			if (inMap.getMapScale() == null) {
 				throw new Exception("INMap is not ready or undefined. Call load() first and then INMap will be ready.");
 			}
 
 			ConnectionHandler complexConnection = new ConnectionHandler(apiKey, this.targetHost, Connection.Method.GET);
-			String areas = complexConnection.execute(ConnectionHandler.AREAS + floorId).get();
+			String areas = complexConnection.executeOnExecutor(threadPoolExecutor, ConnectionHandler.AREAS + floorId).get();
 			if (areas != null || !areas.isEmpty()) {
 				return getAreasFromJSON(areas);
 			}
@@ -90,7 +103,7 @@ public class INData {
 	public List<Complex> getComplexes() {
 		try {
 			ConnectionHandler complexConnection = new ConnectionHandler(apiKey, this.targetHost, Connection.Method.GET);
-			String complexes = complexConnection.execute(ConnectionHandler.COMPLEXES).get();
+			String complexes = complexConnection.executeOnExecutor(threadPoolExecutor, ConnectionHandler.COMPLEXES).get();
 			if (complexes != null || !complexes.isEmpty()) {
 				return ComplexUtils.getComplexesFromJSON(complexes);
 			}
@@ -156,17 +169,4 @@ public class INData {
 		}
 		return null;
 	}
-
-	private void evaluate(String javaScriptString, ValueCallback<String> valueCallback) {
-		if (Looper.myLooper() == Looper.getMainLooper()) {
-			inMap.evaluateJavascript(javaScriptString, valueCallback);
-		} else {
-			Handler handler = new Handler(Looper.getMainLooper());
-			handler.post(() -> {
-				inMap.evaluateJavascript(javaScriptString, valueCallback);
-			});
-
-		}
-	}
-
 }
