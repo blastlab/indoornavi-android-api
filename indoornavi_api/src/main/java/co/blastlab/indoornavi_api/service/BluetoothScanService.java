@@ -44,6 +44,7 @@ import java.util.UUID;
 import co.blastlab.indoornavi_api.algorithm.Algorithm;
 import co.blastlab.indoornavi_api.algorithm.model.Anchor;
 import co.blastlab.indoornavi_api.algorithm.model.Position;
+import co.blastlab.indoornavi_api.utils.LogUtils;
 
 public class BluetoothScanService extends Service {
 
@@ -153,6 +154,12 @@ public class BluetoothScanService extends Service {
 		public void onScanResult(int callbackType, ScanResult result) {
 
 			int id = getAnchorIdfromScanResult(result);
+
+
+
+			LogUtils.logToFile(context,
+				"IndoorNaviLog.txt",
+				"ScannerResult " + result);
 
 			if (anchorConfiguration.indexOfKey(id) >= 0) {
 				if (anchorMatrix.indexOfKey(id) < 0) {
