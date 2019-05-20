@@ -23,14 +23,20 @@ INData inData = new INData(inMap, backendServer, apiKey);
 
 ### Areas
 
-Retrieve list of INArea objects.
+Retrieve list of INArea objects for given floor.
 
 ```java
 INData inData = new INData(inMap, backendServer, apiKey);
-		inData.getAreas(areas -> {
-				Log.i("Indoor", "Received areas: " + areas);
-			}
-		);
+List<INArea> areas = inData.getAreas(floorID);
+```
+
+### Complexes
+
+Retrieve list of available complexes with buildings and floors.
+
+```java
+INData inData = new INData(inMap, backendServer, apiKey);
+List<Complex> complexes = inData.getComplexes();
 ```
 
 ## __INReport__

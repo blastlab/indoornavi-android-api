@@ -555,21 +555,6 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public int getComplexes() {
-//		INData inData = new INData(inMap, backendServer, "TestAdmin");
-//		List<Complex> complexes = inData.getComplexes();
-//		if (complexes != null) {
-//			Log.e("Indoor", "Received complex: " + complexes.get(0).name);
-//			for (Complex complex : complexes) {
-//				if(complex.name.equals("GPNT")) {
-//					int floorID = complex.buildings.get(0).floors.get(0).id;
-//					inMap.waitUntilMapReady(oj ->
-//						getAreas(floorID)
-//					);
-//					return floorID;
-//				}
-//			}
-//		}
-//		return -1;
 
 		inMap.getComplex(complexes1 -> {
 			if (complexes1 != null) {
