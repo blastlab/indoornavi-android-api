@@ -13,6 +13,7 @@ import java.util.List;
 
 import co.blastlab.indoornavi_api.Controller;
 import co.blastlab.indoornavi_api.model.Path;
+import co.blastlab.indoornavi_api.utils.ComplexUtils;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 public class INDataInterface {
@@ -40,7 +41,6 @@ public class INDataInterface {
 			Controller.ReceiveValueMap.remove(promiseId);
 		});
 	}
-
 
 	@JavascriptInterface
 	public void onAreas(final int eventId, final String response) {

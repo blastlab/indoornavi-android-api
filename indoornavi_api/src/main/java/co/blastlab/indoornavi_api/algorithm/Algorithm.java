@@ -1,5 +1,6 @@
 package co.blastlab.indoornavi_api.algorithm;
 
+import android.content.Context;
 import android.util.Pair;
 import android.util.SparseArray;
 
@@ -13,6 +14,8 @@ import co.blastlab.indoornavi_api.algorithm.model.Anchor;
 import co.blastlab.indoornavi_api.algorithm.model.PairOfPoints;
 import co.blastlab.indoornavi_api.algorithm.utils.Matrix;
 import co.blastlab.indoornavi_api.algorithm.model.Position;
+import co.blastlab.indoornavi_api.service.BluetoothScanService;
+import co.blastlab.indoornavi_api.utils.LogUtils;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
@@ -22,7 +25,7 @@ public class Algorithm {
 
 	public SparseArray<Anchor> anchorMatrix = new SparseArray<>();
 	private int distance_reference = 1;
-	private double circleRange = 2;
+	private double circleRange = 2; // maksymalne przejście pomiędzy pozycjami (w metrach)
 	private double maxDistanceFromAnchor;
 
 	private double[] exp = new double[]{
@@ -36,11 +39,24 @@ public class Algorithm {
 
 	public enum LocalizationMethod {TRILATERATION, CROSSING_CIRCLE}
 
-	public Pair<Integer, Position> getPosition(LocalizationMethod localizationMethod, SparseArray<Anchor> anchorMatrix, double maxDistanceFromAnchor) {
-		if (anchorMatrix == null || anchorMatrix.size() == 0) return null;
+	public Pair<Integer, Position> getPosition(Context context, LocalizationMethod localizationMethod, SparseArray<Anchor> anchorMatrix, double maxDistanceFromAnchor, boolean isFileLoggingEnabled) throws Exception{
+		if (anchorMatrix == null || anchorMatrix.size() == 0) {
+			throw new NullPointerException("Scan results are null");
+		}
 
 		this.anchorMatrix = anchorMatrix;
 		this.maxDistanceFromAnchor = maxDistanceFromAnchor;
+
+		if (isFileLoggingEnabled) {
+			for (int i = 0; i < anchorMatrix.size(); i++) {
+				Anchor anchor = anchorMatrix.valueAt(i);
+
+				LogUtils.logToFile(context,
+					"IndoorNaviLog.txt",
+					"Anchor " + anchor.id + " - Rssi ref: " + anchor.rssiRef + " Rssi avg: " + anchor.rssiAvg + ", Rssi Array: " + anchor.rssi_array.toString());
+			}
+		}
+
 
 		switch (localizationMethod) {
 			case TRILATERATION:
@@ -221,7 +237,7 @@ public class Algorithm {
 		return new Position(res.data[0][0], res.data[1][0], 0.0);
 	}
 
-	private Pair<Integer, Position> crossingCirclesMethod(SparseArray<Anchor> anchorMatrix) {
+	private Pair<Integer, Position> crossingCirclesMethod(SparseArray<Anchor> anchorMatrix) throws Exception{
 
 		rssiFilter();
 		getDistanceFromNode();
@@ -246,7 +262,7 @@ public class Algorithm {
 		} else if (closeAnchors.size() == 1) {
 			nearestPointArray.add(new Position(closeAnchors.get(0).position.x, closeAnchors.get(0).position.y, 0));
 		} else {
-			return null;
+			throw new Exception("their's no anchor at range " + maxDistanceFromAnchor + "m");
 		}
 		return new Pair<>(floorId, getMeanPointFromPointsList(getThreeClosesPoints(nearestPointArray)));
 	}
@@ -282,8 +298,8 @@ public class Algorithm {
 		return bestThreePoints;
 	}
 
-	private Position getMeanPointFromPointsList(List<Position> nearestPointArray) {
-		if (nearestPointArray.isEmpty()) return null;
+	private Position getMeanPointFromPointsList(List<Position> nearestPointArray) throws Exception {
+		if (nearestPointArray.isEmpty()) throw new Exception("It's impossible to determine the next position, nearestPointArray is empty");
 
 		double x = 0, y = 0;
 		for (int i = 0; i < nearestPointArray.size(); ++i) {
@@ -295,6 +311,9 @@ public class Algorithm {
 
 
 	public Position getIntersectionCircleLine(Position circlePosition, Position nextPosition) {
+		if(circlePosition == null) {
+			return nextPosition;
+		}
 		double distance = getDistance(circlePosition, nextPosition);
 
 		if (distance < circleRange) {
@@ -334,11 +353,11 @@ public class Algorithm {
 	}
 
 	private int checkSuggestedFloor(List<Anchor> anchors) {
-		if(anchors == null) return -1;
+		if (anchors == null) return -1;
 
 		Map<Integer, Pair<Integer, Double>> floor_rssi_avg = new HashMap<>();
 
-		for (Anchor anchor: anchors) {
+		for (Anchor anchor : anchors) {
 			int floorId = anchor.floorId;
 			if (anchor.rssiAvg < -100) continue;
 
@@ -351,7 +370,7 @@ public class Algorithm {
 
 		int mostCommonFloor = -1;
 		for (Integer floorId : floor_rssi_avg.keySet()) {
-			if ((floor_rssi_avg.get(floorId).second / floor_rssi_avg.get(floorId).first)> (mostCommonFloor == -1 ? Double.NEGATIVE_INFINITY : (floor_rssi_avg.get(mostCommonFloor).second / floor_rssi_avg.get(mostCommonFloor).first))) {
+			if ((floor_rssi_avg.get(floorId).second / floor_rssi_avg.get(floorId).first) > (mostCommonFloor == -1 ? Double.NEGATIVE_INFINITY : (floor_rssi_avg.get(mostCommonFloor).second / floor_rssi_avg.get(mostCommonFloor).first))) {
 				mostCommonFloor = floorId;
 			}
 		}

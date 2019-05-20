@@ -109,7 +109,7 @@ public class INNavigation {
 				handler.post(() -> {
 
 					try {
-						String action = new JSONObject(message).getString("action");
+						String action = new JSONObject(message).getString("status");
 						onNavigationMessageReceive.onMessageReceive(action);
 
 						if (action.equals("created")) {

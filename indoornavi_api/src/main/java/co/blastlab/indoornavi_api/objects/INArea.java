@@ -15,6 +15,7 @@ import co.blastlab.indoornavi_api.callback.OnINObjectClickListener;
 import co.blastlab.indoornavi_api.model.Border;
 import co.blastlab.indoornavi_api.model.Coordinates;
 import co.blastlab.indoornavi_api.utils.CoordinatesUtil;
+import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.utils.PointsUtil;
 
 /**
@@ -154,6 +155,7 @@ public class INArea extends INObject {
 
 	/**
 	 * Sets database id of the area (it is not the id of the object, it identifies the object in the database)
+	 *
 	 * @param id set id
 	 */
 	public void setDatabaseId(int id) {
