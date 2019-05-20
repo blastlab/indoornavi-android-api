@@ -44,6 +44,7 @@ import java.util.UUID;
 import co.blastlab.indoornavi_api.algorithm.Algorithm;
 import co.blastlab.indoornavi_api.algorithm.model.Anchor;
 import co.blastlab.indoornavi_api.algorithm.model.Position;
+import co.blastlab.indoornavi_api.utils.LogUtils;
 
 public class BluetoothScanService extends Service {
 
@@ -83,6 +84,8 @@ public class BluetoothScanService extends Service {
 	private boolean isFistPosition = true;
 	private int maxDistance = 12;
 	private int actualFloorId = -1;
+
+	private boolean isFileLoggingEnabled = false;
 
 	private class FloorPair {
 
@@ -152,6 +155,12 @@ public class BluetoothScanService extends Service {
 
 			int id = getAnchorIdfromScanResult(result);
 
+
+
+			LogUtils.logToFile(context,
+				"IndoorNaviLog.txt",
+				"ScannerResult " + result);
+
 			if (anchorConfiguration.indexOfKey(id) >= 0) {
 				if (anchorMatrix.indexOfKey(id) < 0) {
 					anchorMatrix.append(id, getAnchor(id));
@@ -213,9 +222,20 @@ public class BluetoothScanService extends Service {
 		}
 	}
 
+	public void setMaxScanDistance(int maxDistance) {
+		this.maxDistance = maxDistance;
+	}
+
+	public void setAnchorConfiguration(SparseArray<Anchor> anchorConfiguration) {
+		this.anchorConfiguration = anchorConfiguration;
+	}
+
+	public void setIsFileLoggingEnabled(Boolean fileLoggingEnabled) {
+		isFileLoggingEnabled = fileLoggingEnabled;
+	}
+
 	public void setHandler(Handler mHandler) {
 		this.mHandler = mHandler;
-		addDefaultConf();
 	}
 
 	public class BluetoothBinder extends Binder {
@@ -386,22 +406,7 @@ public class BluetoothScanService extends Service {
 
 	private void calculateFirstPosition() {
 		isFistPosition = false;
-		new Handler().postDelayed(() -> {
-
-			Pair<Integer, Position> nextPosition = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
-
-			if (nextPosition != null) {
-				Position position = nextPosition.second;
-				checkSuggestedFloor(nextPosition.first);
-
-				position.timestamp = new Date();
-				positionsArray.add(position);
-				sendPositionToActivity(position);
-				executePeriodicTask();
-			} else {
-				isFistPosition = true;
-			}
-		}, 3000);
+		new Handler().postDelayed(() -> executePeriodicTask(), 3000);
 	}
 
 	private void sendPositionToActivity(Position position) {
@@ -430,13 +435,13 @@ public class BluetoothScanService extends Service {
 			}
 		};
 		timer = new Timer();
-		timer.schedule(doAsynchronousTask, 1500, 1500);
+		timer.scheduleAtFixedRate(doAsynchronousTask, 0, 1500);
 	}
 
-	private void getPosition() {
-		Pair<Integer, Position> nextPosition = algorithm.getPosition(Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance);
+	private void getPosition() throws Exception{
+		Pair<Integer, Position> nextPosition = algorithm.getPosition(this, Algorithm.LocalizationMethod.CROSSING_CIRCLE, anchorMatrix, maxDistance, isFileLoggingEnabled);
 
-		if (nextPosition != null) {
+		if (nextPosition != null && nextPosition.second != null) {
 			Position point = nextPosition.second;
 			checkSuggestedFloor(nextPosition.first);
 
@@ -527,21 +532,5 @@ public class BluetoothScanService extends Service {
 		} catch (Exception e) {
 			Log.e("SendBroadcast Exception", e.getMessage());
 		}
-	}
-
-	private void addDefaultConf() {
-		anchorConfiguration.append(65050, new Anchor(65050, new Position(32.12, 2.46, 3.00), 2));
-		anchorConfiguration.append(65050, new Anchor(65050, new Position(32.12, 2.46, 3.00), 2));
-		anchorConfiguration.append(65045, new Anchor(65045, new Position(36.81, 1.40, 3.00), 2));
-		anchorConfiguration.append(65049, new Anchor(65049, new Position(32.20, 11.61, 3.00), 2));
-		anchorConfiguration.append(65048, new Anchor(65048, new Position(37.49, 12.27, 3.00), 2));
-
-		anchorConfiguration.append(65051, new Anchor(65051, new Position(24.60, 8.69, 3.00), 2));
-		anchorConfiguration.append(65044, new Anchor(65044, new Position(24.45, 1.97, 3.00), 2));
-		anchorConfiguration.append(65052, new Anchor(65052, new Position(29.91, 1.97, 3.00), 2));
-		anchorConfiguration.append(65043, new Anchor(65043, new Position(29.91, 9.09, 3.00), 2));
-
-		anchorConfiguration.append(65047, new Anchor(65047, new Position(34.61, 14.59, 3.00), 2));
-		anchorConfiguration.append(65046, new Anchor(65046, new Position(24.34, 14.41, 3.00), 2));
 	}
 }

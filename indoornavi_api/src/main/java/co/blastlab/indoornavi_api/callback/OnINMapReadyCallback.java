@@ -10,4 +10,11 @@ public interface OnINMapReadyCallback {
 	 * @param inMap instance of INMap object
 	 */
 	void onINMapReady(INMap inMap);
+
+	/**
+	 * Invoked when occurs web resource loading error to the host application
+	 * @param errorCode error code
+	 * @param description error message
+	 */
+	void onReceivedError(int errorCode, String description);
 }

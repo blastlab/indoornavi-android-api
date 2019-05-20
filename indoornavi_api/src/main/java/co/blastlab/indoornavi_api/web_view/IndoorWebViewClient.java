@@ -3,11 +3,15 @@ package co.blastlab.indoornavi_api.web_view;
 import android.annotation.TargetApi;
 import android.content.res.AssetManager;
 import android.net.Uri;
+import android.net.http.SslError;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.webkit.SslErrorHandler;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
@@ -43,6 +47,7 @@ public class IndoorWebViewClient extends WebViewClient {
 
 	private LinkedBlockingQueue<HttpDownloadResource> downloadResourcesQueue;
 	private ResourcesModule resourcesModule;
+	private OnINMapReadyCallback mapReadyCallback;
 
 	@Override
 	public boolean shouldOverrideUrlLoading(WebView view, android.webkit.WebResourceRequest request) {
@@ -52,16 +57,44 @@ public class IndoorWebViewClient extends WebViewClient {
 	@Override
 	public void onPageFinished(WebView view, String url) {
 		super.onPageFinished(view, url);
-		OnINMapReadyCallback mapReadyCallback;
-
 		mapReadyCallback = (OnINMapReadyCallback) view.getContext();
 		mapReadyCallback.onINMapReady((INMap) view);
 	}
 
 	@Override
-	public void onReceivedError(WebView view, int errorCode,
-	                          String description, String failingUrl){
+	public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
 		super.onReceivedError(view, errorCode, description, failingUrl);
+
+		mapReadyCallback = (OnINMapReadyCallback) view.getContext();
+		mapReadyCallback.onReceivedError(errorCode, description);
+	}
+
+	@RequiresApi(23)
+	@Override
+	public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+		super.onReceivedError(view, request, error);
+		if (!request.isForMainFrame()) {
+			mapReadyCallback = (OnINMapReadyCallback) view.getContext();
+			mapReadyCallback.onReceivedError(error.getErrorCode(), error.getDescription().toString());
+		}
+	}
+
+	@Override
+	public void onReceivedHttpError (WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+		super.onReceivedHttpError(view, request, errorResponse);
+
+		mapReadyCallback = (OnINMapReadyCallback) view.getContext();
+		mapReadyCallback.onReceivedError(errorResponse.getStatusCode(), errorResponse.getReasonPhrase());
+	}
+
+	@Override
+	public void onReceivedSslError (WebView view, SslErrorHandler handler, SslError error) {
+		super.onReceivedSslError(view, handler, error);
+
+		mapReadyCallback = (OnINMapReadyCallback) view.getContext();
+		mapReadyCallback.onReceivedError(error.getPrimaryError(), error.toString());
+
+		handler.cancel();
 	}
 
 	@SuppressWarnings("deprecated")

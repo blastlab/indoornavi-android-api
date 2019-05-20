@@ -212,7 +212,7 @@ public class INMap extends WebView {
 	 */
 	public void pullToPath(Point position, int accuracy, final OnReceiveValueCallback<Point> onReceiveValueCallback) {
 		final INMap inMap = this;
-		if(position == null) return;
+		if (position == null) return;
 
 		OnReceiveValueCallback<Point> innerReceiveValueCallback = new OnReceiveValueCallback<Point>() {
 			@Override
@@ -261,6 +261,7 @@ public class INMap extends WebView {
 
 	/**
 	 * Sets automatic reloading of the map when the detected floor is changed
+	 *
 	 * @param state boolean value indicates whether it should be active.
 	 */
 	public void setAutoReload(boolean state) {
@@ -303,6 +304,7 @@ public class INMap extends WebView {
 		this.getSettings().setSaveFormData(true);
 		this.getSettings().setSupportZoom(true);
 		this.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+		setWebContentsDebuggingEnabled(true);
 
 	}
 
@@ -312,11 +314,11 @@ public class INMap extends WebView {
 	 * @param targetHost address to the frontend server
 	 * @param apiKey     the API key created on server
 	 */
-	public void createMap(String targetHost, String apiKey) {
+	public void createMap(String targetHost, String apiKey, ValueCallback readyCallback) {
 		this.targetHost = targetHost;
 		this.apiKey = apiKey;
 
-		JS_InMapCreate();
+		JS_InMapCreate(readyCallback);
 	}
 
 	/**
@@ -348,9 +350,9 @@ public class INMap extends WebView {
 		});
 	}
 
-	private void JS_InMapCreate() {
+	private void JS_InMapCreate(ValueCallback readyCallback) {
 		String javaScriptString = String.format(Locale.US, "var navi = new INMap(\"%s\",\"%s\",\"map\");", targetHost, apiKey);
-		this.evaluate(javaScriptString, null);
+		this.evaluate(javaScriptString, readyCallback);
 	}
 
 	private void loadWebViewFromAssets() {

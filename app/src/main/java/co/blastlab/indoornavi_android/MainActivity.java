@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,6 +40,7 @@ import java.util.List;
 
 import co.blastlab.indoornavi_api.INBle;
 import co.blastlab.indoornavi_api.INData;
+import co.blastlab.indoornavi_api.algorithm.model.Anchor;
 import co.blastlab.indoornavi_api.navigation.INNavigation;
 import co.blastlab.indoornavi_api.INReport;
 import co.blastlab.indoornavi_api.PhoneModule;
@@ -65,6 +67,8 @@ import co.blastlab.indoornavi_api.service.BluetoothScanService;
 import co.blastlab.indoornavi_api.utils.MapUtil;
 import co.blastlab.indoornavi_api.utils.ReportUtil;
 
+import static android.webkit.WebView.setWebContentsDebuggingEnabled;
+
 public class MainActivity extends AppCompatActivity implements OnINMapReadyCallback {
 
 	private INMap inMap;
@@ -81,9 +85,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	INCircle inCirclePulledInner;
 
 
-	private int floorId = 5;
-	private String frontendServer = "https://indoornavi-frontend.azurewebsites.net";
-	private String backendServer = "https://indoornavi-backend.azurewebsites.net";
+	private int floorId = 12;
+	private String frontendServer = "http://expoxxi-indoornavi.westeurope.cloudapp.azure.com"; /*"http://13.95.225.230:90" "http://172.16.170.50:90";"https://expoxxi-indoornavi.azurewebsites.net"*/;
+	private String backendServer = "http://expoxxi-indoornavi.westeurope.cloudapp.azure.com"; /*"http://13.95.225.230:90" "http://172.16.170.50:90";"https://expoxxi-indoornavi.azurewebsites.net"*/;
 	private static final int REQUEST_EXTERNAL_STORAGE = 1;
 	private static final int REQUEST_INTERNET = 1;
 	private static final int REQUEST_ENABLE_BT = 1;
@@ -115,7 +119,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			Log.e("Indoor", "Service connected");
 			BluetoothScanService.SERVICE_CONNECTED = true;
 			bluetoothScanService = ((BluetoothScanService.BluetoothBinder) arg1).getService();
+			bluetoothScanService.setAnchorConfiguration(getAnchorConfiguration());
 			bluetoothScanService.setHandler(mHandler);
+			bluetoothScanService.setMaxScanDistance(14);
 		}
 
 		@Override
@@ -123,6 +129,21 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			bluetoothScanService = null;
 		}
 	};
+
+	@Override
+	public void onPause() {
+		inMap.onPause();
+		inMap.pauseTimers();
+		super.onPause();
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		inMap.resumeTimers();
+		inMap.onResume();
+	}
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -138,6 +159,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 		expandableList = (ExpandableListView) findViewById(R.id.navigationmenu);
 
+		floorId = getComplexes();
+		setWebContentsDebuggingEnabled(true);
+
 
 		NavigationView navigationView = findViewById(R.id.nav_view);
 		if (navigationView != null) {
@@ -151,6 +175,8 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		setNavigationViewListener();
 
 		startService(BluetoothScanService.class, bluetoothConnection);
+
+		sendCoords();
 	}
 
 	public void createPointsArrayForOffice1() {
@@ -224,16 +250,23 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		});
 	}
 
+	@Override
+	public void onReceivedError(int errorCode, String description) {
+		Log.e("WebView error: ", description);
+	}
+
+	@Override
 	public void onINMapReady(INMap mapView) {
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-		inMap.createMap(frontendServer, "TestAdmin");
+		inMap.createMap(frontendServer, "TestAdmin", null);
 		inMap.load(floorId, new OnObjectReadyCallback() {
 			@Override
 			public void onReady(Object o) {
+				floorId = getComplexes();
 				setBleAreaListener();
-				getAreas();
+				drawDownloadAreas();
 			}
 		});
 
@@ -246,7 +279,9 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				try {
 					new INMarker.INMarkerBuilder(inMap)
 						.setPosition(point)
-						.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
+						//.setIcon("https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png")
+						.setIcon(R.drawable.przezroczysta)
+						.setLabel("bl bla bla")
 						.build();
 				} catch (Exception e) {
 					Log.e("Create object exception", e.toString());
@@ -274,7 +309,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void saveCoordinates(Position position) {
 		try {
-			PhoneModule phoneModule = new PhoneModule(backendServer, inMap);
+			PhoneModule phoneModule = new PhoneModule(backendServer, "TestAdmin", floorId);
 
 			if (this.phoneID == -1) {
 				String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
@@ -288,13 +323,13 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void sendCoords() {
 		try {
-			PhoneModule phoneModule = new PhoneModule(backendServer, inMap);
+			PhoneModule phoneModule = new PhoneModule(backendServer, "TestAdmin", floorId);
 
 			if (this.phoneID == -1) {
 				String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-				Log.e("IndoorNavi", "Id: " + androidId);
 				this.phoneID = phoneModule.registerPhone("Android" + androidId);
 			}
+			Log.e("IndoorNavi", "Id: " + phoneID);
 			phoneModule.saveCoordinates(new Coordinates(23, 23, 23, this.phoneID, new Date()));
 		} catch (Exception e) {
 			Log.e("IndoorNavi", "Exception");
@@ -332,13 +367,13 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public void drawPoly(int index) {
-		try{
-		inPolyline = new INPolyline.INPolylineBuilder(inMap)
-			.setPoints(getPointsSetByIndex(index))
-			.setColor(Color.RED)
-			.build();
+		try {
+			inPolyline = new INPolyline.INPolylineBuilder(inMap)
+				.setPoints(getPointsSetByIndex(index))
+				.setColor(Color.RED)
+				.build();
 		} catch (Exception e) {
-			Log.e("Create object exception",  e.toString());
+			Log.e("Create object exception", e.toString());
 		}
 
 		if (inPolyline != null) {
@@ -351,16 +386,16 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	public void drawCircle(Point position) {
 		if (position == null) return;
 		if (inCircle == null) {
-			try{
-			inCircle = new INCircle.INCircleBuilder(inMap)
-				.setPosition(position)
-				.setRadius(8)
-				.setOpacity(0.3)
-				.setColor(Color.RED)
-				.setBorder(new Border(30, Color.GREEN))
-				.build();
+			try {
+				inCircle = new INCircle.INCircleBuilder(inMap)
+					.setPosition(position)
+					.setRadius(8)
+					.setOpacity(0.3)
+					.setColor(Color.RED)
+					.setBorder(new Border(30, Color.GREEN))
+					.build();
 			} catch (Exception e) {
-				Log.e("Create object exception",  e.toString());
+				Log.e("Create object exception", e.toString());
 			}
 		} else {
 			inCircle.setPosition(position);
@@ -370,14 +405,14 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void drawArea(int index) {
 		try {
-		inArea = new INArea.INAreaBuilder(inMap)
-			.setPoints(getPointsSetByIndex(index))
-			.setColor(Color.GREEN)
-			.setOpacity(0.1)
-			.setBorder(new Border(2, Color.GREEN))
-			.build();
+			inArea = new INArea.INAreaBuilder(inMap)
+				.setPoints(getPointsSetByIndex(index))
+				.setColor(Color.GREEN)
+				.setOpacity(0.1)
+				.setBorder(new Border(2, Color.GREEN))
+				.build();
 		} catch (Exception e) {
-			Log.e("Create object exception",  e.toString());
+			Log.e("Create object exception", e.toString());
 		}
 		inArea.addEventListener(new OnINObjectClickListener() {
 			@Override
@@ -405,13 +440,13 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void drawMarker(int index) {
 		try {
-		inMarker1 = new INMarker.INMarkerBuilder(inMap)
-			.setPosition(getMarkerPoint(index))
-			.setIcon(R.drawable.cat)
-			.setLabel(getMarkerLabel(index))
-			.build();
+			inMarker1 = new INMarker.INMarkerBuilder(inMap)
+				.setPosition(getMarkerPoint(index))
+				.setIcon(R.drawable.cat)
+				.setLabel(getMarkerLabel(index))
+				.build();
 		} catch (Exception e) {
-			Log.e("Create object exception",  e.toString());
+			Log.e("Create object exception", e.toString());
 		}
 
 		if (inMarker1 != null) {
@@ -459,7 +494,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 				.setPositionAt(INInfoWindow.Position.TOP)
 				.build();
 		} catch (Exception e) {
-			Log.e("Create object exception",  e.toString());
+			Log.e("Create object exception", e.toString());
 		}
 	}
 
@@ -519,52 +554,63 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		});
 	}
 
-	public void getComplexes() {
-		inMap.getComplex(new OnReceiveValueCallback<List<Complex>>() {
-			@Override
-			public void onReceiveValue(List<Complex> complexes) {
-				Log.e("Indoor", "Complex: " + complexes.get(0).name);
+	public int getComplexes() {
+
+		inMap.getComplex(complexes1 -> {
+			if (complexes1 != null) {
+				Log.e("Indoor", "Received complex: " + complexes1.get(0).name);
+				for (Complex complex : complexes1) {
+					if (complex.name.equals("GPNT")) {
+						int floorID = complex.buildings.get(0).floors.get(0).id;
+						inMap.waitUntilMapReady(oj ->
+							getAreas(floorID)
+						);
+						floorId =floorID;
+					}
+				}
 			}
 		});
+		return 5;
 	}
 
 	public void getPaths() {
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
-		inData.getPaths(paths -> {
-				Log.i("Indoor", "Received path: " + paths);
-			}
-		);
+		List<Path> paths = inData.getPaths(floorId);
+		Log.i("Indoor", "Received path: " + paths);
 	}
 
-	public void getAreas() {
+	public void getAreas(int floorId) {
 		INMap inMap = this.inMap;
 		INData inData = new INData(inMap, backendServer, "TestAdmin");
-		inData.getAreas(areas -> {
-				Log.i("Indoor", "Received areas: " + areas);
-				if(areas == null) return;
-				for (INArea area : areas) {
-					area.draw();
-					area.addEventListener(new OnINObjectClickListener() {
-						@Override
-						public void onClick() {
-							Point position = area.getCenterPoint();
-							if (inNavigation != null) {
-								inNavigation.stopNavigation();
-							}
-							inNavigation = new INNavigation(getApplicationContext(), inMap);
-							inNavigation.startNavigation(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1233, 517)), position, 0);
-							inNavigation.addEventListener(new OnNavigationMessageReceive<String>() {
-								@Override
-								public void onMessageReceive(String message) {
-									Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-									Log.e("indoor", "message: " + message);
-								}
-							});
+		areas = inData.getAreas(floorId);
+		Log.i("Indoor", "Received areas: " + areas);
+		drawDownloadAreas();
+	}
+
+	public void drawDownloadAreas() {
+		if (areas != null) {
+			for (INArea area : areas) {
+				area.draw();
+				area.addEventListener(new OnINObjectClickListener() {
+					@Override
+					public void onClick() {
+						Point position = area.getCenterPoint();
+						if (inNavigation != null) {
+							inNavigation.stopNavigation();
 						}
-					});
-				}
+						inNavigation = new INNavigation(getApplicationContext(), inMap);
+						inNavigation.startNavigation(MapUtil.pixelsToRealDimensions(inMap.getMapScale(), new Point(1233, 517)), position, 0);
+						inNavigation.addEventListener(new OnNavigationMessageReceive<String>() {
+							@Override
+							public void onMessageReceive(String message) {
+								Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+								Log.e("indoor", "message: " + message);
+							}
+						});
+					}
+				});
 			}
-		);
+		}
 	}
 
 	public void getLocalization(int index) {
@@ -631,7 +677,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 
 	public void quit() {
 		boolean isBound;
-		isBound = getApplicationContext().bindService( new Intent(getApplicationContext(), BluetoothScanService.class), bluetoothConnection, Context.BIND_AUTO_CREATE );
+		isBound = getApplicationContext().bindService(new Intent(getApplicationContext(), BluetoothScanService.class), bluetoothConnection, Context.BIND_AUTO_CREATE);
 		if (isBound)
 			getApplicationContext().unbindService(bluetoothConnection);
 	}
@@ -831,17 +877,18 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 					break;
 				case BluetoothScanService.ACTION_POSITION:
 					Point position = (Point) msg.obj;
+
 					Log.e(BluetoothScanService.TAG, "Position: x:" + position.x + ", y: " + position.y);
 					mActivity.get().drawCircle(position);
 
-					mActivity.get().inMap.pullToPath(position, 1, new OnReceiveValueCallback<Point>() {
-						@Override
-						public void onReceiveValue(Point point) {
-							if (point != null) {
-								mActivity.get().drawPulledCircle(point);
-							}
-						}
-					});
+//					mActivity.get().inMap.pullToPath(position, 1, new OnReceiveValueCallback<Point>() {
+//						@Override
+//						public void onReceiveValue(Point point) {
+//							if (point != null) {
+//								mActivity.get().drawPulledCircle(point);
+//							}
+//						}
+//					});
 					break;
 			}
 		}
@@ -850,15 +897,15 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	private void drawPulledCircle(Point position) {
 		if (inCirclePulled == null) {
 			try {
-			inCirclePulled = new INCircle.INCircleBuilder(inMap)
-				.setPosition(position)
-				.setRadius(30)
-				.setOpacity(0.3)
-				.setColor(Color.parseColor("#007FFF"))
-				.setBorder(new Border(4, Color.parseColor("#007FFF")))
-				.build();
+				inCirclePulled = new INCircle.INCircleBuilder(inMap)
+					.setPosition(position)
+					.setRadius(30)
+					.setOpacity(0.3)
+					.setColor(Color.parseColor("#007FFF"))
+					.setBorder(new Border(4, Color.parseColor("#007FFF")))
+					.build();
 			} catch (Exception e) {
-				Log.e("Create object exception",  e.toString());
+				Log.e("Create object exception", e.toString());
 			}
 		} else {
 			inCirclePulled.setPosition(position);
@@ -866,15 +913,15 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		}
 		if (inCirclePulledInner == null) {
 			try {
-			inCirclePulledInner = new INCircle.INCircleBuilder(inMap)
-				.setPosition(position)
-				.setRadius(8)
-				.setOpacity(1.0)
-				.setColor(Color.parseColor("#007FFF"))
-				.setBorder(new Border(0, Color.parseColor("#007FFF")))
-				.build();
+				inCirclePulledInner = new INCircle.INCircleBuilder(inMap)
+					.setPosition(position)
+					.setRadius(8)
+					.setOpacity(1.0)
+					.setColor(Color.parseColor("#007FFF"))
+					.setBorder(new Border(0, Color.parseColor("#007FFF")))
+					.build();
 			} catch (Exception e) {
-				Log.e("Create object exception",  e.toString());
+				Log.e("Create object exception", e.toString());
 			}
 		} else {
 			inCirclePulledInner.setPosition(position);
@@ -891,5 +938,67 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 			Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
 		}
+	}
+
+	public SparseArray<Anchor> getAnchorConfiguration() {
+		SparseArray<Anchor> anchorConfiguration = new SparseArray<>();
+
+		anchorConfiguration.append(65042, new Anchor(65042, new Position(32.12, 2.46, 3.00), 11));
+		anchorConfiguration.append(65054, new Anchor(65054, new Position(36.81, 1.40, 3.00), 11));
+		anchorConfiguration.append(65049, new Anchor(65049, new Position(32.20, 11.61, 3.00), 11));
+		anchorConfiguration.append(65048, new Anchor(65048, new Position(37.49, 12.27, 3.00), 11));
+
+		anchorConfiguration.append(65051, new Anchor(65051, new Position(24.60, 8.69, 3.00), 11));
+		anchorConfiguration.append(65044, new Anchor(65044, new Position(24.45, 1.97, 3.00), 11));
+		anchorConfiguration.append(65052, new Anchor(65052, new Position(29.91, 1.97, 3.00), 11));
+		anchorConfiguration.append(65043, new Anchor(65043, new Position(29.91, 9.09, 3.00), 11));
+
+		anchorConfiguration.append(65047, new Anchor(65047, new Position(34.61, 14.59, 3.00), 11));
+		anchorConfiguration.append(65046, new Anchor(65046, new Position(24.34, 14.41, 3.00), 11));
+
+
+//
+//		anchorConfiguration.append(65014, new Anchor(65014, new Position(5.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65002, new Anchor(65002, new Position(5.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65003, new Anchor(65003, new Position(5.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65012, new Anchor(65012, new Position(5.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65009, new Anchor(65009, new Position(5.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65004, new Anchor(65004, new Position(15.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65021, new Anchor(65021, new Position(15.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65007, new Anchor(65007, new Position(15.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65017, new Anchor(65017, new Position(15.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65005, new Anchor(65005, new Position(15.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65020, new Anchor(65020, new Position(25.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65013, new Anchor(65013, new Position(25.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65006, new Anchor(65006, new Position(25.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65019, new Anchor(65019, new Position(25.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65016, new Anchor(65016, new Position(25.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65015, new Anchor(65015, new Position(35.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65010, new Anchor(65010, new Position(35.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65008, new Anchor(65008, new Position(35.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65018, new Anchor(65018, new Position(35.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65011, new Anchor(65011, new Position(35.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65036, new Anchor(65036, new Position(45.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65041, new Anchor(65041, new Position(45.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65039, new Anchor(65039, new Position(45.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65033, new Anchor(65033, new Position(45.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65032, new Anchor(65032, new Position(45.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65034, new Anchor(65034, new Position(55.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65035, new Anchor(65035, new Position(55.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65037, new Anchor(65037, new Position(55.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65038, new Anchor(65038, new Position(55.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65029, new Anchor(65029, new Position(55.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65040, new Anchor(65040, new Position(65.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65026, new Anchor(65026, new Position(65.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65024, new Anchor(65024, new Position(65.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65027, new Anchor(65027, new Position(65.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65028, new Anchor(65028, new Position(65.00, 43.00, 8.00), 12));
+//		anchorConfiguration.append(65025, new Anchor(65025, new Position(70.00, 5.00, 8.00), 12));
+//		anchorConfiguration.append(65022, new Anchor(65022, new Position(70.00, 13.00, 8.00), 12));
+//		anchorConfiguration.append(65030, new Anchor(65030, new Position(70.00, 23.00, 8.00), 12));
+//		anchorConfiguration.append(65023, new Anchor(65023, new Position(70.00, 33.00, 8.00), 12));
+//		anchorConfiguration.append(65031, new Anchor(65031, new Position(70.00, 43.00, 8.00), 12));
+
+		return anchorConfiguration;
 	}
 }

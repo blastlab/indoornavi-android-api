@@ -85,7 +85,7 @@ public class INObject {
 	 * Removes object and its instance from frontend server, but do not destroys object class instance in your app.
 	 */
 	protected void erase() {
-		String javaScriptString = String.format("%s.remove();", objectInstance);
+		String javaScriptString = String.format("%s.erase();", objectInstance);
 		evaluate(javaScriptString, null);
 	}
 
