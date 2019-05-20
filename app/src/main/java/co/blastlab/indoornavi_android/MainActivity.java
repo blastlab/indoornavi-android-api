@@ -264,6 +264,7 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 		inMap.load(floorId, new OnObjectReadyCallback() {
 			@Override
 			public void onReady(Object o) {
+				floorId = getComplexes();
 				setBleAreaListener();
 				drawDownloadAreas();
 			}
@@ -554,21 +555,37 @@ public class MainActivity extends AppCompatActivity implements OnINMapReadyCallb
 	}
 
 	public int getComplexes() {
-		INData inData = new INData(inMap, backendServer, "TestAdmin");
-		List<Complex> complexes = inData.getComplexes();
-		if (complexes != null) {
-			Log.e("Indoor", "Received complex: " + complexes.get(0).name);
-			for (Complex complex : complexes) {
-				if(complex.name.equals("GPNT")) {
-					int floorID = complex.buildings.get(0).floors.get(0).id;
-					inMap.waitUntilMapReady(oj ->
-						getAreas(floorID)
-					);
-					return floorID;
+//		INData inData = new INData(inMap, backendServer, "TestAdmin");
+//		List<Complex> complexes = inData.getComplexes();
+//		if (complexes != null) {
+//			Log.e("Indoor", "Received complex: " + complexes.get(0).name);
+//			for (Complex complex : complexes) {
+//				if(complex.name.equals("GPNT")) {
+//					int floorID = complex.buildings.get(0).floors.get(0).id;
+//					inMap.waitUntilMapReady(oj ->
+//						getAreas(floorID)
+//					);
+//					return floorID;
+//				}
+//			}
+//		}
+//		return -1;
+
+		inMap.getComplex(complexes1 -> {
+			if (complexes1 != null) {
+				Log.e("Indoor", "Received complex: " + complexes1.get(0).name);
+				for (Complex complex : complexes1) {
+					if (complex.name.equals("GPNT")) {
+						int floorID = complex.buildings.get(0).floors.get(0).id;
+						inMap.waitUntilMapReady(oj ->
+							getAreas(floorID)
+						);
+						floorId =floorID;
+					}
 				}
 			}
-		}
-		return -1;
+		});
+		return 5;
 	}
 
 	public void getPaths() {
