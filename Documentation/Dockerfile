@@ -5,4 +5,4 @@ RUN apt-get update \
     make \
     python-pip
 
-RUN pip install sphinx sphinx_rtd_theme recommonmark
+RUN pip install sphinx==1.7.6 sphinx_rtd_theme recommonmark
